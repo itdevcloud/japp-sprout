@@ -48,32 +48,40 @@ public class PropertyManager {
 	private  Properties properties = null;
 
 	
-	public PropertyManager(String fileNameWithClassPath) {
+	public PropertyManager(String... propertyFileNames) {
 		super();
-		if (StringUtil.isEmptyOrNull(fileNameWithClassPath) ) {
-			throw new RuntimeException("fileNameWithClassPath can't be null or empty! check code!");
+		if (propertyFileNames == null ) {
+			throw new RuntimeException("propertyFileNames can't be null or empty! check code!");
 		}
-		if(!fileNameWithClassPath.startsWith("/")) {
-			fileNameWithClassPath = "/" + fileNameWithClassPath;
-		}
-		logger.info("PropertyManager load property begin...... file = " + fileNameWithClassPath);
 		properties = new Properties();
-		InputStream in = null;
-		try {
-			in = PropertyManager.class.getResourceAsStream("/" + fileNameWithClassPath);
-			properties.load(in);
-			in.close();
-			in = null;
-		} catch (Exception e) {
-			throw new RuntimeException("can not load property file '" + fileNameWithClassPath + "' from classpath.", e);
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (Exception e) {
-					logger.warn("Cannot close InputStream.", e);
+		int order = 0;
+		for (String fileName : propertyFileNames) {
+			order++;
+			if (StringUtil.isEmptyOrNull(fileName) ) {
+				logger.error("fileName (order = " + order +") can't be null or empty! check code!");
+				continue;
+			}
+			if(!fileName.startsWith("/")) {
+				fileName = "/" + fileName;
+			}
+			logger.info("PropertyManager load property begin...... file = " + fileName);
+			InputStream in = null;
+			try {
+				in = PropertyManager.class.getResourceAsStream("/" + fileName);
+				properties.load(in);
+				in.close();
+				in = null;
+			} catch (Exception e) {
+				throw new RuntimeException("can not load property file '" + fileName + "' from classpath.", e);
+			} finally {
+				if (in != null) {
+					try {
+						in.close();
+					} catch (Exception e) {
+						logger.warn("Cannot close InputStream.", e);
+					}
+					;
 				}
-				;
 			}
 		}
 		resolveVariables();
@@ -109,8 +117,6 @@ public class PropertyManager {
 	public String getRequiredPropertyAsString(String propertyName) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.error("Can not find or get empty value for the property ( " + propertyName
-					+ " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not find or get empty value for the property( " + propertyName
 					+ " ) from configration file, please check configuration file.");
 		}
@@ -138,15 +144,12 @@ public class PropertyManager {
 	public int getRequiredPropertyAsInt(String propertyName) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.error("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
 		}
 		int retValue = 0;
 		try {
 			retValue = Integer.valueOf(value);
 		} catch (Exception e) {
-			logger.error("Can not convert property into int (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not convert property into int (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
 		}
@@ -163,8 +166,6 @@ public class PropertyManager {
 		try {
 			retValue = Double.valueOf(value);
 		} catch (Exception e) {
-			logger.error("Can not convert property into double (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not convert property into double (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
 		}
@@ -174,15 +175,12 @@ public class PropertyManager {
 	public double getRequiredPropertyAsDouble(String propertyName) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.error("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
 		}
 		double retValue = 0;
 		try {
 			retValue = Double.valueOf(value);
 		} catch (Exception e) {
-			logger.error("Can not convert property into double (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not convert property into double (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
 		}
@@ -199,8 +197,6 @@ public class PropertyManager {
 		try {
 			retValue = new BigDecimal(value);
 		} catch (Exception e) {
-			logger.error("Can not convert property into double (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not convert property into BigDecimal (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
 		}
@@ -210,15 +206,12 @@ public class PropertyManager {
 	public BigDecimal getRequiredPropertyAsBigDecimal(String propertyName) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.error("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
 		}
 		BigDecimal retValue = new BigDecimal(0);
 		try {
 			retValue = new BigDecimal(value);
 		} catch (Exception e) {
-			logger.error("Can not convert property into double (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not convert property into BigDecimal (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
 		}
@@ -235,8 +228,6 @@ public class PropertyManager {
 		try {
 			retValue = Boolean.valueOf(value);
 		} catch (Exception e) {
-			logger.error("Can not convert property into int (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not convert property into int (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
 		}
@@ -246,15 +237,12 @@ public class PropertyManager {
 	public boolean getRequiredPropertyAsBoolean(String propertyName) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.error("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
 		}
 		boolean retValue = false;
 		try {
 			retValue = Boolean.valueOf(value);
 		} catch (Exception e) {
-			logger.error("Can not convert property into boolean (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not convert property into boolean (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
 		}
@@ -269,7 +257,7 @@ public class PropertyManager {
 	}
 
 
-	private String printProperties() {
+	public String printProperties() {
 		StringBuffer strBuffer = new StringBuffer();
 		strBuffer.append("Properties = ");
 		if (properties == null) {
@@ -352,6 +340,16 @@ public class PropertyManager {
 			} catch (Exception e) {
 				logger.warn("error when getting system envrionment variable (" + variableName + "...", e);
 				e.printStackTrace();
+				value = null;
+			}
+			if(value == null) {
+				try {
+					value = System.getenv(variableName);
+				} catch (Exception e) {
+					logger.warn("error when getting system envrionment variable (" + variableName + "...", e);
+					e.printStackTrace();
+					value = null;
+				}
 			}
 		}
 		value = (value == null ? "" : value);
@@ -361,7 +359,7 @@ public class PropertyManager {
 
 
 	public String getRequiredPropertyAsString(String prefix, String propertyName) {
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 		if (prefix == null) {
 			return getRequiredPropertyAsString(propertyName);
 		}
@@ -377,7 +375,7 @@ public class PropertyManager {
 	}
 
 	public String getPropertyAsString(String prefix, String propertyName, String defaultValue) {
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 		if (prefix == null) {
 			return getPropertyAsString(propertyName, defaultValue);
 		}
@@ -394,7 +392,7 @@ public class PropertyManager {
 
 	public int getRequiredPropertyAsInt(String prefix, String propertyName) {
 
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 
 		if (prefix == null) {
 			return getRequiredPropertyAsInt(propertyName);
@@ -412,7 +410,7 @@ public class PropertyManager {
 	}
 
 	public int getPropertyAsInt(String prefix, String propertyName, int defaultValue) {
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 
 		if (prefix == null) {
 			return getPropertyAsInt(propertyName, defaultValue);
@@ -429,7 +427,7 @@ public class PropertyManager {
 	}
 
 	public BigDecimal getPropertyAsBigDecimal(String prefix, String propertyName, BigDecimal defaultValue) {
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 		if (prefix == null) {
 			return getPropertyAsBigDecimal(propertyName, defaultValue);
 		}
@@ -445,7 +443,7 @@ public class PropertyManager {
 	}
 
 	public BigDecimal getRequiredPropertyAsBigDecimal(String prefix, String propertyName) {
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 		if (prefix == null) {
 			return getRequiredPropertyAsBigDecimal(propertyName);
 		}
@@ -461,7 +459,7 @@ public class PropertyManager {
 	}
 
 	public boolean getPropertyAsBoolean(String prefix, String propertyName, boolean defaultValue) {
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 		if (prefix == null) {
 			return getPropertyAsBoolean(propertyName, defaultValue);
 		}
@@ -477,7 +475,7 @@ public class PropertyManager {
 	}
 
 	public boolean getRequiredPropertyAsBoolean(String prefix, String propertyName) {
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 		if (prefix == null) {
 			return getRequiredPropertyAsBoolean(propertyName);
 		}
@@ -493,7 +491,7 @@ public class PropertyManager {
 	}
 
 	public double getPropertyAsDouble(String prefix, String propertyName, double defaultValue) {
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 		if (prefix == null) {
 			return getPropertyAsDouble(propertyName, defaultValue);
 		}
@@ -509,7 +507,7 @@ public class PropertyManager {
 	}
 
 	public double getRequiredPropertyAsDouble(String prefix, String propertyName) {
-		logger.debug("prefix: " + prefix);
+		//logger.debug("prefix: " + prefix);
 		if (prefix == null) {
 			return getRequiredPropertyAsDouble(propertyName);
 		}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration >
+	<Properties>
+		<Property name="logPath">${env:common.log.dir:-./logs/common}</Property>
+		<Property name="logFileSimpleName">common</Property>
+	</Properties>
+	<Appenders>
+		<RollingFile name="DailyRollingFile" fileName="${logPath}/${logFileSimpleName}.log"
+			filePattern="${logPath}/${logFileSimpleName}-%d{yyyy-MM-dd}.log">
+			<PatternLayout>
+				<pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{JAPPCORE_TX_ID}] %c{1} - %m%n
+				</pattern>
+				
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1"	modulate="true" />
+			</Policies>
+		</RollingFile>
+
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout
+				pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{JAPPCORE_TX_ID}] %c{1} - %m%n" />
+		</Console>
+	</Appenders>
+
+	<Loggers>
+		<Logger name="com.itdevcloud" level="debug" additivity="false">
+			<appender-ref ref="DailyRollingFile" level="debug" />
+			<appender-ref ref="console" level="debug" />
+		</Logger>
+		<Root level="info" additivity="false">
+			<appender-ref ref="DailyRollingFile" level="debug" />
+			<appender-ref ref="console" level="debug" />
+		</Root>
+	</Loggers>
+</Configuration>

@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.itdevcloud</groupId>
-	<artifactId>japp-build</artifactId>
+	<artifactId>japp-sprout</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
 

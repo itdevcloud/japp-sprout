@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.itdevcloud.sprout</groupId>
+	<artifactId>japp-sprout</artifactId>
+	<version>1.0.0</version>
+	<packaging>pom</packaging>
+
+	<name>Spring Boot App</name>
+	<description>Build for Spring Boot APP</description>
+	<url>https://github.com/itdevcloud/japp-sprout/japp-sprout-spring-boot</url>
+
+	<developers>
+		<developer>
+			<id>itdevcloud</id>
+			<name>IT DEV Cloud Team</name>
+			<organization>Itdevcloud</organization>
+			<organizationUrl>https://github.com/itdevcloud</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git://github.com/itdevcloud/japp-sprout.git</connection>
+		<developerConnection>scm:git:ssh://github.com:itdevcloud/japp-sprout.git</developerConnection>
+		<url>https://github.com/itdevcloud/japp-sprout/tree/master</url>
+	</scm>
+	
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	
+	<modules>
+		<module>japp-spring-boot-api-core</module>
+		<module>japp-spring-boot-api-app</module>
+		<module>japp-spring-boot-api-app-gen</module>
+	</modules>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+</project>

@@ -1,0 +1,333 @@
+/*==============================================================*/
+/* Table: APPLICATION_CONTROL_PARAMETER                                      */
+/*==============================================================*/
+create table APPLICATION_CONTROL_PARAMETER (
+   ID                   numeric              identity,
+   APPLICATION_IDENTIFIER varchar(100)         not null,
+   PARAMETER_NAME       varchar(100)         not null,
+   PARAMETER_VALUE      varchar(1000)         null,
+   APPLICATION_ENVIRONMENT_NAME varchar(100)         null,
+   COMMENT_NOTE         VARCHAR(1000)        null,
+   EFFECTIVE_TS         datetime             not null,
+   EXPIRY_TS            datetime             null,
+   CREATE_USER          varchar(255)          default 'crs',
+   CREATE_TS            timestamp             default CURRENT_TIMESTAMP,
+   UPDATE_USER          varchar(255)         null,
+   UPDATE_TS            datetime             null,
+   END_TS               datetime             null,
+   END_REASON_DESC      varchar(500)         null,
+   constraint ACPA_PK primary key (ID)
+)
+;
+
+/*==============================================================*/
+/* Index: ACPA_UI                                               */
+/*==============================================================*/
+create unique index ACPA_UI on APPLICATION_CONTROL_PARAMETER (
+APPLICATION_IDENTIFIER ASC,
+PARAMETER_NAME ASC,
+APPLICATION_ENVIRONMENT_NAME ASC,
+EFFECTIVE_TS ASC
+)
+;
+
+/*==============================================================*/
+/* Index: ACPA_I1                                               */
+/*==============================================================*/
+create index ACPA_I1 on APPLICATION_CONTROL_PARAMETER (
+APPLICATION_IDENTIFIER ASC,
+PARAMETER_NAME ASC,
+APPLICATION_ENVIRONMENT_NAME ASC,
+EXPIRY_TS ASC
+)
+;
+
+/*==============================================================*/
+/* Table: APPLICATION_ROLE                                      */
+/*==============================================================*/
+create table APPLICATION_ROLE (
+   ID                   INT NOT NULL AUTO_INCREMENT,
+   ROLE_NAME            varchar(100)         not null,
+   ROLE_DESCRIPTION     varchar(255)         null,
+   EFFECTIVE_TS         datetime             not null,
+   EXPIRY_TS            datetime             null,
+   CREATE_USER          varchar(255)          default 'crs',
+   CREATE_TS            timestamp              default CURRENT_TIMESTAMP,
+   UPDATE_USER          varchar(255)         null,
+   UPDATE_TS            datetime             null,
+   END_TS               datetime             null,
+   END_REASON_DESC      varchar(500)         null,
+   constraint AROL_PK primary key (ID)
+)
+;
+
+/*==============================================================*/
+/* Index: AROL_UI                                               */
+/*==============================================================*/
+create unique index AROL_UI on APPLICATION_ROLE (
+ROLE_NAME ASC
+)
+;
+
+/*==============================================================*/
+/* Table: APPLICATION_USER                                      */
+/*==============================================================*/
+create table APPLICATION_USER (
+   ID                   INT NOT NULL AUTO_INCREMENT,
+   LOGIN_ID             varchar(255)         not null,
+   CIDR_WHITE_LIST      varchar(1000)        null,
+   HASHED_PASSWORD      varchar(1000)        null,
+   LAST_NAME            varchar(80)          null,
+   FIRST_NAME           varchar(80)          null,
+   MIDDLE_NAME          varchar(80)          null,
+   EMAIL_ADDRESS        varchar(255)         not null,
+   CONTACT_PHONE_NUMBER varchar(25)          null,
+   CONTACT_PHONE_EXTENSION varchar(10)       null,
+   SP_SECURITY_ID       varchar(255)         null,
+   EFFECTIVE_TS         datetime             not null,
+   EXPIRY_TS            datetime             null,
+   CREATE_USER          varchar(255)         default 'CRS',
+   CREATE_TS            timestamp            default CURRENT_TIMESTAMP,
+   UPDATE_USER          varchar(255)         null,
+   UPDATE_TS            datetime             null,
+   END_TS               datetime             null,
+   END_REASON_DESC      varchar(500)         null,
+   constraint AUSE_PK primary key (ID)
+)
+;
+
+
+/*==============================================================*/
+/* Index: AUSE_UI2                                              */
+/*==============================================================*/
+create unique index AUSE_UI2 on APPLICATION_USER (
+LOGIN_ID ASC
+)
+;
+
+/*==============================================================*/
+/* Index: AUSE_UI3                                              */
+/*==============================================================*/
+create unique index AUSE_UI3 on APPLICATION_USER (
+EMAIL_ADDRESS ASC
+);
+
+/*==============================================================*/
+/* Table: APPLICATION_USER_BUSINESS_ROLE                        */
+/*==============================================================*/
+create table APPLICATION_USER_BUSINESS_ROLE (
+   ID                   INT NOT NULL AUTO_INCREMENT,
+   APPLICATION_USER_ID  INT              not null,
+   BUSINESS_ROLE_ID     INT              not null,
+   USER_ROLE_DESCRIPTION varchar(255)         null,
+   EFFECTIVE_TS         datetime             not null,
+      PRIMARY_FLAG         char(1)              null,
+   EXPIRY_TS            datetime             null,
+   CREATE_USER          varchar(255)          default 'crs',
+   CREATE_TS            timestamp              default CURRENT_TIMESTAMP,
+   UPDATE_USER          varchar(255)         null,
+   UPDATE_TS            datetime             null,
+   END_TS               datetime             null,
+   END_REASON_DESC      varchar(500)         null,
+   constraint AUSR_PK primary key (ID)
+)
+;
+
+/*==============================================================*/
+/* Index: AUSR_UI                                               */
+/*==============================================================*/
+create unique index AUSR_UI on APPLICATION_USER_BUSINESS_ROLE (
+APPLICATION_USER_ID ASC,
+BUSINESS_ROLE_ID ASC,
+EFFECTIVE_TS ASC
+)
+;
+
+/*==============================================================*/
+/* Table: APPLICATION_USER_APPLICATION                             */
+/*==============================================================*/
+create table APPLICATION_USER_APPLICATION (
+   ID                   INT NOT NULL AUTO_INCREMENT,
+   APPLICATION_USER_ID  INT              not null,
+   APPLICATION_ID       INT              not null,
+   DESCRIPTION          varchar(500)         null,
+   EFFECTIVE_TS         datetime             not null,
+   EXPIRY_TS            datetime             null,
+      PRIMARY_FLAG         char(1)              null,
+   CREATE_USER          varchar(255)          default 'crs',
+   CREATE_TS            timestamp              default CURRENT_TIMESTAMP,
+   UPDATE_USER          varchar(255)         null,
+   UPDATE_TS            datetime             null,
+   END_TS               datetime             null,
+   END_REASON_DESC      varchar(500)         null,
+   constraint AUDI_PK primary key (ID)
+)
+;
+
+/*==============================================================*/
+/* Index: AUDI_UI                                               */
+/*==============================================================*/
+create unique index AUDI_UI on APPLICATION_USER_APPLICATION (
+APPLICATION_USER_ID ASC,
+APPLICATION_ID ASC,
+EFFECTIVE_TS ASC
+)
+;
+
+/*==============================================================*/
+/* Table: CRS_REFERENCE_CODE                                   */
+/*==============================================================*/
+create table CRS_REFERENCE_CODE (
+   ID                   INT NOT NULL AUTO_INCREMENT,
+   CODE_ENTITY_IDENTIFIER varchar(100)         not null,
+   CODE                 varchar(100)         not null,
+   CODE_NAME            varchar(255)         null,
+   ENG_DESCRIPTION      varchar(500)         null,
+   FR_DESCRIPTION       varchar(500)         null,
+   PARENT_CODE_ID       INT              null,
+   EFFECTIVE_TS         datetime             not null,
+   EXPIRY_TS            datetime             null,
+   CREATE_USER          varchar(255)          default 'crs',
+   CREATE_TS            timestamp              default CURRENT_TIMESTAMP,
+   UPDATE_USER          varchar(255)         null,
+   UPDATE_TS            datetime             null,
+   END_TS               datetime             null,
+   END_REASON_DESC      varchar(500)         null,
+   constraint IRCO_PK primary key (ID)
+)
+;
+
+/*==============================================================*/
+/* Index: IRCO_UI1                                              */
+/*==============================================================*/
+create unique index IRCO_UI1 on CRS_REFERENCE_CODE (
+CODE_ENTITY_IDENTIFIER ASC,
+CODE ASC,
+PARENT_CODE_ID ASC,
+EFFECTIVE_TS ASC
+)
+;
+
+/*==============================================================*/
+/* Index: IRCO_I1                                               */
+/*==============================================================*/
+create index IRCO_I1 on CRS_REFERENCE_CODE (
+PARENT_CODE_ID ASC,
+CODE_ENTITY_IDENTIFIER ASC
+)
+;
+
+/*==============================================================*/
+/* Index: IRCO_I2                                               */
+/*==============================================================*/
+create index IRCO_I2 on CRS_REFERENCE_CODE (
+CODE_ENTITY_IDENTIFIER ASC,
+CODE ASC,
+END_TS ASC
+)
+;
+
+/*==============================================================*/
+/* Index: IRCO_I3                                               */
+/*==============================================================*/
+create index IRCO_I3 on CRS_REFERENCE_CODE (
+CODE_ENTITY_IDENTIFIER ASC,
+CODE ASC,
+EFFECTIVE_TS ASC
+)
+;
+
+
+/*==============================================================*/
+/* Table: BUSINESS_ROLE                                         */
+/*==============================================================*/
+create table BUSINESS_ROLE (
+   ID                   INT NOT NULL AUTO_INCREMENT,
+   ROLE_NAME            varchar(100)         not null,
+   ROLE_DESCRIPTION     varchar(255)         null,
+   EFFECTIVE_TS         datetime             not null,
+   EXPIRY_TS            datetime             null,
+   CREATE_USER          varchar(255)          default 'crs',
+   CREATE_TS            timestamp              default CURRENT_TIMESTAMP,
+   UPDATE_USER          varchar(255)         null,
+   UPDATE_TS            datetime             null,
+   END_TS               datetime             null,
+   END_REASON_DESC      varchar(500)         null,
+   constraint BROL_PK primary key (ID)
+)
+;
+
+/*==============================================================*/
+/* Index: BROL_UI                                               */
+/*==============================================================*/
+create unique index BROL_UI on BUSINESS_ROLE (
+ROLE_NAME ASC
+)
+;
+
+/*==============================================================*/
+/* Table: BUSINESS_ROLE_APPLICATION_ROLE                        */
+/*==============================================================*/
+create table BUSINESS_ROLE_APPLICATION_ROLE (
+   ID                   INT NOT NULL AUTO_INCREMENT,
+   APPLICATION_ROLE_ID  INT              not null,
+   BUSINESS_ROLE_ID     INT              not null,
+   EFFECTIVE_TS         datetime             not null,
+   EXPIRY_TS            datetime             null,
+   CREATE_USER          varchar(255)          default 'crs',
+   CREATE_TS            timestamp              default CURRENT_TIMESTAMP,
+   UPDATE_USER          varchar(255)         null,
+   UPDATE_TS            datetime             null,
+   END_TS               datetime             null,
+   END_REASON_DESC      varchar(500)         null,
+   constraint BRAR_PK primary key (ID)
+)
+;
+
+/*==============================================================*/
+/* Index: BRAR_UI                                               */
+/*==============================================================*/
+create unique index BRAR_UI on BUSINESS_ROLE_APPLICATION_ROLE (
+APPLICATION_ROLE_ID ASC,
+BUSINESS_ROLE_ID ASC,
+EFFECTIVE_TS ASC
+)
+;
+
+
+
+alter table APPLICATION_USER_BUSINESS_ROLE
+   add constraint AUSE_AURO_FK foreign key (APPLICATION_USER_ID)
+      references APPLICATION_USER (ID)
+;
+
+alter table APPLICATION_USER_BUSINESS_ROLE
+   add constraint BROL_AUBR_FK foreign key (BUSINESS_ROLE_ID)
+      references BUSINESS_ROLE (ID)
+;
+
+alter table APPLICATION_USER_APPLICATION
+   add constraint AUSE_AUDI_FK foreign key (APPLICATION_USER_ID)
+      references APPLICATION_USER (ID)
+;
+
+alter table APPLICATION_USER_APPLICATION
+   add constraint BRCO_AUSE_FK foreign key (APPLICATION_ID)
+      references CRS_REFERENCE_CODE (ID)
+;
+
+alter table CRS_REFERENCE_CODE
+   add constraint PARENT_CODE_FK foreign key (PARENT_CODE_ID)
+      references CRS_REFERENCE_CODE (ID)
+;
+
+alter table BUSINESS_ROLE_APPLICATION_ROLE
+   add constraint AROL_BRAR_FK foreign key (APPLICATION_ROLE_ID)
+      references APPLICATION_ROLE (ID)
+;
+
+alter table BUSINESS_ROLE_APPLICATION_ROLE
+   add constraint BROL_BRAR_FK foreign key (BUSINESS_ROLE_ID)
+      references BUSINESS_ROLE (ID)
+;
+

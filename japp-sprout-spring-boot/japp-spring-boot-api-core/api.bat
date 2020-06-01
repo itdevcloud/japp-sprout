@@ -1,0 +1,1 @@
+mvn -f pom-war.xml clean install -U -DskipTests

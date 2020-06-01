@@ -1,0 +1,1 @@
+mvn install:install-file -DlocalRepositoryPath=${project.basedir}/local-repo/ -Dfile=${project.basedir}/lib/jcommon/pisces-jcommon-1.0.0.jar  -DpomFile=${project.basedir}/lib/jcommon/pom.xml -DcreateChecksum=true

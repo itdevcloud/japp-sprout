@@ -1,0 +1,9 @@
+url=jdbc:sqlserver://sdccdev01sql001rusbits.database.windows.net:1433;database=sdccdev01sdb01rusbits
+database=sdccdev01sdb01rusbits
+user=Srv_D_rgp109_mysqlpaas
+password=Bc9pUPj2NtTNUeQA3fJT
+
+encrypt=true
+trustServerCertificate=false
+hostNameInCertificate=*.database.windows.net;
+loginTimeout=30;

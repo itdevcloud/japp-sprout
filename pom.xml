@@ -37,10 +37,8 @@
 	</licenses>
 	
 	<modules>
-		<module>japp-javase-common</module>
-		<module>japp-spring-boot-api-core</module>
-		<module>japp-spring-boot-api-app</module>
-		<module>japp-spring-boot-api-app-gen</module>
+		<module>japp-se-common</module>
+		<module>japp-sprout-spring-boot</module>
 	</modules>
 
 	<distributionManagement>

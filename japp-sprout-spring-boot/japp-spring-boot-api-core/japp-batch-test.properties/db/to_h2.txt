@@ -1,0 +1,9 @@
+replace 
+	"BITS_OWN." -> ""
+	"go" -> ";"
+	"numeric              identity," -> "INT NOT NULL AUTO_INCREMENT,"
+	"default GETDATE()" -> "default CURRENT_TIMESTAMP"
+	"default SUSER_SNAME()" -> "default 'bits'"
+	"numeric" -> "INT"
+	"bits_own." -> ""
+	"getdate()" -> "CURRENT_TIMESTAMP"

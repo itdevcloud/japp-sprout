@@ -1,0 +1,20 @@
+### MS SQL Server (local installation - optional)
+1. Install SqlServer Express and open SqlServer Management Studio
+2. Create Database with name "bits"
+3. Go to Server properties -> Security -> SQL Server and Windows Authentication mode
+4. Open "Sql Server Configuration Manager": SQL Server Network Configuration -> Protocols for <XXX> -> Enable TCP/IP
+5. Restart Service 
+
+## DB creation and setup
+CREATE LOGIN bits_app WITH PASSWORD = 'bits_app'
+GO
+
+CREATE USER bits_own FOR LOGIN bits_app
+GO
+
+-- Add user to the database owner role
+EXEC sp_addrolemember N'db_owner', N'bits_own'
+GO
+
+create schema BITS_OWN authorization BITS_OWN
+go

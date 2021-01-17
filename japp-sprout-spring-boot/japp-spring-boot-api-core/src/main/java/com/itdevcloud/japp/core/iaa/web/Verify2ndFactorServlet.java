@@ -41,8 +41,8 @@ import com.itdevcloud.japp.core.iaa.service.IaaService;
 import com.itdevcloud.japp.core.iaa.service.JwtService;
 import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
-import com.itdevcloud.tools.common.security.Hasher;
-import com.itdevcloud.tools.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.security.Hasher;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * The Verify2ndFactorServlet is used for supporting two-factor authentication service.

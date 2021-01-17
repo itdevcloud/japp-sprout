@@ -23,14 +23,12 @@ package com.itdevcloud.japp.core.api.bean;
  * @since 1.0.0
  */
 import java.io.Serializable;
-import java.util.List;
-
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
-import com.itdevcloud.tools.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class BaseResponse implements Serializable, AppFactoryComponentI {
 

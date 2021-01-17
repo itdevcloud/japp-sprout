@@ -38,7 +38,7 @@ import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
 import com.itdevcloud.japp.core.iaa.service.IaaUser;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
-import com.itdevcloud.tools.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  *
  * @author Marvin Sun

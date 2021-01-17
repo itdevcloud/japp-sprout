@@ -21,6 +21,7 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -29,10 +30,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+//import javax.xml.bind.DatatypeConverter;
 /**
  * Class Definition
  *
@@ -141,7 +139,8 @@ public class Crypter extends CryptoBase {
 	}
 
 	public String getKey() {
-		return DatatypeConverter.printBase64Binary(key.getEncoded());
+		return Base64.getEncoder().encodeToString(key.getEncoded());
+		//return DatatypeConverter.printBase64Binary(key.getEncoded());
 	}
 
 	private Key generateKey() {

@@ -46,8 +46,8 @@ import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
-import com.itdevcloud.tools.common.security.Hasher;
-import com.itdevcloud.tools.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.security.Hasher;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;

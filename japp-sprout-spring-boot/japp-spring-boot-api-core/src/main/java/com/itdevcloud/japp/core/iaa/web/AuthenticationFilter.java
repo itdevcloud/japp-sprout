@@ -51,7 +51,7 @@ import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.core.service.notification.SystemNotification;
 import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
-import com.itdevcloud.tools.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * This Servlet Filter provides the support for verifying that each incoming

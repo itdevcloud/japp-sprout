@@ -19,7 +19,7 @@ package com.itdevcloud.japp.se.common.security;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 
-import javax.xml.bind.DatatypeConverter;
+//import javax.xml.bind.DatatypeConverter;
 /**
  * Class Definition
  *

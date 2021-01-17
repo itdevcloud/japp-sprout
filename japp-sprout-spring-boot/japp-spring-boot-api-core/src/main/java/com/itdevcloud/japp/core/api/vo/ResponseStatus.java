@@ -30,8 +30,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import com.itdevcloud.tools.common.service.PropertyManager;
-import com.itdevcloud.tools.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.service.PropertyManager;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
 public class ResponseStatus implements Serializable {

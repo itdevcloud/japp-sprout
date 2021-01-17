@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-  <groupId>com.itdevcloud.tools</groupId>
+  <groupId>com.itdevcloud.japp.se</groupId>
   <artifactId>common</artifactId>
   <versioning>
     <release>1.0.0</release>

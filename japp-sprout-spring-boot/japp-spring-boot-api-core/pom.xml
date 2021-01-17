@@ -28,9 +28,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.itdevcloud.tools</groupId>
-			<artifactId>pisces-jcommon</artifactId>
-			<version>1.0.0</version>
+			<groupId>com.itdevcloud.sprout</groupId>
+			<artifactId>japp-se-common</artifactId>
+			<version>0.0.1</version>
 		</dependency>
 		<!-- Spring -->
 		<dependency>

@@ -27,7 +27,7 @@ import java.io.Serializable;
 
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
-import com.itdevcloud.tools.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class BaseRequest implements Serializable, AppFactoryComponentI {
 

@@ -40,7 +40,7 @@ import com.itdevcloud.japp.core.common.CommandInfo;
 import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.processor.RequestProcessor;
-import com.itdevcloud.tools.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 @Component
 public abstract class BaseCommandController {

@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
-import com.itdevcloud.tools.common.util.SecurityUtil;
+import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.sendgrid.Client;
 import com.sendgrid.Method;
 import com.sendgrid.Request;

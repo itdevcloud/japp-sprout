@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.config.AppConfigService;
-import com.itdevcloud.tools.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
 //import ca.on.gov.ltc.startkit.common.SkConfigKeys;

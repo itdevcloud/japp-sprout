@@ -26,7 +26,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @author Marvin Sun
  * @since 1.0.0
  */
-public class Hasher extends CryptoBase {
+public class Hasher  {
 
 	//private static final Logger logger = LogManager.getLogger(Hasher.class);
 	private static String preferredHashAlgorithm = "SHA-512";
@@ -46,9 +46,9 @@ public class Hasher extends CryptoBase {
 			MessageDigest algorithm = MessageDigest.getInstance(method);
 
 			algorithm.reset();
-			algorithm.update(getBytes(message));
+			algorithm.update(StringUtil.getBytes(message));
 
-			return encodeBase64(algorithm.digest());
+			return StringUtil.encodeBase64(algorithm.digest());
 
 		}catch (Exception e) {
 			//logger.error(e);

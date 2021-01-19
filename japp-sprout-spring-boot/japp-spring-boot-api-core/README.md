@@ -9,7 +9,7 @@ Description: TBA
  - build jar: jar.bat
  - build war: api.bat
 
-## Deploy
+## Deploy to app server (tomcat)
  - start tomcat server
  - run api-deploy.bat
    

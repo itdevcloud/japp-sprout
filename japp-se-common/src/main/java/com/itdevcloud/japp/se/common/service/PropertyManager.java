@@ -24,10 +24,9 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Logger;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -43,7 +42,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  */
 public class PropertyManager {
 
-	private static final Logger logger = LogManager.getLogger(PropertyManager.class);
+	private static final Logger logger = Logger.getLogger(PropertyManager.class.getName());
 	
 	private  Properties properties = null;
 
@@ -58,7 +57,7 @@ public class PropertyManager {
 		for (String fileName : propertyFileNames) {
 			order++;
 			if (StringUtil.isEmptyOrNull(fileName) ) {
-				logger.error("fileName (order = " + order +") can't be null or empty! check code!");
+				logger.severe("fileName (order = " + order +") can't be null or empty! check code!");
 				continue;
 			}
 			if(!fileName.startsWith("/")) {
@@ -78,7 +77,7 @@ public class PropertyManager {
 					try {
 						in.close();
 					} catch (Exception e) {
-						logger.warn("Cannot close InputStream.", e);
+						logger.warning("Cannot close InputStream." + CommonUtil.getStackTrace(e));
 					}
 					;
 				}
@@ -133,7 +132,7 @@ public class PropertyManager {
 		try {
 			retValue = Integer.valueOf(value);
 		} catch (Exception e) {
-			logger.error("Can not convert property into int (property = " + propertyName + ", value = " + value
+			logger.severe("Can not convert property into int (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
 			throw new RuntimeException("Can not convert property into int (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
@@ -292,7 +291,7 @@ public class PropertyManager {
 			//no variables in the String
 			return value;
 		}
-		logger.debug("resolve variable ${" + variableName + "}...");
+		logger.fine("resolve variable ${" + variableName + "}...");
 		int idx1 = value.indexOf("${" + variableName + "}");
 		if (idx1 < 0) {
 			throw new RuntimeException("There are code defects in resolveVariable() and/or getVariableName() methods.");
@@ -332,13 +331,13 @@ public class PropertyManager {
 		}
 		value = properties.getProperty(variableName);
 		if (value != null) {
-			logger.debug("variable =${" + variableName + "}, value (come from configuration file)= '" + value + "'");
+			logger.fine("variable =${" + variableName + "}, value (come from configuration file)= '" + value + "'");
 			return value;
 		} else {
 			try {
 				value = System.getProperty(variableName);
 			} catch (Exception e) {
-				logger.warn("error when getting system envrionment variable (" + variableName + "...", e);
+				logger.warning("error when getting system envrionment variable (" + variableName + "...\n" + CommonUtil.getStackTrace(e) );
 				e.printStackTrace();
 				value = null;
 			}
@@ -346,14 +345,14 @@ public class PropertyManager {
 				try {
 					value = System.getenv(variableName);
 				} catch (Exception e) {
-					logger.warn("error when getting system envrionment variable (" + variableName + "...", e);
+					logger.warning("error when getting system envrionment variable (" + variableName + "...\n" + CommonUtil.getStackTrace(e));
 					e.printStackTrace();
 					value = null;
 				}
 			}
 		}
 		value = (value == null ? "" : value);
-		logger.debug("variable =${" + variableName + "}, value (come from system envrionment)= '" + value + "'");
+		logger.severe("variable =${" + variableName + "}, value (come from system envrionment)= '" + value + "'");
 		return value;
 	}
 

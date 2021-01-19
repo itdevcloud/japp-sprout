@@ -20,6 +20,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 /**
@@ -325,5 +327,39 @@ public class StringUtil {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public static byte[] getBytes(String s)  {
+		try {
+			return s.getBytes("UTF-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static String getString(byte[] b)  {
+		try {
+			return new String(b, "UTF-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static String encodeBase64(byte[] bytes)  {
+		String encoded = Base64.getEncoder().encodeToString(bytes);
+		return encoded;
+	}
+
+	public static String encodeBase64(String s)  {
+		String encoded = Base64.getEncoder().encodeToString(getBytes(s));
+		return encoded;
+	}
+	
+	public static byte[] decodeBase64(String encoded)  {
+		byte[] decoded = Base64.getDecoder().decode(encoded);		
+		return decoded;
+	}
+
 
 }

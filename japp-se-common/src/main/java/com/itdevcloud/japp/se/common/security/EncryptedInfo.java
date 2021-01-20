@@ -18,6 +18,8 @@ package com.itdevcloud.japp.se.common.security;
 
 import javax.crypto.spec.IvParameterSpec;
 
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  * Class Definition
  *
@@ -28,8 +30,8 @@ public class EncryptedInfo {
 
 	private String encryptedText;
 	private String encryptionKey;
+	private String transformation;
 	private String algorithm;
-	private IvParameterSpec iv;
 	
 	public void setEncryptedText(String encryptedText) {
 		this.encryptedText = encryptedText;
@@ -55,19 +57,21 @@ public class EncryptedInfo {
 		this.algorithm = algorithm;
 	}
 
-	public IvParameterSpec getIv() {
-		return iv;
+	public String getTransformation() {
+		return transformation;
 	}
 
-	public void setIv(IvParameterSpec iv) {
-		this.iv = iv;
+	public void setTransformation(String transformation) {
+		this.transformation = transformation;
 	}
 
 	@Override
 	public String toString() {
-		return "EncryptedInfo [encryptedText=" + encryptedText + ", encryptionKey=" + encryptionKey + ", algorithm="
-				+ algorithm + ", iv=" + iv + "]";
+		return "EncryptedInfo [encryptedText=" + encryptedText + ", encryptionKey=" + encryptionKey
+				+ ", transformation=" + transformation + ", algorithm=" + algorithm + "]";
 	}
+
+
 
 
 

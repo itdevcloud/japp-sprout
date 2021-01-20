@@ -16,13 +16,18 @@
  */
 package com.itdevcloud.japp.se.common.security;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.security.SecureRandom;
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -34,93 +39,102 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  * Class Definition
  *
+ *A transformation is a string that describes the operation (or set of operations) to be performed on the given input, 
+ *to produce some output. A transformation always includes the name of a cryptographic algorithm (e.g., AES), 
+ *and may be followed by a feedback mode and padding scheme.
+ *A transformation is of the form:
+ *    "algorithm/mode/padding" or
+ *    "algorithm"
+ *    
  * @author Marvin Sun
  * @since 1.0.0
  */
 public class Crypter {
 
+	public static final String CIPHER_DEFAULT_ALGORITHM = "AES";
+	public static final String CIPHER_DEFAULT_TRANSFORMATION = CIPHER_DEFAULT_ALGORITHM + "/CBC/PKCS5Padding";
+	public static final int CIPHER_DEFAULT_KEY_SIZE = 256;
+	public static final int CIPHER_AES_BLOCK_SIZE_BITS = 128;
+	public static final int CIPHER_AES_BLOCK_SIZE_BYTES = 16;
+
 	private Cipher cipher;
 	private SecretKey key;
-	private IvParameterSpec iv;
+	private String transformation;
+	private String algorithm;
+	//private IvParameterSpec iv;
 
 	public Crypter() {
 		try {
-			this.cipher = Cipher.getInstance(SecurityUtil.DEFAULT_CIPHER_SPEC);
-			this.key = SecurityUtil.generateKey(SecurityUtil.DEFAULT_CIPHER_ALGO);
-			this.iv = generateIV();
+			this.transformation = CIPHER_DEFAULT_TRANSFORMATION;
+			this.cipher = Cipher.getInstance(this.transformation);
+			this.algorithm = getAlgorithmFromTransfermation(this.transformation);
+			this.key = SecurityUtil.generateKey(this.algorithm);
+			//this.iv = generateIV();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
 
-	public Crypter(String algorithm, String encodedKey) {
+	public Crypter(String transformationStr, String encodedKey) {
 		try {
-			String spec = null;
-			if (StringUtil.isEmptyOrNull(algorithm)) {
-				algorithm = SecurityUtil.DEFAULT_CIPHER_ALGO;
-				spec = SecurityUtil.DEFAULT_CIPHER_SPEC;
-			} else {
-				spec = algorithm + "/CBC/PKCS5Padding";
+			if (StringUtil.isEmptyOrNull(transformation)) {
+				this.transformation = CIPHER_DEFAULT_TRANSFORMATION;
+			}else {
+				this.transformation = transformationStr;
 			}
-			this.cipher = Cipher.getInstance(spec);
+			this.cipher = Cipher.getInstance(transformation);
+			this.algorithm = getAlgorithmFromTransfermation(this.transformation);
+			
 			if (StringUtil.isEmptyOrNull(encodedKey)) {
-				this.key = SecurityUtil.generateKey(algorithm);
+				this.key = SecurityUtil.generateKey(this.algorithm);
 			} else {
 				this.key = new SecretKeySpec(StringUtil.decodeBase64(encodedKey), algorithm);
 			}
-			this.iv = generateIV();
+			//this.iv = generateIV();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
 
-	public Crypter(String algorithm, SecretKey key) {
-		try {
-			String spec = null;
-			if (StringUtil.isEmptyOrNull(algorithm)) {
-				algorithm = SecurityUtil.DEFAULT_CIPHER_ALGO;
-				spec = SecurityUtil.DEFAULT_CIPHER_SPEC;
-			} else {
-				spec = algorithm + "/CBC/PKCS5Padding";
-				;
-			}
-			this.cipher = Cipher.getInstance(spec);
-			if (key == null) {
-				this.key = SecurityUtil.generateKey(algorithm);
-			} else {
-				this.key = key;
-			}
-			this.iv = generateIV();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-	}
-
-	
 	public Cipher getCipher() {
 		return cipher;
 	}
 
-	public IvParameterSpec getIv() {
-		return iv;
-	}
 
 	public SecretKey getKey() {
 		return key;
 	}
 	
-	public String getKeyString() {
+	public String getEncodedKeyString() {
 		return StringUtil.encodeBase64(key.getEncoded());
 	}
 	
+	public String getAlgorithm() {
+		return algorithm;
+	}
+	
+	public String getTransformation() {
+		return this.transformation;
+	}
+
+	private String getAlgorithmFromTransfermation(String transformationStr) {
+		if(StringUtil.isEmptyOrNull(transformationStr)) {
+			throw new RuntimeException("transformationStr can not be null, check code!");
+		}
+		int idx = transformationStr.indexOf("/");
+		if(idx == -1) {
+			return transformationStr;
+		}else {
+			return transformationStr.substring(0,  idx);
+		}
+	}
 	private IvParameterSpec generateIV() {
 		SecureRandom random = new SecureRandom();
-		byte[] iv = new byte[cipher.getBlockSize()];
-		random.nextBytes(iv);
-		return new IvParameterSpec(iv);
+		byte[] newIv = new byte[this.cipher.getBlockSize()];
+		random.nextBytes(newIv);
+		return new IvParameterSpec(newIv);
 	}
 
 	private  IvParameterSpec getIVfromMessage(byte[] bytes) {
@@ -128,7 +142,7 @@ public class Crypter {
 		byte[] ivBytes = new byte[ivSize]; 
 
 		if (bytes.length <= ivSize) {
-			throw new RuntimeException("Message is too short - can't contain Initial Vector");
+			throw new RuntimeException("Message is too short - can't detect Initial Vector");
 		}
 
 		System.arraycopy(bytes, 0, ivBytes, 0, ivBytes.length);
@@ -149,6 +163,7 @@ public class Crypter {
 
 			byte[] encryptedBytes = cipher.doFinal(bytes);
 			byte[] ivBytes = iv.getIV();
+			
 			//add iv at the beginning of encryptedBytes - when decrypt, get IV from the encrypted text
 			byte[] message = new byte[ivBytes.length + encryptedBytes.length];
 			System.arraycopy(ivBytes, 0, message, 0, ivBytes.length);
@@ -171,26 +186,84 @@ public class Crypter {
 	public byte[] decrypt(byte[] bytes) {
 
 		try {
-			IvParameterSpec iv = getIVfromMessage(bytes);
-			int ivSize = iv.getIV().length;
-			cipher.init(Cipher.DECRYPT_MODE, key, iv);
+			IvParameterSpec ivFromBytes = getIVfromMessage(bytes);
+			int ivSize = ivFromBytes.getIV().length;
+			cipher.init(Cipher.DECRYPT_MODE, key, ivFromBytes);
 			return  cipher.doFinal(bytes, ivSize, bytes.length - ivSize);
 		} catch (Exception e) {
+			
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
-
-	public void encryptFile(File inputFile, File outputFile) {
-		if (inputFile == null || outputFile == null) {
-			throw new RuntimeException("inputFile and/or outputFile can not be null, check code!");
+	
+	public String encryptFile(String inputFileName) {
+		if (StringUtil.isEmptyOrNull(inputFileName)) {
+			throw new RuntimeException("inputFileName can not be null, check code!");
 		}
-		FileInputStream inputStream = null;
+		InputStream inputStream = null;
+		ByteArrayOutputStream outputStream = null;
+		try {
+			IvParameterSpec iv = generateIV();
+			cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+			inputStream = this.getClass().getResourceAsStream(inputFileName);
+			outputStream = new ByteArrayOutputStream();
+			
+			//add iv at the beginning of encryptedBytes - when decrypt, get IV from the beginning encrypted file
+			outputStream.write(iv.getIV());
+			
+			byte[] bytes = new byte[64];
+			int bytesRead;
+			while ((bytesRead = inputStream.read(bytes)) != -1) {
+				byte[] output = cipher.update(bytes, 0, bytesRead);
+				if (output != null) {
+					outputStream.write(output);
+				}
+			}
+			byte[] outputBytes = cipher.doFinal();
+			if (outputBytes != null) {
+				outputStream.write(outputBytes);
+			}
+			return StringUtil.encodeBase64(outputStream.toByteArray());
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				inputStream = null;
+			}
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				outputStream = null;
+			}
+		}
+	}
+
+	public void encryptFile(String inputFileName, String outputFileName) {
+		if (StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
+			throw new RuntimeException("inputFileName and/or outputFileName can not be null, check code!");
+		}
+		InputStream inputStream = null;
 		FileOutputStream outputStream = null;
 		try {
+			IvParameterSpec iv = generateIV();
 			cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-			inputStream = new FileInputStream(inputFile);
-			outputStream = new FileOutputStream(outputFile);
+			inputStream = this.getClass().getResourceAsStream(inputFileName);
+			outputStream = new FileOutputStream(new File(outputFileName));
+			
+			//add iv at the beginning of encryptedBytes - when decrypt, get IV from the beginning encrypted file
+			outputStream.write(iv.getIV());
+			
 			byte[] bytes = new byte[64];
 			int bytesRead;
 			while ((bytesRead = inputStream.read(bytes)) != -1) {
@@ -212,7 +285,6 @@ public class Crypter {
 				try {
 					inputStream.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				inputStream = null;
@@ -221,7 +293,52 @@ public class Crypter {
 				try {
 					outputStream.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				outputStream = null;
+			}
+		}
+	}
+
+	public String decryptFile(String inputFileName) {
+		if (StringUtil.isEmptyOrNull(inputFileName) ) {
+			throw new RuntimeException("inputFileName can not be null, check code!");
+		}
+		FileInputStream inputStream = null;
+		FileOutputStream outputStream = null;
+		try {
+			IvParameterSpec iv = generateIV();
+			inputStream = new FileInputStream(inputFileName);
+			byte[] ivBytes = new byte[iv.getIV().length];
+			inputStream.read(ivBytes);
+			
+			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
+
+            CipherInputStream cipherIn = new CipherInputStream(inputStream, cipher);
+            InputStreamReader inputReader = new InputStreamReader(cipherIn);
+            BufferedReader reader = new BufferedReader(inputReader);
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+            return sb.toString();
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				inputStream = null;
+			}
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 				outputStream = null;
@@ -236,8 +353,13 @@ public class Crypter {
 		FileInputStream inputStream = null;
 		FileOutputStream outputStream = null;
 		try {
-			cipher.init(Cipher.DECRYPT_MODE, key, iv);
+			IvParameterSpec iv = generateIV();
 			inputStream = new FileInputStream(encryptedFile);
+			byte[] ivBytes = new byte[iv.getIV().length];
+			inputStream.read(ivBytes);
+			
+			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
+
 			outputStream = new FileOutputStream(decryptedFile);
 			byte[] bytes = new byte[64];
 			int bytesRead;
@@ -275,35 +397,5 @@ public class Crypter {
 		}
 	}
 
-	public SealedObject encryptObject(Serializable object) {
-		if (object == null) {
-			return null;
-		}
-		SealedObject sealedObject = null;
-		try {
-			cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-			sealedObject = new SealedObject(object, cipher);
-			return sealedObject;
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-	}
-
-	public Serializable decryptObject(SealedObject sealedObject) {
-
-		if (sealedObject == null) {
-			return null;
-		}
-		Serializable unsealObject = null;
-		try {
-			cipher.init(Cipher.DECRYPT_MODE, key, iv);
-			unsealObject = (Serializable) sealedObject.getObject(cipher);
-			return unsealObject;
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-	}
 
 }

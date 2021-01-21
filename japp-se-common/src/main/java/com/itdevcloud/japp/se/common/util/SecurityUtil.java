@@ -39,18 +39,19 @@ public class SecurityUtil {
 		}
 		EncryptedInfo ei = new EncryptedInfo();
 		Crypter crypter = new Crypter();
-		ei.setEncryptedText(crypter.encrypt(clearText));
+		ei.setEncryptedText(crypter.encryptText(clearText));
 		ei.setEncryptionKey(crypter.getEncodedKeyString());
 		ei.setAlgorithm(crypter.getAlgorithm());
 		ei.setTransformation(crypter.getTransformation());
 		return ei;
 	}
+	
 	public static String decrypt(String encodedKey, String encryptedText) {
 		if (StringUtil.isEmptyOrNull(encodedKey) || StringUtil.isEmptyOrNull(encryptedText)) {
 			throw new RuntimeException("encodedKey and/or encryptedText can not be null, check code!");
 		}
 		Crypter cryptor = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
-		return cryptor.decrypt(encryptedText);
+		return cryptor.decryptText(encryptedText);
 	}
 
 	public static EncryptedInfo encryptFile(String inputFileName) {
@@ -71,7 +72,7 @@ public class SecurityUtil {
 		}
 		EncryptedInfo ei = new EncryptedInfo();
 		Crypter crypter = new Crypter();
-		crypter.encryptFile(inputFileName, outputFileName);
+		crypter.encryptFileNoEncode(inputFileName, outputFileName);
 		ei.setEncryptedText(null);
 		ei.setEncryptionKey(crypter.getEncodedKeyString());
 		ei.setAlgorithm(crypter.getAlgorithm());
@@ -84,7 +85,15 @@ public class SecurityUtil {
 			throw new RuntimeException("encodedKey and/or outputFileName can not be null, check code!");
 		}
 		Crypter cryptor = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
-		return cryptor.decryptFile(inputFileName);
+		return cryptor.decryptFileNoEncode(inputFileName);
+	}
+	
+	public static void decryptFile(String encodedKey, String inputFileName, String outputFileName) {
+		if (StringUtil.isEmptyOrNull(encodedKey) || StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
+			throw new RuntimeException("encodedKey, inputFileName and/or outputFileName can not be null, check code!");
+		}
+		Crypter cryptor = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		cryptor.decryptFileNoEncode(inputFileName, outputFileName);
 	}
     
     

@@ -535,14 +535,23 @@ public class FileUtil {
 	}
 	
 	public static String getFileContentAsString(String fileName) {
-		if (fileName == null || fileName.equals("")) {
+		if (StringUtil.isEmptyOrNull(fileName)) {
 			return null;
 		}
 		StringBuilder contents = new StringBuilder();
 		BufferedReader input = null;
 		try {
-			InputStreamReader inReader = new InputStreamReader(
-					CommonUtil.class.getResourceAsStream("/" + fileName));
+			InputStreamReader inReader = null;
+	        File inputFile = new File(fileName);
+	        if(!inputFile.exists() || !inputFile.isFile()){
+	        	if(!fileName.startsWith("/")) {
+	        		fileName = "/" + fileName;
+	        	}
+	        	inReader = new InputStreamReader(
+						FileUtil.class.getResourceAsStream("/" + fileName));
+	        }else {
+	        	inReader = new InputStreamReader(new FileInputStream(inputFile));
+	        }
 			input = new BufferedReader(inReader);
 			String line = null; // not declared within while loop
 			while ((line = input.readLine()) != null) {

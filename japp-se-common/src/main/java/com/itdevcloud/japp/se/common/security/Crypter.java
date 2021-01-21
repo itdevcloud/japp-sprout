@@ -24,11 +24,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Serializable;
+import java.io.OutputStream;
 import java.security.SecureRandom;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -54,14 +53,11 @@ public class Crypter {
 	public static final String CIPHER_DEFAULT_ALGORITHM = "AES";
 	public static final String CIPHER_DEFAULT_TRANSFORMATION = CIPHER_DEFAULT_ALGORITHM + "/CBC/PKCS5Padding";
 	public static final int CIPHER_DEFAULT_KEY_SIZE = 256;
-	public static final int CIPHER_AES_BLOCK_SIZE_BITS = 128;
-	public static final int CIPHER_AES_BLOCK_SIZE_BYTES = 16;
 
 	private Cipher cipher;
 	private SecretKey key;
 	private String transformation;
 	private String algorithm;
-	//private IvParameterSpec iv;
 
 	public Crypter() {
 		try {
@@ -69,7 +65,6 @@ public class Crypter {
 			this.cipher = Cipher.getInstance(this.transformation);
 			this.algorithm = getAlgorithmFromTransfermation(this.transformation);
 			this.key = SecurityUtil.generateKey(this.algorithm);
-			//this.iv = generateIV();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -78,7 +73,7 @@ public class Crypter {
 
 	public Crypter(String transformationStr, String encodedKey) {
 		try {
-			if (StringUtil.isEmptyOrNull(transformation)) {
+			if (StringUtil.isEmptyOrNull(transformationStr)) {
 				this.transformation = CIPHER_DEFAULT_TRANSFORMATION;
 			}else {
 				this.transformation = transformationStr;
@@ -91,7 +86,6 @@ public class Crypter {
 			} else {
 				this.key = new SecretKeySpec(StringUtil.decodeBase64(encodedKey), algorithm);
 			}
-			//this.iv = generateIV();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -101,7 +95,6 @@ public class Crypter {
 	public Cipher getCipher() {
 		return cipher;
 	}
-
 
 	public SecretKey getKey() {
 		return key;
@@ -149,7 +142,7 @@ public class Crypter {
 		return new IvParameterSpec(ivBytes);
 	}
 
-	public String encrypt(String text) {
+	public String encryptText(String text) {
 		if (StringUtil.isEmptyOrNull(text)) {
 			return null;
 		}
@@ -176,7 +169,7 @@ public class Crypter {
 
 	}
 
-	public String decrypt(String text) {
+	public String decryptText(String text) {
 		if (StringUtil.isEmptyOrNull(text)) {
 			return null;
 		}
@@ -196,18 +189,18 @@ public class Crypter {
 			throw new RuntimeException(e);
 		}
 	}
+
 	
-	public String encryptFile(String inputFileName) {
-		if (StringUtil.isEmptyOrNull(inputFileName)) {
-			throw new RuntimeException("inputFileName can not be null, check code!");
-		}
-		InputStream inputStream = null;
+	public String encrypt(InputStream inputStream) {
+        if(inputStream == null) {
+        	throw new RuntimeException("inputStream is null, check code!");
+        }
 		ByteArrayOutputStream outputStream = null;
 		try {
-			IvParameterSpec iv = generateIV();
-			cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-			inputStream = this.getClass().getResourceAsStream(inputFileName);
 			outputStream = new ByteArrayOutputStream();
+			
+	        IvParameterSpec iv = generateIV();
+			cipher.init(Cipher.ENCRYPT_MODE, key, iv);
 			
 			//add iv at the beginning of encryptedBytes - when decrypt, get IV from the beginning encrypted file
 			outputStream.write(iv.getIV());
@@ -230,6 +223,80 @@ public class Crypter {
 			throw new RuntimeException(e);
 
 		} finally {
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				outputStream = null;
+			}
+		}
+	}
+
+	public String encryptFile(String inputFileName) {
+		if (StringUtil.isEmptyOrNull(inputFileName)) {
+			throw new RuntimeException("inputFileName can not be null, check code!");
+		}
+		InputStream inputStream = null;
+		try {
+	        File inputFile = new File(inputFileName);
+	        if(!inputFile.exists() || !inputFile.isFile()){
+	        	if(!inputFileName.startsWith("/")) {
+	        		inputFileName = "/" + inputFileName;
+	        	}
+	        	inputStream = this.getClass().getResourceAsStream(inputFileName);
+	        }else {
+	        	inputStream = new FileInputStream(inputFile);
+	        }
+	        if(inputStream == null) {
+	        	throw new RuntimeException("inputStream is null, can find the inputFileName: '" + inputFileName + "'");
+	        }
+	        return encrypt(inputStream);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				inputStream = null;
+			}
+		}
+	}
+	
+
+	public void encryptFileNoEncode(String inputFileName, String outputFileName) {
+		if (StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
+			throw new RuntimeException("inputFileName and/or outputFileName can not be null, check code!");
+		}
+		InputStream inputStream = null;
+		FileOutputStream outputStream = null;
+		try {
+	        File inputFile = new File(inputFileName);
+	        if(!inputFile.exists() || !inputFile.isFile()){
+	        	if(!inputFileName.startsWith("/")) {
+	        		inputFileName = "/" + inputFileName;
+	        	}
+	        	inputStream = this.getClass().getResourceAsStream(inputFileName);
+	        }else {
+	        	inputStream = new FileInputStream(inputFile);
+	        }
+	        if(inputStream == null) {
+	        	throw new RuntimeException("inputStream is null, can find the inputFileName: '" + inputFileName + "'");
+	        }
+			outputStream = new FileOutputStream(new File(outputFileName));
+			
+			encryptNoEncode(inputStream, outputStream);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+
+		} finally {
 			if (inputStream != null) {
 				try {
 					inputStream.close();
@@ -248,18 +315,14 @@ public class Crypter {
 			}
 		}
 	}
-
-	public void encryptFile(String inputFileName, String outputFileName) {
-		if (StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
-			throw new RuntimeException("inputFileName and/or outputFileName can not be null, check code!");
-		}
-		InputStream inputStream = null;
-		FileOutputStream outputStream = null;
+	public void encryptNoEncode(InputStream inputStream, OutputStream outputStream) {
+        if(inputStream == null || outputStream == null) {
+        	throw new RuntimeException("inputStream or outputStream is null, check code!");
+        }
 		try {
+	        
 			IvParameterSpec iv = generateIV();
 			cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-			inputStream = this.getClass().getResourceAsStream(inputFileName);
-			outputStream = new FileOutputStream(new File(outputFileName));
 			
 			//add iv at the beginning of encryptedBytes - when decrypt, get IV from the beginning encrypted file
 			outputStream.write(iv.getIV());
@@ -281,48 +344,25 @@ public class Crypter {
 			throw new RuntimeException(e);
 
 		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				inputStream = null;
-			}
-			if (outputStream != null) {
-				try {
-					outputStream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				outputStream = null;
-			}
 		}
 	}
-
-	public String decryptFile(String inputFileName) {
-		if (StringUtil.isEmptyOrNull(inputFileName) ) {
-			throw new RuntimeException("inputFileName can not be null, check code!");
-		}
-		FileInputStream inputStream = null;
-		FileOutputStream outputStream = null;
+	public String decryptFileNoEncode(String inputFileName) {
+		
+		InputStream inputStream = null;
 		try {
-			IvParameterSpec iv = generateIV();
-			inputStream = new FileInputStream(inputFileName);
-			byte[] ivBytes = new byte[iv.getIV().length];
-			inputStream.read(ivBytes);
-			
-			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
-
-            CipherInputStream cipherIn = new CipherInputStream(inputStream, cipher);
-            InputStreamReader inputReader = new InputStreamReader(cipherIn);
-            BufferedReader reader = new BufferedReader(inputReader);
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-            return sb.toString();
+	        File inputFile = new File(inputFileName);
+	        if(!inputFile.exists() || !inputFile.isFile()){
+	        	if(!inputFileName.startsWith("/")) {
+	        		inputFileName = "/" + inputFileName;
+	        	}
+	        	inputStream = this.getClass().getResourceAsStream(inputFileName);
+	        }else {
+	        	inputStream = new FileInputStream(inputFile);
+	        }
+	        if(inputStream == null) {
+	        	throw new RuntimeException("inputStream is null, can find the inputFileName: '" + inputFileName + "'");
+	        }
+	        return decryptNoEncode(inputStream);
 
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -335,6 +375,42 @@ public class Crypter {
 				}
 				inputStream = null;
 			}
+		}
+	}
+	public String decryptNoEncode(InputStream inputStream) {
+		if (inputStream == null ) {
+			throw new RuntimeException("inputStream can not be null, check code!");
+		}
+		FileOutputStream outputStream = null;
+		BufferedReader reader = null;
+		try {
+			IvParameterSpec iv = generateIV();
+			byte[] ivBytes = new byte[iv.getIV().length];
+			inputStream.read(ivBytes);
+			
+			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
+
+            CipherInputStream cipherIn = new CipherInputStream(inputStream, cipher);
+            InputStreamReader inputReader = new InputStreamReader(cipherIn);
+            reader = new BufferedReader(inputReader);
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+            return sb.toString();
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				reader = null;
+			}
 			if (outputStream != null) {
 				try {
 					outputStream.close();
@@ -346,33 +422,29 @@ public class Crypter {
 		}
 	}
 
-	public void decryptFile(File encryptedFile, File decryptedFile) {
-		if (encryptedFile == null || decryptedFile == null) {
-			throw new RuntimeException("encryptedFile and/or decryptedFile can not be null, check code!");
+	public void decryptFileNoEncode(String inputFileName, String outputFileName) {
+		if (StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
+			throw new RuntimeException("inputFileName and/or outputFileName can not be null, check code!");
 		}
-		FileInputStream inputStream = null;
+		InputStream inputStream = null;
 		FileOutputStream outputStream = null;
 		try {
-			IvParameterSpec iv = generateIV();
-			inputStream = new FileInputStream(encryptedFile);
-			byte[] ivBytes = new byte[iv.getIV().length];
-			inputStream.read(ivBytes);
+	        File inputFile = new File(inputFileName);
+	        if(!inputFile.exists() || !inputFile.isFile()){
+	        	if(!inputFileName.startsWith("/")) {
+	        		inputFileName = "/" + inputFileName;
+	        	}
+	        	inputStream = this.getClass().getResourceAsStream(inputFileName);
+	        }else {
+	        	inputStream = new FileInputStream(inputFile);
+	        }
+	        if(inputStream == null) {
+	        	throw new RuntimeException("inputStream is null, can find the inputFileName: '" + inputFileName + "'");
+	        }
+			outputStream = new FileOutputStream(new File(outputFileName));
 			
-			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
+			decryptNoEncode(inputStream, outputStream);
 
-			outputStream = new FileOutputStream(decryptedFile);
-			byte[] bytes = new byte[64];
-			int bytesRead;
-			while ((bytesRead = inputStream.read(bytes)) != -1) {
-				byte[] output = cipher.update(bytes, 0, bytesRead);
-				if (output != null) {
-					outputStream.write(output);
-				}
-			}
-			byte[] output = cipher.doFinal();
-			if (output != null) {
-				outputStream.write(output);
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -397,5 +469,35 @@ public class Crypter {
 		}
 	}
 
+	public void decryptNoEncode(InputStream inputStream, OutputStream outputStream) {
+        if(inputStream == null || outputStream == null) {
+        	throw new RuntimeException("inputStream or outputStream is null, check code!");
+        }
+		try {
+			IvParameterSpec iv = generateIV();
+			byte[] ivBytes = new byte[iv.getIV().length];
+			inputStream.read(ivBytes);
+			
+			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
+
+			byte[] bytes = new byte[64];
+			int bytesRead;
+			while ((bytesRead = inputStream.read(bytes)) != -1) {
+				byte[] output = cipher.update(bytes, 0, bytesRead);
+				if (output != null) {
+					outputStream.write(output);
+				}
+			}
+			byte[] output = cipher.doFinal();
+			if (output != null) {
+				outputStream.write(output);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+
+		} finally {
+		}
+	}
 
 }

@@ -33,12 +33,18 @@ import com.itdevcloud.japp.se.common.security.EncryptedInfo;
  */
 public class SecurityUtil {
 
-	public static EncryptedInfo encrypt(String clearText) {
+	public static EncryptedInfo encrypt(String clearText, String encodedKey) {
 		if (StringUtil.isEmptyOrNull(clearText)) {
 			return null;
 		}
 		EncryptedInfo ei = new EncryptedInfo();
-		Crypter crypter = new Crypter();
+		Crypter crypter = null;
+		if (StringUtil.isEmptyOrNull(encodedKey)) {
+			crypter = new Crypter();
+		}else {
+			crypter = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		}
+		
 		ei.setEncryptedText(crypter.encryptText(clearText));
 		ei.setEncryptionKey(crypter.getEncodedKeyString());
 		ei.setAlgorithm(crypter.getAlgorithm());
@@ -54,24 +60,34 @@ public class SecurityUtil {
 		return cryptor.decryptText(encryptedText);
 	}
 
-	public static EncryptedInfo encryptFile(String inputFileName) {
+	public static EncryptedInfo encryptFile(String inputFileName, String encodedKey) {
 		if (StringUtil.isEmptyOrNull(inputFileName) ) {
 			throw new RuntimeException("inputFileName can not be null, check code!");
 		}
 		EncryptedInfo ei = new EncryptedInfo();
-		Crypter crypter = new Crypter();
+		Crypter crypter = null;
+		if (StringUtil.isEmptyOrNull(encodedKey)) {
+			crypter = new Crypter();
+		}else {
+			crypter = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		}
 		ei.setEncryptedText(crypter.encryptFile(inputFileName));
 		ei.setEncryptionKey(crypter.getEncodedKeyString());
 		ei.setAlgorithm(crypter.getAlgorithm());
 		ei.setTransformation(crypter.getTransformation());
 		return ei;
 	}
-	public static EncryptedInfo encryptFile(String inputFileName, String outputFileName ) {
+	public static EncryptedInfo encryptFile(String inputFileName, String outputFileName, String encodedKey ) {
 		if (StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
 			throw new RuntimeException("inputFileName and/or outputFileName can not be null, check code!");
 		}
 		EncryptedInfo ei = new EncryptedInfo();
-		Crypter crypter = new Crypter();
+		Crypter crypter = null;
+		if (StringUtil.isEmptyOrNull(encodedKey)) {
+			crypter = new Crypter();
+		}else {
+			crypter = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		}
 		crypter.encryptFileNoEncode(inputFileName, outputFileName);
 		ei.setEncryptedText(null);
 		ei.setEncryptionKey(crypter.getEncodedKeyString());
@@ -135,7 +151,7 @@ public class SecurityUtil {
     	return secretKey;
     }   
     
-    public static SecretKey generateKeyFromPassword(String password, String salt, String algorithm){
+    public static String generateKeyFromPassword(String password, String salt, String algorithm){
     	if(StringUtil.isEmptyOrNull(password) || StringUtil.isEmptyOrNull(salt) ) {
     		throw new RuntimeException("Password and/or Salt can not be null, check code!");
     	}
@@ -148,7 +164,8 @@ public class SecurityUtil {
 	        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
 	        key = new SecretKeySpec(factory.generateSecret(spec)
 	            .getEncoded(), algorithm);
-	        return key;
+	        String encodedKey = StringUtil.encodeBase64(key.getEncoded());
+	        return encodedKey;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);

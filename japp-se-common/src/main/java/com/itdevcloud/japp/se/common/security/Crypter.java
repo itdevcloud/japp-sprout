@@ -84,7 +84,7 @@ public class Crypter {
 			if (StringUtil.isEmptyOrNull(encodedKey)) {
 				this.key = SecurityUtil.generateKey(this.algorithm);
 			} else {
-				this.key = new SecretKeySpec(StringUtil.decodeBase64(encodedKey), algorithm);
+				this.key = new SecretKeySpec(StringUtil.decodeBase64(encodedKey), this.algorithm);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -16,12 +16,12 @@
  */
 package com.itdevcloud.japp.se.common.util;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.security.spec.KeySpec;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import com.itdevcloud.japp.se.common.security.Crypter;
 import com.itdevcloud.japp.se.common.security.EncryptedInfo;
@@ -33,23 +33,146 @@ import com.itdevcloud.japp.se.common.security.EncryptedInfo;
  */
 public class SecurityUtil {
 
-	public static EncryptedInfo encrypt(String clearText) {
+	public static EncryptedInfo encrypt(String clearText, String encodedKey) {
 		if (StringUtil.isEmptyOrNull(clearText)) {
 			return null;
 		}
 		EncryptedInfo ei = new EncryptedInfo();
-		Crypter cryptor = new Crypter();
-		ei.setEncryptedText(cryptor.encrypt(clearText));
-		ei.setEncryptionKey(cryptor.getKey());
+		Crypter crypter = null;
+		if (StringUtil.isEmptyOrNull(encodedKey)) {
+			crypter = new Crypter();
+		}else {
+			crypter = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		}
+		
+		ei.setEncryptedText(crypter.encryptText(clearText));
+		ei.setEncryptionKey(crypter.getEncodedKeyString());
+		ei.setAlgorithm(crypter.getAlgorithm());
+		ei.setTransformation(crypter.getTransformation());
 		return ei;
 	}
-	public static String decrypt(String key, String encryptedText) {
-		if (StringUtil.isEmptyOrNull(key) || StringUtil.isEmptyOrNull(encryptedText)) {
-			return null;
+	
+	public static String decrypt(String encodedKey, String encryptedText) {
+		if (StringUtil.isEmptyOrNull(encodedKey) || StringUtil.isEmptyOrNull(encryptedText)) {
+			throw new RuntimeException("encodedKey and/or encryptedText can not be null, check code!");
 		}
-		Crypter cryptor = new Crypter(key);
-		return cryptor.decrypt(encryptedText);
+		Crypter cryptor = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		return cryptor.decryptText(encryptedText);
 	}
 
+	public static EncryptedInfo encryptFile(String inputFileName, String encodedKey) {
+		if (StringUtil.isEmptyOrNull(inputFileName) ) {
+			throw new RuntimeException("inputFileName can not be null, check code!");
+		}
+		EncryptedInfo ei = new EncryptedInfo();
+		Crypter crypter = null;
+		if (StringUtil.isEmptyOrNull(encodedKey)) {
+			crypter = new Crypter();
+		}else {
+			crypter = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		}
+		ei.setEncryptedText(crypter.encryptFile(inputFileName));
+		ei.setEncryptionKey(crypter.getEncodedKeyString());
+		ei.setAlgorithm(crypter.getAlgorithm());
+		ei.setTransformation(crypter.getTransformation());
+		return ei;
+	}
+	public static EncryptedInfo encryptFile(String inputFileName, String outputFileName, String encodedKey ) {
+		if (StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
+			throw new RuntimeException("inputFileName and/or outputFileName can not be null, check code!");
+		}
+		EncryptedInfo ei = new EncryptedInfo();
+		Crypter crypter = null;
+		if (StringUtil.isEmptyOrNull(encodedKey)) {
+			crypter = new Crypter();
+		}else {
+			crypter = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		}
+		crypter.encryptFileNoEncode(inputFileName, outputFileName);
+		ei.setEncryptedText(null);
+		ei.setEncryptionKey(crypter.getEncodedKeyString());
+		ei.setAlgorithm(crypter.getAlgorithm());
+		ei.setTransformation(crypter.getTransformation());
+		return ei;
+	}
+	
+	public static String decryptFile(String encodedKey, String inputFileName) {
+		if (StringUtil.isEmptyOrNull(encodedKey) || StringUtil.isEmptyOrNull(inputFileName)) {
+			throw new RuntimeException("encodedKey and/or outputFileName can not be null, check code!");
+		}
+		Crypter cryptor = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		return cryptor.decryptFileNoEncode(inputFileName);
+	}
+	
+	public static void decryptFile(String encodedKey, String inputFileName, String outputFileName) {
+		if (StringUtil.isEmptyOrNull(encodedKey) || StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
+			throw new RuntimeException("encodedKey, inputFileName and/or outputFileName can not be null, check code!");
+		}
+		Crypter cryptor = new Crypter(Crypter.CIPHER_DEFAULT_TRANSFORMATION, encodedKey);
+		cryptor.decryptFileNoEncode(inputFileName, outputFileName);
+	}
+    
+    
+	private static int getKeySize(String algorithm) {
+		if(Crypter.CIPHER_DEFAULT_ALGORITHM.equalsIgnoreCase(algorithm)) {
+			return Crypter.CIPHER_DEFAULT_KEY_SIZE;
+		}else {
+			return Crypter.CIPHER_DEFAULT_KEY_SIZE;
+		}
+	}
+	
+    public static SecretKey generateKey()  {
+    	return generateKey(null);
+    }   
+    public static SecretKey generateKey(String algorithm)  {
+    	if(StringUtil.isEmptyOrNull(algorithm)) {
+    		algorithm = Crypter.CIPHER_DEFAULT_ALGORITHM;
+    	}
+    	SecretKey key = null;
+    	try {
+	        KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithm);
+	        keyGenerator.init(getKeySize(algorithm));
+	        key = keyGenerator.generateKey();
+	        return key;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		} 
+    }
+
+    public static SecretKey generateKeyFromEncodedKey(String key, String algorithm)  {
+    	if(StringUtil.isEmptyOrNull(key)) {
+    		return null;
+    	}
+    	if(StringUtil.isEmptyOrNull(algorithm)) {
+    		algorithm = Crypter.CIPHER_DEFAULT_ALGORITHM;
+    	}
+    	SecretKey secretKey = new SecretKeySpec(StringUtil.decodeBase64(key), algorithm);
+    	return secretKey;
+    }   
+    
+    public static String generateKeyFromPassword(String password, String salt, String algorithm){
+    	if(StringUtil.isEmptyOrNull(password) || StringUtil.isEmptyOrNull(salt) ) {
+    		throw new RuntimeException("Password and/or Salt can not be null, check code!");
+    	}
+    	if(StringUtil.isEmptyOrNull(algorithm)) {
+    		algorithm = Crypter.CIPHER_DEFAULT_ALGORITHM;
+    	}
+    	SecretKey key = null;
+    	try {
+	        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+	        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
+	        key = new SecretKeySpec(factory.generateSecret(spec)
+	            .getEncoded(), algorithm);
+	        String encodedKey = StringUtil.encodeBase64(key.getEncoded());
+	        return encodedKey;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		} 
+    }
+
+
+	
 
 }

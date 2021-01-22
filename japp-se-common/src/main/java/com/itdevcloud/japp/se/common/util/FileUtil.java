@@ -24,11 +24,10 @@ import java.net.URLDecoder;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Class Definition
@@ -38,8 +37,8 @@ import org.apache.logging.log4j.Logger;
  */
 public class FileUtil {
     
-	private static final Logger logger = LogManager.getLogger(FileUtil.class);
-
+	private static Logger logger = Logger.getLogger(FileUtil.class.getName());
+	
 	public static void copy(String source, String destination)
     throws IOException {
         copy(source, destination, null);
@@ -326,7 +325,7 @@ public class FileUtil {
 	public static Map<String, String> getFileListingInClassPath(Class clazz, String path,
 			boolean includeSubPackage, FileFilter fileFilter) {
 		
-		logger.debug("FileUtil.getFileListingInClassPath()........begin.....");
+		logger.fine("FileUtil.getFileListingInClassPath()........begin.....");
 		Map<String, String> map = new HashMap<String, String>();
 		
 		if (clazz == null) {
@@ -337,14 +336,14 @@ public class FileUtil {
 		}
 		URL dirURL = clazz.getClassLoader().getResource(path);
 		if (dirURL == null) {
-			logger.debug("FileUtil.getFileListingInClassPath()...Can not find the path in classpath, return empty map.");
+			logger.fine("FileUtil.getFileListingInClassPath()...Can not find the path in classpath, return empty map.");
 			return map;
 		}
 		String fileSimpleName = null;
 		String fileFullName = null;
 		try {
 			if (dirURL != null && dirURL.getProtocol().equals("file")) {
-				logger.debug("FileUtil.getFileListingInClassPath()... path is a file path.....");
+				logger.fine("FileUtil.getFileListingInClassPath()... path is a file path.....");
 				/* A file path: easy enough */
 				String[] fileNames = new File(dirURL.toURI()).list();
 				for (String fileName : fileNames) {
@@ -361,14 +360,14 @@ public class FileUtil {
 							map.put(fileSimpleName, fileFullName);
 						}
 					}
-					logger.debug("FileUtil.getFileListingInClassPath()... fileSimpleName = " + fileSimpleName);
+					logger.fine("FileUtil.getFileListingInClassPath()... fileSimpleName = " + fileSimpleName);
 				}//end for
 			}else if (dirURL.getProtocol().equals("jar")) {
-				logger.debug("FileUtil.getFileListingInClassPath()... path is a jar path.....");
+				logger.fine("FileUtil.getFileListingInClassPath()... path is a jar path.....");
 				/* A JAR path */
 				String jarPath = dirURL.getPath().substring(5,
 						dirURL.getPath().indexOf("!"));
-				logger.debug("FileUtil.getFileListingInClassPath()...jarPath = " + jarPath);
+				logger.fine("FileUtil.getFileListingInClassPath()...jarPath = " + jarPath);
 				JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
 				Enumeration<JarEntry> entries = jar.entries();
 				new HashSet<String>();
@@ -377,7 +376,7 @@ public class FileUtil {
 				while (entries.hasMoreElements()) {
 					entry = entries.nextElement();
 					fname = entry.getName();
-					logger.debug("FileUtil.getFileListingInClassPath()...find entry fname = " + fname);
+					logger.fine("FileUtil.getFileListingInClassPath()...find entry fname = " + fname);
 					// filter according to the path
 					if (fname.startsWith(path)) {
 						fname = fname.substring(path.length());
@@ -410,11 +409,11 @@ public class FileUtil {
 					}
 				}//end while
 			}else if (dirURL.getProtocol().equals("zip")) {
-				logger.debug("FileUtil.getFileListingInClassPath()... path is a zip path.....");
+				logger.fine("FileUtil.getFileListingInClassPath()... path is a zip path.....");
 				/* A JAR path */
 				String zipPath = dirURL.getPath().substring(0,
 						dirURL.getPath().indexOf("!"));
-				logger.debug("FileUtil.getFileListingInClassPath()...zipPath = " + zipPath);
+				logger.fine("FileUtil.getFileListingInClassPath()...zipPath = " + zipPath);
 				ZipFile zip = new ZipFile(URLDecoder.decode(zipPath, "UTF-8"));
 				Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) zip.entries();
 				Set<String> result = new HashSet<String>();
@@ -423,7 +422,7 @@ public class FileUtil {
 				while (entries.hasMoreElements()) {
 					entry = entries.nextElement();
 					fname = entry.getName();
-					logger.debug("FileUtil.getFileListingInClassPath()...find entry fname = " + fname);
+					logger.fine("FileUtil.getFileListingInClassPath()...find entry fname = " + fname);
 					// filter according to the path
 					if (fname.startsWith(path)) {
 						fname = fname.substring(path.length());
@@ -457,7 +456,7 @@ public class FileUtil {
 				}//end while
 			}else{
 				//none file or non jar/zip, do nothing
-				logger.warn("FileUtil.getFileListingInClassPath()... does NOT support this Protocol - " + dirURL.getProtocol());
+				logger.warning("FileUtil.getFileListingInClassPath()... does NOT support this Protocol - " + dirURL.getProtocol());
 			}//end if-else
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -536,14 +535,23 @@ public class FileUtil {
 	}
 	
 	public static String getFileContentAsString(String fileName) {
-		if (fileName == null || fileName.equals("")) {
+		if (StringUtil.isEmptyOrNull(fileName)) {
 			return null;
 		}
 		StringBuilder contents = new StringBuilder();
 		BufferedReader input = null;
 		try {
-			InputStreamReader inReader = new InputStreamReader(
-					CommonUtil.class.getResourceAsStream("/" + fileName));
+			InputStreamReader inReader = null;
+	        File inputFile = new File(fileName);
+	        if(!inputFile.exists() || !inputFile.isFile()){
+	        	if(!fileName.startsWith("/")) {
+	        		fileName = "/" + fileName;
+	        	}
+	        	inReader = new InputStreamReader(
+						FileUtil.class.getResourceAsStream("/" + fileName));
+	        }else {
+	        	inReader = new InputStreamReader(new FileInputStream(inputFile));
+	        }
 			input = new BufferedReader(inReader);
 			String line = null; // not declared within while loop
 			while ((line = input.readLine()) != null) {
@@ -558,7 +566,7 @@ public class FileUtil {
 					input.close();
 				} catch (Exception e) {
 					e.printStackTrace();
-				    logger.error(CommonUtil.getStackTrace(e));
+				    logger.severe(CommonUtil.getStackTrace(e));
 				}
 			}
 		}

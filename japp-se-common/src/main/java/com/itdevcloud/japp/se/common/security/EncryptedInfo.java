@@ -15,6 +15,11 @@
  *
  */
 package com.itdevcloud.japp.se.common.security;
+
+import javax.crypto.spec.IvParameterSpec;
+
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  * Class Definition
  *
@@ -25,22 +30,50 @@ public class EncryptedInfo {
 
 	private String encryptedText;
 	private String encryptionKey;
-
+	private String transformation;
+	private String algorithm;
+	
 	public void setEncryptedText(String encryptedText) {
 		this.encryptedText = encryptedText;
 	}
+
 	public void setEncryptionKey(String encryptionKey) {
 		this.encryptionKey = encryptionKey;
 	}
+
 	public String getEncryptedText() {
 		return encryptedText;
 	}
+
 	public String getEncryptionKey() {
 		return encryptionKey;
 	}
+
+	public String getAlgorithm() {
+		return algorithm;
+	}
+
+	public void setAlgorithm(String algorithm) {
+		this.algorithm = algorithm;
+	}
+
+	public String getTransformation() {
+		return transformation;
+	}
+
+	public void setTransformation(String transformation) {
+		this.transformation = transformation;
+	}
+
 	@Override
 	public String toString() {
-		return "EncryptedInfo [encryptedText=" + encryptedText + ", encryptionKey=" + encryptionKey + "]";
+		return "EncryptedInfo [encryptedText=" + encryptedText + ", encryptionKey=" + encryptionKey
+				+ ", transformation=" + transformation + ", algorithm=" + algorithm + "]";
 	}
+
+
+
+
+
 
 }

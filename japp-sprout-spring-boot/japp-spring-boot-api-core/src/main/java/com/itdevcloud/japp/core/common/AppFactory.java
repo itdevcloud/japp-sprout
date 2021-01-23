@@ -286,7 +286,7 @@ public class AppFactory {
 		}
 		int idx = requestSimpleName.indexOf(AppUtil.REQUEST_POSTFIX);
 		if (idx <= 0) {
-			logger.error("AppFactory.getPiscesJappCommandInfo() - requestSimpleName parameter is not correct - <"
+			logger.error("AppFactory.getCommandInfo() - requestSimpleName parameter is not correct - <"
 					+ requestSimpleName + ">, ignored!");
 			return null;
 		}

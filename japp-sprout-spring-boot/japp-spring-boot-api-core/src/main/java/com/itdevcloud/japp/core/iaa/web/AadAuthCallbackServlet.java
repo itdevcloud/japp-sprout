@@ -82,9 +82,9 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 						"Authorization Failed. code E502");
 				return;
 			}
-			// retrieve PiscesJappIaaUser for Authorization
+			// retrieve IaaUser for Authorization
 			logger.debug("AadAuthCallbackServlet.doPost() - retrieve userInfo for Authorization==============");
-			IaaUser piscesjappIaaUser = null;
+			IaaUser iaaUser = null;
 			String loginId = AppThreadContext.getTokenSubject();
 			if (loginId == null) {
 				// set by isValidTokenByPublicKey()
@@ -95,8 +95,8 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 				return;
 			}
 			try {
-				piscesjappIaaUser = AppComponents.iaaService.getIaaUserByLoginId(loginId, AppConstant.AUTH_PROVIDER_AAD_OPENID);
-				logger.debug("AadAuthCallbackServlet.doPost() - " + piscesjappIaaUser.toString());
+				iaaUser = AppComponents.iaaService.getIaaUserByLoginId(loginId, AppConstant.AUTH_PROVIDER_AAD_OPENID);
+				logger.debug("AadAuthCallbackServlet.doPost() - " + iaaUser.toString());
 			} catch (AppException e1) {
 				logger.error("Authorization Failed. code E504 - can't retrieve user by loginid = " + loginId + " - \n"
 						+ AppUtil.getStackTrace(e1));
@@ -112,7 +112,7 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			// Application role list check
-			if (!AppComponents.commonService.matchAppRoleList(piscesjappIaaUser)) {
+			if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
 				logger.error(
 						"Authorization Failed. code E508 - requestor's is not on the APP's role list" + ".....");
 				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
@@ -125,11 +125,11 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 				return;
 			}
 
-			// issue new PISCESJAPP JWT token;
-			String token = AppComponents.jwtService.issuePiscesJappToken(piscesjappIaaUser);
+			// issue new JAPP JWT token;
+			String token = AppComponents.jwtService.issueJappToken(iaaUser);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error(
-						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E507. PISCESJAPP Token can not be created for login Id '"
+						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E507. JAPP Token can not be created for login Id '"
 								+ loginId + "'......");
 				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 						"Authorization Failed. code E507");

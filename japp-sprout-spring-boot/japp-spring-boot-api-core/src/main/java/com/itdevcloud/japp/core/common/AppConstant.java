@@ -25,16 +25,16 @@ public class AppConstant {
 
 	public static final String AUTH_PROVIDER_AAD_OPENID = "AAD-OAUTH2";
 	public static final String AUTH_PROVIDER_GENERAL_OAUTH2 = "GENERAL-OAUTH2";
-	public static final String AUTH_PROVIDER_JAPPCORE_BASIC_AUTH = "PISCESJAPP-BASIC-AUTH";
-	public static final String AUTH_PROVIDER_JAPPCORE_DYNAMIC = "PISCESJAPP-DYNAMIC";
+	public static final String AUTH_PROVIDER_JAPPCORE_BASIC_AUTH = "JAPP-BASIC-AUTH";
+	public static final String AUTH_PROVIDER_JAPPCORE_DYNAMIC = "JAPP-DYNAMIC";
 	public static final String AUTH_PROVIDER_GOSECURE = "GOSECURE";
 	public static final String JAPPCORE_TX_ID = "JAPPCORE_TX_ID";
 
 	public static final String FRONTEND_UI_FRAMEWORK_NONE = "none";
 	public static final String FRONTEND_UI_FRAMEWORK_ANGULAR = "angular";
 
-	public static final String JWT_TOKEN_NAME = "PiscesJapp_Jwt";
-	public static final String JWT_TOKEN_ISSUE_BY = "PiscesJapp_ApiServer";
+	public static final String JWT_TOKEN_NAME = "Japp_Jwt";
+	public static final String JWT_TOKEN_ISSUE_BY = "Japp_ApiServer";
 
 	public static final String JWT_CLAIM_KEY_ISSUE_APPID = "issueAppId";
 	public static final String JWT_CLAIM_KEY_TARGET_APPID = "targetAppId";
@@ -51,9 +51,9 @@ public class AppConstant {
 	public static final String IAA_2NDFACTOR_TYPE_TOTP = "TOTP";
 
 	public static final String HTTP_AUTHORIZATION_HEADER_NAME = "Authorization";
-	public static final String HTTP_AUTHORIZATION_COOKIE_NAME = "PiscesJapp_Token_Cookie";
+	public static final String HTTP_AUTHORIZATION_COOKIE_NAME = "Japp_Token_Cookie";
 
-	public static final String BUSINESS_ROLE_IT_SUPPORT = "PISCESJAPP.BR.IT.SUPPORT";
+	public static final String BUSINESS_ROLE_IT_SUPPORT = "JAPP.BR.IT.SUPPORT";
 
 
 	public static final String JAPPCORE_SPRING_ACTIVE_PROFILE_PROD = "PROD";
@@ -65,7 +65,7 @@ public class AppConstant {
 
 	public static final String STARTUP_NOTIFY_KEY_FRONTEND_UI_ENVIRONMENT = "FrontendUiEnvironment";
 	public static final String STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE = "AadJwksCache";
-	public static final String STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE = "PiscesJappKeyCache";
-	public static final String STARTUP_NOTIFY_KEY_REFERENCE_CODE_CACHE = "PiscesJappReferenceCodeCache";
+	public static final String STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE = "PkiKeyCache";
+	public static final String STARTUP_NOTIFY_KEY_REFERENCE_CODE_CACHE = "ReferenceCodeCache";
 
 }

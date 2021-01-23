@@ -28,7 +28,7 @@ import com.itdevcloud.japp.core.iaa.service.UserAppSpMap;
  */
 public interface IaaServiceHelperI extends CustomizableComponentI {
 
-	public Map<String, Object> getPiscesJappTokenClaims(IaaUser piscesjappIaaUser);
+	public Map<String, Object> getJappTokenClaims(IaaUser iaaUser);
 	
 	public IaaUser getIaaUserFromRepositoryByUserId(String userId);
 	
@@ -40,7 +40,7 @@ public interface IaaServiceHelperI extends CustomizableComponentI {
 	
 	public List<String> getUpdatedIaaUsers(long lastCheckTimestamp);
 
-	public String getAndSend2ndfactorValue(IaaUser piscesjappIaaUser, String SecondFactorType);
+	public String getAndSend2ndfactorValue(IaaUser iIaaUser, String SecondFactorType);
 
 	public String getHashed2ndFactorValueFromRepositoryByUserId(String userId);
 

@@ -1,32 +1,29 @@
 package com.itdevcloud.japp.core.test;
 
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import com.itdevcloud.japp.core.common.TestBase;
 
-import junit.framework.JUnit4TestAdapter;
 
 public class AppCoreTest extends TestBase {
 
 	private static Logger logger = LogManager.getLogger(AppCoreTest.class);
 
-	public static junit.framework.Test suite() {
-		return new JUnit4TestAdapter(com.itdevcloud.japp.core.test.AppCoreTest.class);
-	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 	}
 
-	@Ignore
+	@Disabled
 	public void methodYouWantIgnored() {
 	}
 

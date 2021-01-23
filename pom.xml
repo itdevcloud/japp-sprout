@@ -37,8 +37,9 @@
 	</licenses>
 
 	<modules>
+	<!--
 		<module>japp-se-common</module>
-		<!-- <module>japp-sprout-spring-boot</module> -->
+		 <module>japp-sprout-spring-boot</module> -->
 	</modules>
 
 	<dependencies>

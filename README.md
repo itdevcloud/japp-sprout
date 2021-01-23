@@ -62,3 +62,7 @@ Description: TBA.
   
 ## build and deploy 
 - refer to readme.me in each module / sub project
+
+## Install jar to local-repo example:
+1. copy jar and pom/xml into ${project.basedir}/lib folder
+2.mvn install:install-file -DlocalRepositoryPath=${project.basedir}/local-repo/ -Dfile=${project.basedir}/lib/<jar-name>  -DpomFile=${project.basedir}/lib/pom.xml -DcreateChecksum=true

@@ -50,10 +50,7 @@ public class StartupService implements AppFactoryComponentI {
 	private static Map<String, String> infoMap = new HashMap<String, String>();
 	private static long lastUpdatedTS = -1;
 
-	//must init PiscesJappFactory before startup
-
-//	@Autowired
-//	private PiscesJappFactory piscesjappFactory;
+	//must init AppFactory before startup
 
 	/**
 	 * Handle an application event. This event is executed as late as conceivably possible to indicate 

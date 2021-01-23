@@ -214,32 +214,32 @@ public class JwtService implements AppFactoryComponentI {
 	/**
 	 * Check if it is a valid application specific JWT, and the content of JWT is correct as well.
 	 */
-	public boolean isValidPiscesJappToken(String token, PublicKey publicKey, InputStream certificate) {
+	public boolean isValidJappToken(String token, PublicKey publicKey, InputStream certificate) {
 		try {
 			boolean isValid = isValidToken(token, publicKey, certificate);
 			if (!isValid) {
 				return false;
 			}
 			// check 2nd factor
-			return validatePiscesJappToken(token);
+			return validateJappToken(token);
 		} catch (Throwable t) {
 			logger.error(AppUtil.getStackTrace(t));
 			return false;
 		}
 	}
 
-	public boolean validatePiscesJappToken(String token) {
+	public boolean validateJappToken(String token) {
 		try {
 			Map<String, Object> claims = AppUtil.parseJwtClaims(token);
 			if (claims == null || claims.isEmpty()) {
-				logger.error("validatePiscesJappToken() - can not parse token claims, return false.......");
+				logger.error("validateJappToken() - can not parse token claims, return false.......");
 				return false;
 			}
 			//check target appid
 			String appIdInClaims = ""+claims.get(AppConstant.JWT_CLAIM_KEY_TARGET_APPID);
 			String appIdInConfig = ""+ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
 			if (!appIdInClaims.equalsIgnoreCase(appIdInConfig)) {
-				logger.error("validatePiscesJappToken() - target appid '" + appIdInClaims + "' is different from configured appid '" + appIdInConfig +"', return false.......");
+				logger.error("validateJappToken() - target appid '" + appIdInClaims + "' is different from configured appid '" + appIdInConfig +"', return false.......");
 				return false;
 			}
 			//check target IP
@@ -249,23 +249,23 @@ public class JwtService implements AppFactoryComponentI {
 				String clientIP = txnCtx.getClientIP();
 				String ipInClaims = ""+claims.get(AppConstant.JWT_CLAIM_KEY_TARGET_IP);
 				if (!ipInClaims.equalsIgnoreCase(clientIP)) {
-					logger.error("validatePiscesJappToken() - target ip '" + ipInClaims + "' is different from client request ip '" + clientIP +"', return false.......");
+					logger.error("validateJappToken() - target ip '" + ipInClaims + "' is different from client request ip '" + clientIP +"', return false.......");
 					return false;
 				}
 			}
 
 			// check 2nd factor
 			SecondFactorInfo secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
-			logger.debug("validatePiscesJappToken() - secondFactorInfo = " + secondFactorInfo);
+			logger.debug("validateJappToken() - secondFactorInfo = " + secondFactorInfo);
 			boolean isVerified = secondFactorInfo.isVerified();
 			String type = secondFactorInfo.getType();
 			String value = secondFactorInfo.getValue();
 			if (StringUtil.isEmptyOrNull(type) || type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)
 					|| isVerified) {
-				logger.debug("validatePiscesJappToken() - no 2nd factor type in token or token has been verified, return true");
+				logger.debug("validateJappToken() - no 2nd factor type in token or token has been verified, return true");
 				return true;
 			} else {
-				logger.error("validatePiscesJappToken() - 2nd factor value is not verified, return false...3....");
+				logger.error("validateJappToken() - 2nd factor value is not verified, return false...3....");
 				return false;
 			}
 		} catch (Throwable t) {
@@ -346,7 +346,7 @@ public class JwtService implements AppFactoryComponentI {
 			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID, ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
 			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_IP, clientIP);
 
-			Key privateKey = AppComponents.pkiKeyCache.getPiscesJappPrivateKey();
+			Key privateKey = AppComponents.pkiKeyCache.getJappPrivateKey();
 			// setClaims first
 			String newToken = Jwts.builder().setClaims(claims).setIssuedAt(new Date()).setExpiration(expiryDate)
 					.signWith(SignatureAlgorithm.RS256, privateKey).compact();
@@ -358,19 +358,19 @@ public class JwtService implements AppFactoryComponentI {
 	}
 
 	/**
-	 * Issue a PISCESJAPP JWT token
+	 * Issue a JAPP JWT token
 	 */ 
-	public String issuePiscesJappToken(IaaUser piscesjappIaaUser) {
-		logger.info("issuePiscesJappToken() - begin......");
-		if (piscesjappIaaUser == null) {
-			logger.info("issuePiscesJappToken() - piscesjappIaaUser is null, return null...");
+	public String issueJappToken(IaaUser iaaUser) {
+		logger.info("issueJappToken() - begin......");
+		if (iaaUser == null) {
+			logger.info("issueJappToken() - iaaUser is null, return null...");
 		}
 		String token = null;
 		int expireMins = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
 		try {
 			String secondFactorType = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_2NDFACTOR_TYPE);
 			SecondFactorInfo secondFactorInfo = new SecondFactorInfo();
-			String user2ndFactorType = piscesjappIaaUser.getTwoFactorAuthType();
+			String user2ndFactorType = iaaUser.getTwoFactorAuthType();
 			
 			if (user2ndFactorType.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)){
 				if ((secondFactorType.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE))){
@@ -381,33 +381,33 @@ public class JwtService implements AppFactoryComponentI {
 				}else {
 					secondFactorInfo.setType(secondFactorType);
 					secondFactorInfo.setVerified(false);
-					String tmpV = AppComponents.iaaService.getAndSend2ndfactorValue(piscesjappIaaUser, secondFactorType);
+					String tmpV = AppComponents.iaaService.getAndSend2ndfactorValue(iaaUser, secondFactorType);
 					secondFactorInfo.setValue(Hasher.hashPassword(tmpV));
 				}
 			} else {
 				secondFactorInfo.setType(user2ndFactorType);
 				secondFactorInfo.setVerified(false);
-				String tmpV = AppComponents.iaaService.getAndSend2ndfactorValue(piscesjappIaaUser, user2ndFactorType);
+				String tmpV = AppComponents.iaaService.getAndSend2ndfactorValue(iaaUser, user2ndFactorType);
 				secondFactorInfo.setValue(Hasher.hashPassword(tmpV));
 			}
-			Key key = AppComponents.pkiKeyCache.getPiscesJappPrivateKey();
-			token = issueToken(piscesjappIaaUser, key, expireMins, secondFactorInfo);
-			logger.debug("issuePiscesJappToken() - Issue PISCESJAPP token...end....secondFactorInfo = " + secondFactorInfo);
+			Key key = AppComponents.pkiKeyCache.getJappPrivateKey();
+			token = issueToken(iaaUser, key, expireMins, secondFactorInfo);
+			logger.debug("issueJappToken() - Issue JAPP token...end....secondFactorInfo = " + secondFactorInfo);
 			return token;
 		} catch (Throwable t) {
-			logger.info("issuePiscesJappToken()  - failed - \n " + AppUtil.getStackTrace(t));
+			logger.info("issueJappToken()  - failed - \n " + AppUtil.getStackTrace(t));
 			return null;
 		}
 
 	}
 
 	/**
-	 * Issue a PISCESJAPP JWT token
+	 * Issue a JAPP JWT token
 	 */
-	public String issueToken(IaaUser piscesjappIaaUser, Key privateKey, int expireMinutes,
+	public String issueToken(IaaUser iaaUser, Key privateKey, int expireMinutes,
 			SecondFactorInfo secondFactorInfo) {
 
-		if (piscesjappIaaUser == null || privateKey == null) {
+		if (iaaUser == null || privateKey == null) {
 			return null;
 		}
 		if (expireMinutes <= 0) {
@@ -424,7 +424,7 @@ public class JwtService implements AppFactoryComponentI {
 
 			TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 			String clientIP = txnCtx.getClientIP();
-			Map<String, Object> claims = AppComponents.iaaService.getTokenClaims(piscesjappIaaUser);
+			Map<String, Object> claims = AppComponents.iaaService.getTokenClaims(iaaUser);
 			if (claims == null || claims.isEmpty()) {
 				return null;
 			}
@@ -436,7 +436,7 @@ public class JwtService implements AppFactoryComponentI {
 
 			// setClaims first
 			String token = Jwts.builder().setClaims(claims).setIssuer(AppConstant.JWT_TOKEN_ISSUE_BY)
-					.setSubject(piscesjappIaaUser.getUserId()).setIssuedAt(new Date()).setExpiration(expiryDate)
+					.setSubject(iaaUser.getUserId()).setIssuedAt(new Date()).setExpiration(expiryDate)
 					.signWith(SignatureAlgorithm.RS256, privateKey).compact();
 			return token;
 		} catch (Throwable t) {

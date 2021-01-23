@@ -40,8 +40,8 @@ import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
- * The DefaultPiscesJappIaaService class is a default implementation class of the interface PiscesJappIaaServiceI.
- * If there is no other class to implement the interface PiscesJappIaaServiceI, the system will use this one to 
+ * The DefaultIaaServiceHelper class is a default implementation class of the interface IaaServiceHelperI.
+ * If there is no other class to implement the interface IaaServiceHelperI, the system will use this one to 
  * retrieve user information.
  *
  *
@@ -61,7 +61,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 	@Override
 	public String getIaaUserIdByLoginId(String loginId, String... authSpType) {
 		//default login Id = user Id
-		if(StringUtils.isEmpty(loginId) || StringUtils.isEmpty(authSpType)) {
+		if(StringUtil.isEmptyOrNull(loginId) || authSpType == null) {
 			logger.error("getIaaUserIdByLoginId() loginId and/or loginProvider is null / empty ...");
 			return null;
 		}
@@ -74,11 +74,11 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		logger.info("getIaaUserFromRepository() begins ...");
 		long start = System.currentTimeMillis();
 
-		IaaUser piscesjappIaaUser = getDummyIaaUserByUserId(userId);
+		IaaUser iaaUser = getDummyIaaUserByUserId(userId);
 
 		long end1 = System.currentTimeMillis();
 		logger.info("getIaaUserFromRepository() end........ took " + (end1 - start) + " ms. " + userId);
-		return piscesjappIaaUser;
+		return iaaUser;
 	}
 
 	@Override
@@ -91,15 +91,15 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 	}
 
 	@Override
-	public String getAndSend2ndfactorValue(IaaUser piscesjappIaaUser, String secondFactorType) {
+	public String getAndSend2ndfactorValue(IaaUser iaaUser, String secondFactorType) {
 		// TODO Auto-generated method stub
 		if (AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE.equalsIgnoreCase(secondFactorType)) {
-			String email = (piscesjappIaaUser == null ? null : piscesjappIaaUser.getEmail());
+			String email = (iaaUser == null ? null : iaaUser.getEmail());
 			if (StringUtil.isEmptyOrNull(email)) {
 				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
 						"can't get email address to send the verification code!");
 			}
-			String subject = "verification code from PISCESJAPP";
+			String subject = "verification code from JAPP";
 			int length = 6;
 			boolean useLetters = false;
 			boolean useNumbers = true;
@@ -133,7 +133,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 				"NieQminDE4Ggcewn98nKl3Jhgq7Smn3dLlQ1MyLPswq7njpt8qwsIP4jQ2MR1nhWTQyNMFkwV19g4tPQSBhNeQ==");
 		iaaUser.setFirstName("DummyFirstName");
 		iaaUser.setLastName("DummyLastName");
-		iaaUser.setEmail("DummyEmail@PiscesJappApp.ca");
+		iaaUser.setEmail("DummyEmail@JappApp.ca");
 		//Base32.random();
 		iaaUser.setTotpSecret("E47CWVVTI7BAXDD3");
 		return iaaUser;
@@ -146,18 +146,18 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 	}
 
 	@Override
-	public Map<String, Object> getPiscesJappTokenClaims(IaaUser piscesjappIaaUser) {
-		if (piscesjappIaaUser == null) {
+	public Map<String, Object> getJappTokenClaims(IaaUser iaaUser) {
+		if (iaaUser == null) {
 			return null;
 		}
 		Map<String, Object> claims = new HashMap<>();
-		claims.put("user", piscesjappIaaUser.getCurrentLoginId());
-		claims.put("userId", piscesjappIaaUser.getUserId());
-		claims.put("email", piscesjappIaaUser.getEmail());
-		claims.put("firstName", piscesjappIaaUser.getFirstName());
-		claims.put("lastName", piscesjappIaaUser.getLastName());
-		claims.put("busRole", piscesjappIaaUser.getBusinessRoles());
-		claims.put("appRole", piscesjappIaaUser.getApplicationRoles());
+		claims.put("user", iaaUser.getCurrentLoginId());
+		claims.put("userId", iaaUser.getUserId());
+		claims.put("email", iaaUser.getEmail());
+		claims.put("firstName", iaaUser.getFirstName());
+		claims.put("lastName", iaaUser.getLastName());
+		claims.put("busRole", iaaUser.getBusinessRoles());
+		claims.put("appRole", iaaUser.getApplicationRoles());
 		return claims;
 	}
 
@@ -166,7 +166,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		List<UserAppSpMap> mapList= new ArrayList<UserAppSpMap>();
 		
 		String spType = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER);
-		if(!StringUtils.isEmpty(spType)) {
+		if(!StringUtil.isEmptyOrNull(spType)) {
 			UserAppSpMap map = new UserAppSpMap();
 			map.setAppId(appId[0]);
 			map.setLoginId(loginId);

@@ -16,7 +16,6 @@
  */
 package com.itdevcloud.japp.core.async;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.logging.log4j.LogManager;

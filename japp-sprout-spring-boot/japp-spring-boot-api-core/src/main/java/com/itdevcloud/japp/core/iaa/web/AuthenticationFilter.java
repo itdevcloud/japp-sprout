@@ -34,21 +34,15 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
-import com.itdevcloud.japp.core.cahce.PkiKeyCache;
-import com.itdevcloud.japp.core.common.CommonService;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
-import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.iaa.service.IaaUser;
-import com.itdevcloud.japp.core.iaa.service.IaaService;
-import com.itdevcloud.japp.core.iaa.service.JwtService;
 import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
-import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.core.service.notification.SystemNotification;
 import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -65,19 +59,22 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * process the request, otherwise, it will return 401 or 403 Error to the
  * client.
  * <p>
- * This Filter's url pattern is "/api/*". All requests with url beginning with
+ * This Filter's url pattern is "/${apiroot}/api/*". All requests with url beginning with
  * "api" will trigger this filter. If you need a api service to bypass this
  * filter, define this api's url not starting with "api".
  * <p>
  * This Filter logs the total processing time. If it is too long, a performance
  * alert/warning will be sent.
  * 
- * @author Ling Yang
+ *  * @author Ling Yang
  * @author Marvin Sun
  * @since 1.0.0
  */
 
-@WebFilter(filterName = "PiscesJappAuthenticationFilter", urlPatterns = "/api/*")
+//NOTE:
+//if update urlPattern, also need to update web.xml
+//
+@WebFilter(filterName = "JappApiAuthenticationFilter", urlPatterns = "/jappcore/api/*")
 public class AuthenticationFilter implements Filter {
 
 	private static final Logger logger = LogManager.getLogger(AuthenticationFilter.class);
@@ -95,7 +92,7 @@ public class AuthenticationFilter implements Filter {
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 		AppUtil.initTransactionContext(httpRequest);
 		try {
-			logger.debug("PiscesJappAuthenticationFilter.doFilter() start ========>");
+			logger.debug("JappApiAuthenticationFilter.doFilter() start ========>");
 
 			// App CIDR white list check begin
 			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
@@ -111,7 +108,7 @@ public class AuthenticationFilter implements Filter {
 			String requestURI = httpRequest.getRequestURI();
 			String queryStr = httpRequest.getQueryString();
 
-			logger.info("PiscesJappAuthenticationFilter.doFilter====method=" + httpRequest.getMethod());
+			logger.info("JappApiAuthenticationFilter.doFilter====method=" + httpRequest.getMethod());
 			String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
 
 			// control for CORS flow
@@ -124,19 +121,18 @@ public class AuthenticationFilter implements Filter {
 				return;
 			}
 			String activeProfile = AppUtil.getSpringActiveProfile();
-			logger.debug("PiscesJappAuthenticationFilter activeProfile = " + activeProfile);
+			logger.debug("JappApiAuthenticationFilter activeProfile = " + activeProfile);
 
 			if (httpRequest.getMethod().equals("GET")) {
 				httpResponse.addHeader("Cache-Control", "no-cache");
 			}
 
 			IaaUser iaaUser = null;
-			// PiscesJappIaaService iaaService = piscesjappFactory.getIaaService();
 
-			// check piscesjappip authentication
-			boolean piscesjappipAuth = ConfigFactory.appConfigService
-					.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_SKIP_AUTH_ENABLED);
-			if (!piscesjappipAuth || AppConstant.JAPPCORE_SPRING_ACTIVE_PROFILE_PROD.equalsIgnoreCase(activeProfile)) {
+			// check skip auth
+			boolean enableAuth = ConfigFactory.appConfigService
+					.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_API_AUTH_ENABLED);
+			if (enableAuth || AppConstant.JAPPCORE_SPRING_ACTIVE_PROFILE_PROD.equalsIgnoreCase(activeProfile)) {
 				// verify JWT from a header,
 				String token = AppUtil.getJwtTokenFromRequest(httpRequest);
 				if (StringUtil.isEmptyOrNull(token)) {
@@ -147,7 +143,7 @@ public class AuthenticationFilter implements Filter {
 					return;
 
 				}
-				if (!AppComponents.jwtService.isValidPiscesJappToken(token, AppComponents.pkiKeyCache.getPiscesJappPublicKey(),
+				if (!AppComponents.jwtService.isValidJappToken(token, AppComponents.pkiKeyCache.getJappPublicKey(),
 						null)) {
 					// jwt token is not valid, return 401
 					logger.error("Authentication Failed. code E205 - token is not validated, throw 401 error====");
@@ -164,7 +160,7 @@ public class AuthenticationFilter implements Filter {
 				String userId = AppThreadContext.getTokenSubject();
 				if (StringUtil.isEmptyOrNull(userId)) {
 					logger.error(
-							"Authentication Failed. code E206 - PiscesJappThreadContext.getLoginId() returns null, PiscesJappThreadContext have no login ID set.");
+							"Authentication Failed. code E206 - JappThreadContext.getLoginId() returns null, JappThreadContext have no login ID set.");
 					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 							"Authentication Failed. code E206");
 					return;
@@ -211,10 +207,9 @@ public class AuthenticationFilter implements Filter {
 				// generate new JWT token.
 				SecondFactorInfo secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
 				newToken = AppComponents.jwtService.issueToken(iaaUser,
-						AppComponents.pkiKeyCache.getPiscesJappPrivateKey(), ConfigFactory.appConfigService
+						AppComponents.pkiKeyCache.getJappPrivateKey(), ConfigFactory.appConfigService
 								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH),
 						secondFactorInfo);
-
 				httpResponse.addHeader("Token", newToken);
 				// httpResponse.addHeader("Access-Control-Allow-Origin",
 				// authParameters.getAngularOrigin());
@@ -222,11 +217,11 @@ public class AuthenticationFilter implements Filter {
 				// "X-Requested-With,Origin,Content-Type, Accept, Token");
 				httpResponse.addHeader("Access-Control-Expose-Headers", "Token");
 
-				logger.info("PiscesJappAuthenticationFilter - Issue new token........");
+				logger.info("JappAuthenticationFilter - Issue new token........");
 
 			} else {
 
-				// piscesjappip auth
+				// japp auth
 				String userId = request.getParameter("loginId");
 
 				iaaUser = AppComponents.iaaService.getDummyIaaUserByUserId(userId);
@@ -236,7 +231,7 @@ public class AuthenticationFilter implements Filter {
 					return;
 				}
 				logger.warn(
-						"PiscesJappAuthenticationFilter - back-end piscesjappip auth.......!!!!!!!, get dummy user with userId = "
+						"JappAuthenticationFilter - back-end skip auth.......!!!!!!!, get dummy user with userId = "
 								+ userId);
 
 				AppThreadContext.setIaaUser(iaaUser);
@@ -253,10 +248,10 @@ public class AuthenticationFilter implements Filter {
 			int alertSeconds = ConfigFactory.appConfigService
 					.getPropertyAsInteger(AppConfigKeys.JAPPCORE_APP_SYSTEM_PERFORMANCE_ALERT_THRESHOLD_SECONDS);
 			if (totalTS <= warningSeconds * 1000) {
-				infoStr = "PiscesJappAuthenticationFilter.... end...Request URI = <" + requestURI + ">, Query String = <"
+				infoStr = "JappAuthenticationFilter.... end...Request URI = <" + requestURI + ">, Query String = <"
 						+ queryStr + ">, total time = " + totalTS + " millis. \n";
 			} else if (totalTS > warningSeconds * 1000 && totalTS <= alertSeconds * 1000) {
-				infoStr = "PiscesJappAuthenticationFilter...PERFORMANCE WARNING - Request URI = <" + requestURI
+				infoStr = "JappAuthenticationFilter...PERFORMANCE WARNING - Request URI = <" + requestURI
 						+ ">, Query String = <" + queryStr + ">, total time = " + totalTS + " millis. \n";
 
 				Date scheduledDate = null;
@@ -264,7 +259,7 @@ public class AuthenticationFilter implements Filter {
 						scheduledDate, infoStr);
 				AppComponents.systemNotifyService.addNotification(sn);
 			} else {
-				infoStr = "PiscesJappAuthenticationFilter...PERFORMANCE ALERT - Request URI = <" + requestURI
+				infoStr = "JappAuthenticationFilter...PERFORMANCE ALERT - Request URI = <" + requestURI
 						+ ">, Query String = <" + queryStr + ">, total time = " + totalTS + " millis. \n";
 
 				Date scheduledDate = null;

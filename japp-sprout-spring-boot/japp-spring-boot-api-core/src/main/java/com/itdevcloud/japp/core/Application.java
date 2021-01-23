@@ -48,11 +48,11 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
 public class Application extends SpringBootServletInitializer {
 
 
-	//must init ConfigFactory before init PiscesJappFactory
+	//must init ConfigFactory before init AppFactory
 	@Autowired
 	ConfigFactory configFactory;
 	
-	//must init PiscesJappFactory during the startup process
+	//must init AppFactory during the startup process
 	@Autowired
 	private AppFactory jappFactory;
 
@@ -62,7 +62,6 @@ public class Application extends SpringBootServletInitializer {
 	}
 	
 	public static void main(String[] args) {
-		//System.setProperty("startkit.app.spring.scan.base.package", "")
 		SpringApplication.run(Application.class, args);
 	}
 	

@@ -23,7 +23,7 @@ import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 
 /**
- * All sub-classes of this class will be picked up by PiscesJappCacheRefreshTimerTajappcore.
+ * All sub-classes of this class will be picked up by CacheRefreshTimerTask.
  *
  * @author Marvin Sun
  * @since 1.0.0

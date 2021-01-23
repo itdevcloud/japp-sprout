@@ -121,8 +121,8 @@ public class IaaService implements AppFactoryComponentI {
 			return null;
 		}
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		Map<String, Object> claims = helper.getPiscesJappTokenClaims(iaaUser);
-		//add PISCESJAPP token mandatory claims
+		Map<String, Object> claims = helper.getJappTokenClaims(iaaUser);
+		//add JAPP token mandatory claims
 		if(claims == null) {
 			claims = new HashMap<>();
 		}

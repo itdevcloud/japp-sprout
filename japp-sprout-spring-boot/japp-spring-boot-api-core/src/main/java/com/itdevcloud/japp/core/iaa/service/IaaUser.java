@@ -207,7 +207,7 @@ public class IaaUser <T> implements Serializable {
 	
 	@Override
 	public String toString() {
-		return "PiscesJappIaaUser [userId=" + userId + ", currentLoginId=" + currentLoginId + ", currentLoginSpType="
+		return "IaaUser [userId=" + userId + ", currentLoginId=" + currentLoginId + ", currentLoginSpType="
 				+ currentLoginSpType + ", currentAppId=" + currentAppId + ", currentHashedPassword="
 				+ currentHashedPassword + ", currentHashedAlgorithm=" + currentHashedAlgorithm + ", firstName="
 				+ firstName + ", middleName=" + middleName + ", lastName=" + lastName + ", email=" + email + ", phone="

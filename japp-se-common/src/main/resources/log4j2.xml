@@ -2,7 +2,7 @@
 
 <Configuration >
 	<Properties>
-		<Property name="logPath">${env:common.log.dir:-./logs/common}</Property>
+		<Property name="logPath">${env:japp.common.log.dir:-./logs/common}</Property>
 		<Property name="logFileSimpleName">common</Property>
 	</Properties>
 	<Appenders>
@@ -20,7 +20,7 @@
 
 		<Console name="console" target="SYSTEM_OUT">
 			<PatternLayout
-				pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{JAPPCORE_TX_ID}] %c{1} - %m%n" />
+				pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{JAPP_COMMON_TX_ID}] %c{1} - %m%n" />
 		</Console>
 	</Appenders>
 

@@ -84,7 +84,6 @@ public class EmailService implements AppFactoryComponentI{
 
 	@PostConstruct
 	public void init() {
-		//ConfigServiceHelperI configService = piscesjappFactory.getComponent(ConfigServiceHelperI.class);
 		emailServiceProviderName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_EMAIL_PROVIDER);
 		busEmailToAddrs = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_EMAIL_BUS_TOADDRESSES);
 		itEmailToAddrs = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_EMAIL_IT_TOADDRESSES);
@@ -437,7 +436,7 @@ public class EmailService implements AppFactoryComponentI{
 
 	private EmailServiceProvider getEmailServiceProvider() throws EmailException {
 		if (emailServiceProviderName == null) {
-			throw new EmailException(1, "Property 'startkit.email.provider' not set");
+			throw new EmailException(1, "emailServiceProviderName is null, check configuration !");
 		}
 		switch (emailServiceProviderName) {
 		case EMAIL_PROVIDER_SPRING:
@@ -450,7 +449,7 @@ public class EmailService implements AppFactoryComponentI{
 			logger.debug("using Log email provider");
 			return logEmailProvider;
 		default:
-			throw new EmailException(1, "Wrong property value for 'startkit.email.provider': " + emailServiceProviderName);
+			throw new EmailException(1, "emailServiceProviderName is not supported: " + emailServiceProviderName);
 		}
 
 	}

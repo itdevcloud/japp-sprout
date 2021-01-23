@@ -72,7 +72,7 @@ public class SpecialCharacterFilter implements Filter {
 			httpResponse.addHeader("Access-Control-Allow-Origin", origin);
 			httpResponse.addHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
 			httpResponse.addHeader("Access-Control-Allow-Headers",
-					"Origin, X-Requested-With, Content-Type, Accept, Authorization, SK-Token, CallingApp-Token");
+					"Origin, X-Requested-With, Content-Type, Accept, Authorization, JAPP-Token, CallingApp-Token");
 			//httpResponse.addHeader("Access-Control-Allow-Credentials","true");
 			httpResponse.setStatus(200);
 			return;
@@ -82,7 +82,7 @@ public class SpecialCharacterFilter implements Filter {
 		//httpResponse.addHeader("Access-Control-Allow-Credentials","true");
 		//httpResponse.addHeader("Access-Control-Allow-Headers",
 		//		"Origin, X-Requested-With, Content-Type, Accept, Authorization");
-		httpResponse.addHeader("Access-Control-Expose-Headers", "SK-Token");
+		httpResponse.addHeader("Access-Control-Expose-Headers", "JAPP-Token");
 		
 		if (httpRequest.getMethod().equals("GET")) {
 			httpResponse.addHeader("Cache-Control", "no-cache");
@@ -98,10 +98,7 @@ public class SpecialCharacterFilter implements Filter {
 			}
 		}
 		
-		//will uncomment after testing
-		//if(PiscesJappUtil.handleGoSecure(httpRequest, httpResponse,piscesjappConfigService) ==200) {
-			chain.doFilter(request, httpResponse);// sends request to next resource
-		//}
+		chain.doFilter(request, httpResponse);// sends request to next resource
 	}
 
 	@Override

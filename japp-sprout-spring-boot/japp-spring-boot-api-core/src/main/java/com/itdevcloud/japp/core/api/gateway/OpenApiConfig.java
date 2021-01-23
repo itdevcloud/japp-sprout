@@ -20,8 +20,7 @@ import com.itdevcloud.japp.core.service.config.AppConfigService;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
-//import ca.on.gov.ltc.startkit.common.SkConfigKeys;
- 
+
 @Configuration
 public class OpenApiConfig {
 	
@@ -50,8 +49,6 @@ public class OpenApiConfig {
 	@Value("${jappcore.openapi.externalDocs.url}")
 	private String externalDocsUrl;
 
-//	@Value("${startkit.openapi.server.list}")
-//	private String serverListStr;
 
 	@Bean
 	public OpenAPI customOpenAPI() {

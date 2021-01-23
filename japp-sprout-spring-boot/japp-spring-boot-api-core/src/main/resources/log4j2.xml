@@ -2,14 +2,14 @@
 
 <Configuration packages="com.microsoft.applicationinsights.log4j.v2">
 	<Properties>
-		<Property name="logPath">${env:startkit.log.dir:-./logs/jappcore}</Property>
+		<Property name="logPath">${env:jappcore.app.log.dir:-./logs/jappcore}</Property>
 		<Property name="logFileSimpleName">auditapi</Property>
 	</Properties>
 	<Appenders>
 		<RollingFile name="DailyRollingFile" fileName="${logPath}/${logFileSimpleName}.log"
 			filePattern="${logPath}/${logFileSimpleName}-%d{yyyy-MM-dd}.log">
 			<PatternLayout>
-				<pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{STARTKIT_TX_ID}] %c{1} - %m%n
+				<pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{JAPPCORE_TX_ID}] %c{1} - %m%n
 				</pattern>
 				
 			</PatternLayout>
@@ -20,7 +20,7 @@
 
 		<Console name="console" target="SYSTEM_OUT">
 			<PatternLayout
-				pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{STARTKIT_TX_ID}] %c{1} - %m%n" />
+				pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{JAPPCORE_TX_ID}] %c{1} - %m%n" />
 		</Console>
 	
 	    <ApplicationInsightsAppender name="aiAppender" />

@@ -85,7 +85,7 @@ public class TransactionContext implements Serializable {
 
 	@Override
 	public String toString() {
-		return "PiscesJappTransactionContext [transactionId=" + transactionId + ", requestReceivedTimeStamp="
+		return "TransactionContext [transactionId=" + transactionId + ", requestReceivedTimeStamp="
 				+ requestReceivedTimeStamp + ", serverTimezoneId=" + serverTimezoneId + ", clientTimezoneId="
 				+ clientTimezoneId + ", clientHostName=" + clientHostName + ", clientIP=" + clientIP + "]";
 	}

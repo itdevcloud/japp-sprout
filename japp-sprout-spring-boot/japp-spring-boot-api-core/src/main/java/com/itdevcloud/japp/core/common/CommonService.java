@@ -178,7 +178,7 @@ public class CommonService implements AppFactoryComponentI {
 			logger.error("matchAppRoleList() - iaaUser is null, return false.....");
 			return false;
 		}
-		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_ROLECHECK_ENABLED)) {
+		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_APPLICATION_ROLECHECK_ENABLED)) {
 			Set<String> roleList =  iaaUser.getBusinessRoles();
 			roleList.addAll(iaaUser.getApplicationRoles());
 			
@@ -207,7 +207,7 @@ public class CommonService implements AppFactoryComponentI {
 	}
 
 	public List<String> getApplicationRoleList() {
-		String roles = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_ROLE_LIST);
+		String roles = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_APPLICATION_ROLE_LIST);
 		if(StringUtil.isEmptyOrNull(roles)) {
 			return null;
 		}
@@ -295,7 +295,7 @@ public class CommonService implements AppFactoryComponentI {
 		return;
 	}
 
-	public String retrieveAuthCallBackUrl(ConfigServiceHelperI piscesjappConfigService, String appId) {
+	public String retrieveAuthCallBackUrl(ConfigServiceHelperI jappConfigService, String appId) {
 		String propertyName = "tracs.application.callback.url." + appId.toLowerCase();
 		String url = ConfigFactory.appConfigService.getPropertyAsString(propertyName);
 

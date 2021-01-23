@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.itdevcloud.sprout</groupId>
 	<artifactId>japp-spring-boot-api-core</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<packaging>jar</packaging>
 	<properties>
 		<java.version>15</java.version>
@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>com.itdevcloud.sprout</groupId>
 			<artifactId>japp-se-common</artifactId>
-			<version>0.0.1</version>
+			<version>0.0.2</version>
 		</dependency>
 		<!-- Spring -->
 		<dependency>

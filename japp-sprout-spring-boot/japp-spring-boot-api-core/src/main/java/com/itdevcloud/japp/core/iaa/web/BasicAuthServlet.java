@@ -102,11 +102,11 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			
-			// issue new PISCESJAPP JWT token;
-			String token = AppComponents.jwtService.issuePiscesJappToken(iaaUser);
+			// issue new JAPP JWT token;
+			String token = AppComponents.jwtService.issueJappToken(iaaUser);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error(
-						"BasicAuthServlet.doPost() - Authentication Failed. code E104. PISCESJAPP Token can not be created for login Id '"
+						"BasicAuthServlet.doPost() - Authentication Failed. code E104. JAPP Token can not be created for login Id '"
 								+ iaaUser.getCurrentLoginId() + "', userId = " + userId);
 				httpResponse.setStatus(403);
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
@@ -114,7 +114,7 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 				return;
 			}
 			
-				httpResponse.addHeader("PiscesJapp-Token", token);
+				httpResponse.addHeader("Japp-Token", token);
 				
 				httpResponse.addHeader("Content-Security-Policy", "default-src 'self';");
 				httpResponse.addHeader("X-XSS-Protection", "1; mode=block");

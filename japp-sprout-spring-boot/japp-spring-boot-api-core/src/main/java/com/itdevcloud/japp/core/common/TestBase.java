@@ -131,7 +131,7 @@ public class TestBase {
 		logger.info(info);
 	}
 
-	public void setPiscesJappApiTestUrl(String url) {
+	public void setJappApiTestUrl(String url) {
 		JAPPCORE_API_TEST_URL = url;
 	}
 
@@ -201,14 +201,14 @@ public class TestBase {
 		return failCommandList;
 	}
 
-	public boolean test(String piscesjappUrlPath, String command, String jsonRequestString, String assertionString) {
+	public boolean test(String jappUrlPath, String command, String jsonRequestString, String assertionString) {
 
 		logger.info("test() - begin..........");
-		if(StringUtil.isEmptyOrNull(piscesjappUrlPath)) {
-			piscesjappUrlPath = JAPPCORE_API_TEST_URL;
+		if(StringUtil.isEmptyOrNull(jappUrlPath)) {
+			jappUrlPath = JAPPCORE_API_TEST_URL;
 		}
-		if(StringUtil.isEmptyOrNull(piscesjappUrlPath)) {
-			logger.info("test() - piscesjappUrlPath and JAPPCORE_DEFAULT_TEST_URL_PATH are null or empty, do nothing......");
+		if(StringUtil.isEmptyOrNull(jappUrlPath)) {
+			logger.info("test() - jappUrlPath and JAPPCORE_DEFAULT_TEST_URL_PATH are null or empty, do nothing......");
 			return false;
 		}
 		if(StringUtil.isEmptyOrNull(jsonRequestString)) {
@@ -218,9 +218,9 @@ public class TestBase {
 		if (StringUtil.isEmptyOrNull(assertionString)) {
 			assertionString = "\"cmdStatusCode\":\"SUCCESS\"";
 		}
-		String appUrlPath = piscesjappUrlPath;
+		String appUrlPath = jappUrlPath;
 
-		logger.info("test() - start...piscesjappUrlPath = '" + piscesjappUrlPath + "', test command = '" + command
+		logger.info("test() - start...jappUrlPath = '" + jappUrlPath + "', test command = '" + command
 				+ "' jsonRequest:\n" + jsonRequestString);
 
 		Client client = ClientBuilder.newClient();

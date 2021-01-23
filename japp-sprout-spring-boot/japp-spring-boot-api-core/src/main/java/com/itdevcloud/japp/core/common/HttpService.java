@@ -36,10 +36,10 @@ import javax.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  *
@@ -88,7 +88,7 @@ public class HttpService implements AppFactoryComponentI {
 	private Proxy getHttpProxy() {
 		String httpProxyServer = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_HTTP_PROXY_SERVER);
 		int httpProxyPort = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_HTTP_PROXY_PORT);
-		if (StringUtils.isEmpty(httpProxyServer) || httpProxyPort == 0) {
+		if (StringUtil.isEmptyOrNull(httpProxyServer) || httpProxyPort == 0) {
 			return null;
 		}
 		log.info("getHttpProxy() - httpProxyServer = " + httpProxyServer + ", httpProxyPort = " + httpProxyPort);
@@ -96,7 +96,7 @@ public class HttpService implements AppFactoryComponentI {
 	}
 
 	public HttpResponse doGet(String urlStr, Map<String, String> headers, boolean useProxy) {
-		log.debug("PiscesJappHttpService.doGet() ==== " + urlStr + ", useProxy=" + useProxy);
+		log.debug("HttpService.doGet() ==== " + urlStr + ", useProxy=" + useProxy);
 		BufferedReader in = null;
 		HttpURLConnection conn = null;
 		try {
@@ -142,10 +142,10 @@ public class HttpService implements AppFactoryComponentI {
 				response.append(inputLine);
 			}
 
-			HttpResponse piscesjappHttpResponse = new HttpResponse();
-			piscesjappHttpResponse.setHeaderMap(map);
-			piscesjappHttpResponse.setResposebody(response.toString());
-			return piscesjappHttpResponse;
+			HttpResponse httpResponse = new HttpResponse();
+			httpResponse.setHeaderMap(map);
+			httpResponse.setResposebody(response.toString());
+			return httpResponse;
 
 		} catch (Throwable t) {
 			log.error(AppUtil.getStackTrace(t));
@@ -168,7 +168,7 @@ public class HttpService implements AppFactoryComponentI {
 
 
 	public HttpResponse doPost(String urlStr, Map<String, String> headers, Map<String, Object> params, boolean useProxy) {
-		log.debug("PiscesJappHttpService.doPost() ==== " + urlStr + ", useProxy=" + useProxy);
+		log.debug("HttpService.doPost() ==== " + urlStr + ", useProxy=" + useProxy);
 		Reader in = null;
 		HttpURLConnection conn = null;
 		try {
@@ -228,10 +228,10 @@ public class HttpService implements AppFactoryComponentI {
 				sb.append((char) c);
 			}
 			// log.info("response = " + response);
-			HttpResponse piscesjappHttpResponse = new HttpResponse();
-			piscesjappHttpResponse.setHeaderMap(map);
-			piscesjappHttpResponse.setResposebody(sb.toString());
-			return piscesjappHttpResponse;
+			HttpResponse httpResponse = new HttpResponse();
+			httpResponse.setHeaderMap(map);
+			httpResponse.setResposebody(sb.toString());
+			return httpResponse;
 		} catch (Throwable t) {
 			log.error(AppUtil.getStackTrace(t));
 			throw AppUtil.throwRuntimeException(t);

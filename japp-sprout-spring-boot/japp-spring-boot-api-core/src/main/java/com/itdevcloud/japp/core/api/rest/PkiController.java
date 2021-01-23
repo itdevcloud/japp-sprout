@@ -49,14 +49,14 @@ public class PkiController {
 	@GetMapping(value="/key")
 	public PublicKey getPublicKey() {
 		logger.debug("PkiController.getPublicKey() - start......");
-		PublicKey key = AppComponents.pkiKeyCache.getPiscesJappPublicKey();
+		PublicKey key = AppComponents.pkiKeyCache.getJappPublicKey();
 		return key;
 	}
 	
 	@GetMapping(value="/keyrep")
 	public KeyRep getKeyRep() {
 		logger.debug("PkiController.getKeyRep() - start......");
-		PublicKey key = AppComponents.pkiKeyCache.getPiscesJappPublicKey();
+		PublicKey key = AppComponents.pkiKeyCache.getJappPublicKey();
 		KeyRep keyRep = new KeyRep(KeyRep.Type.PUBLIC, key.getAlgorithm(), key.getFormat(), key.getEncoded());
 		return keyRep;
 	}
@@ -64,7 +64,7 @@ public class PkiController {
 	@GetMapping(value="/certificate")
 	public Certificate getCertificate() {
 		logger.debug("PkiController.getCertificate() - start......");
-		return AppComponents.pkiKeyCache.getPiscesJappCertificate();
+		return AppComponents.pkiKeyCache.getJappCertificate();
 	}
 
 }

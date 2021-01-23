@@ -63,7 +63,7 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 				return;
 			}
 
-			// validate current piscesjapp token
+			// validate current japp token
 			String token = AppUtil.getJwtTokenFromRequest(httpRequest);
 			if (StringUtil.isEmptyOrNull(token)) {
 				// jwt token is null return 401
@@ -73,7 +73,7 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 				return;
 
 			}
-			if (!AppComponents.jwtService.isValidToken(token, AppComponents.pkiKeyCache.getPiscesJappPublicKey(), null)) {
+			if (!AppComponents.jwtService.isValidToken(token, AppComponents.pkiKeyCache.getJappPublicKey(), null)) {
 				// jwt token is not valid, return 401
 				logger.error("Authentication Failed. code E805 - token is not validated, throw 401 error====");
 				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
@@ -83,9 +83,9 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 			//subject must be userId, not loginId!!!
 			String userId = AppUtil.getSubjectFromJwt(token);
 
-			IaaUser piscesjappIaaUser = null;
+			IaaUser iaaUser = null;
 			try{
-				piscesjappIaaUser = AppComponents.iaaService.getIaaUserByUserId(userId);
+				iaaUser = AppComponents.iaaService.getIaaUserByUserId(userId);
 			}catch(AppException e){
 				logger.error(
 						"Reset2ndFactorValueServlet.doPost() - Authentication Failed. code E306. can't retrieve iaa user - userId =" + userId + " - \n"
@@ -96,7 +96,7 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			// Application role list check
-			if (!AppComponents.commonService.matchAppRoleList(piscesjappIaaUser)) {
+			if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
 				logger.error(
 						"Authorization Failed. code E508 - requestor's is not on the APP's role list" + ".....");
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
@@ -104,12 +104,12 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 				return;
 			}
 
-			// issue new PISCESJAPP JWT token;
-			String newToken = AppComponents.jwtService.issuePiscesJappToken(piscesjappIaaUser);
+			// issue new JAPP JWT token;
+			String newToken = AppComponents.jwtService.issueJappToken(iaaUser);
 
 			if (StringUtil.isEmptyOrNull(newToken)) {
 				logger.error(
-						"Reset2ndFactorValueServlet.doPost() - Authentication Failed. code E307. PISCESJAPP Token can not be created..for userId =" + userId);
+						"Reset2ndFactorValueServlet.doPost() - Authentication Failed. code E307. JAPP Token can not be created..for userId =" + userId);
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 						"Reset2ndFactorValueServlet Failed. code E307");
 				return;

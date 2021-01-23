@@ -43,9 +43,9 @@ public class PkiKeyCache extends RefreshableCache{
 
 	private static final Logger logger = LogManager.getLogger(PkiKeyCache.class);
 
-	private static Key piscesjappPrivateKey;
-	private static PublicKey piscesjappPublicKey;
-	private static Certificate piscesjappCertificate;
+	private static Key jappPrivateKey;
+	private static PublicKey jappPublicKey;
+	private static Certificate jappCertificate;
 
 
 	@PostConstruct
@@ -57,7 +57,7 @@ public class PkiKeyCache extends RefreshableCache{
 		if (lastUpdatedTS == -1) {
 			initCache();
 		}else {
-			logger.info("PiscesJappKeyCache.refreshCache() - only daily referesh is requried, do nothing...");
+			logger.info("PkiKeyCache.refreshCache() - only daily referesh is requried, do nothing...");
 		}
 	}
 
@@ -66,32 +66,32 @@ public class PkiKeyCache extends RefreshableCache{
 		try {
 			long startTS = System.currentTimeMillis();
 			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL))) {
-				logger.debug("PiscesJappKeyCache.init() - begin...........");
+				logger.debug("PkiKeyCache.init() - begin...........");
 
-				AppComponents.pkiService.retrievePiscesJappKeyPair();
-				Key tmpPiscesJappPrivateKey = AppComponents.pkiService.getPiscesJappPrivateKey();
-				PublicKey tempPiscesJappPublicKey = AppComponents.pkiService.getPiscesJappPublicKey();
-				Certificate tempPiscesJappCertificate = AppComponents.pkiService.getPiscesJappCertificate();
+				AppComponents.pkiService.retrieveJappKeyPair();
+				Key tmpJappPrivateKey = AppComponents.pkiService.getJappPrivateKey();
+				PublicKey tempJappPublicKey = AppComponents.pkiService.getJappPublicKey();
+				Certificate tempJappCertificate = AppComponents.pkiService.getJappCertificate();
 				boolean comeFromKeyVault = AppComponents.pkiService.isComeFromKeyVault();
-				if (tmpPiscesJappPrivateKey == null || tempPiscesJappPublicKey == null) {
-					String info = "PiscesJappKeyCache.init() - cannot retrieve PiscesJappPrivateKey, PiscesJappsPublicKey, does not change current PiscesJapp Key Cache.......!!!";
+				if (tmpJappPrivateKey == null || tempJappPublicKey == null) {
+					String info = "JappKeyCache.init() - cannot retrieve JappPrivateKey, JappsPublicKey, does not change current Japp Key Cache.......!!!";
 					logger.error(info);
 					AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE, info);
 					return;
 				}
 				initInProcess = true;
-				piscesjappPrivateKey = tmpPiscesJappPrivateKey;
-				piscesjappPublicKey = tempPiscesJappPublicKey;
-				piscesjappCertificate = tempPiscesJappCertificate;
+				jappPrivateKey = tmpJappPrivateKey;
+				jappPublicKey = tempJappPublicKey;
+				jappCertificate = tempJappCertificate;
 				initInProcess = false;
 
 				Date end = new Date();
 				long endTS = end.getTime();
 				lastUpdatedTS = endTS;
 
-				String str = "PiscesJappKeyCache.init() - end. total time = " + (endTS - startTS) + " millis. Result:"
-						+ "\nPiscesJappPublicKey = " + (piscesjappPublicKey==null?null:"...");
-				String info = "PiscesJappKeyCache.init() - PISCESJAPP Key come from Azure Key Vault = " + comeFromKeyVault + ", total time = " + (endTS - startTS) + " millis. \n";
+				String str = "JappKeyCache.init() - end. total time = " + (endTS - startTS) + " millis. Result:"
+						+ "\nJappPublicKey = " + (jappPublicKey==null?null:"...");
+				String info = "JappKeyCache.init() - JAPP Key come from Azure Key Vault = " + comeFromKeyVault + ", total time = " + (endTS - startTS) + " millis. \n";
 
 				logger.info(str);
 				AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE, info);
@@ -106,24 +106,24 @@ public class PkiKeyCache extends RefreshableCache{
 		}
 	}
 
-	public Key getPiscesJappPrivateKey() {
+	public Key getJappPrivateKey() {
 		waitForInit();
-		return piscesjappPrivateKey;
+		return jappPrivateKey;
 	}
 
-	public PublicKey getPiscesJappPublicKey() {
+	public PublicKey getJappPublicKey() {
 		waitForInit();
-		return piscesjappPublicKey;
+		return jappPublicKey;
 	}
 
 
-	public Certificate getPiscesJappCertificate() {
-		return piscesjappCertificate;
+	public Certificate getJappCertificate() {
+		return jappCertificate;
 	}
 
 
-	public void setPiscesJappCertificate(Certificate piscesjappCertificate) {
-		PkiKeyCache.piscesjappCertificate = piscesjappCertificate;
+	public void setJappCertificate(Certificate jappCertificate) {
+		PkiKeyCache.jappCertificate = jappCertificate;
 	}
 
 

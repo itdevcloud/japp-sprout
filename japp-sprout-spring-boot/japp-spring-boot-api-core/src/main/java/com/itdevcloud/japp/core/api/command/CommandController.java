@@ -40,9 +40,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
  *
  * Command based restful api services are leverage following naming conventions:
  *  - Command can be provided by using query string or embedded in the json request string.
- *  - Request - CommandRequest.java (Capital first char, must extend PiscesJappBaseRequest.java)
- *  - Response - CommandResponse.java (Capital first char, must extend PiscesJappBaseResponse.java)
- *  - Processor - CommandProcessor.java (Capital first char, must extend PiscesJappRequestProcessor.java)
+ *  - Request - CommandRequest.java (Capital first char, must extend BaseRequest.java)
+ *  - Response - CommandResponse.java (Capital first char, must extend BaseResponse.java)
+ *  - Processor - CommandProcessor.java (Capital first char, must extend RequestProcessor.java)
  *  e.g.
  *  - Command - echo
  *  - Request - EchoRequest.java
@@ -66,7 +66,7 @@ public class CommandController extends BaseCommandController {
  
 	@PostMapping("/rpcapi/v1/cmd")
 	public String process(@RequestParam("cmd") Optional<String> command, @RequestBody(required = false) String jsonRequestString) {
-		logger.debug("PiscesJappCommandController.process() - start......");
+		logger.debug("CommandController.process() - start......");
 		String cmd = command.isPresent()?command.get():null;
 		return processCommand(cmd, jsonRequestString);
 	}

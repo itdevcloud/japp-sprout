@@ -42,6 +42,7 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.config.AppConfigService;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  *
@@ -99,8 +100,8 @@ public class AzureJwksService implements AppFactoryComponentI{
 		//List<AzureJwksKey> keys = null;
 		try {
 			// get meta data for the tenant
-			HttpResponse piscesjappHttpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
-			String openIdMetaData = piscesjappHttpResponse.getResposebody();
+			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
+			String openIdMetaData = httpResponse.getResposebody();
 
 			JsonObject obj = JsonParser.parseString(openIdMetaData).getAsJsonObject();
 
@@ -145,7 +146,7 @@ public class AzureJwksService implements AppFactoryComponentI{
 	public String getAadAuthLogoutUri() {
 
 		logger.info("getAadAuthLogoutUri() begin...");
-		if (!StringUtils.isEmpty(aadAuthLogoutUrl)) {
+		if (!StringUtil.isEmptyOrNull(aadAuthLogoutUrl)) {
 			logger.info("getAadAuthLogoutUri() get ...aadAuthLogoutUrl from property file = " + aadAuthLogoutUrl);
 			return aadAuthLogoutUrl;
 		}
@@ -156,8 +157,8 @@ public class AzureJwksService implements AppFactoryComponentI{
 		//List<AzureJwksKey> keys = null;
 		try {
 			// get meta data for the tenant
-			HttpResponse piscesjappHttpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
-			String openIdMetaData = piscesjappHttpResponse.getResposebody();
+			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
+			String openIdMetaData = httpResponse.getResposebody();
 
 			JsonObject obj = new JsonParser().parse(openIdMetaData).getAsJsonObject();
 
@@ -208,8 +209,8 @@ public class AzureJwksService implements AppFactoryComponentI{
 		try {
 			// get meta data for the tenant
 			logger.info("\ngetJwksKeys() ..... aadOpenIdMetaDataUrl = " + aadOpenIdMetaDataUrl);
-			HttpResponse piscesjappHttpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
-			String openIdMetaData = piscesjappHttpResponse.getResposebody();
+			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
+			String openIdMetaData = httpResponse.getResposebody();
 
 			JsonObject obj = new JsonParser().parse(openIdMetaData).getAsJsonObject();
 

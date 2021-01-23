@@ -177,7 +177,7 @@ public class AppUtil {
 
 	public static RuntimeException throwRuntimeException(Throwable e) {
 		if (e == null) {
-			throw new RuntimeException("PiscesJappUtil.throwRuntimeException() --- Throwable is null!");
+			throw new RuntimeException("AppUtil.throwRuntimeException() --- Throwable is null!");
 		} else if (e instanceof RuntimeException) {
 			throw (RuntimeException) e;
 		} else {
@@ -349,7 +349,7 @@ public class AppUtil {
 		if (StringUtil.isEmptyOrNull(command)) {
 			return null;
 		}
-		if (command.equalsIgnoreCase("PiscesJappBase")) {
+		if (command.equalsIgnoreCase("Base")) {
 			return null;
 		}
 		return command;
@@ -471,9 +471,9 @@ public class AppUtil {
 		if (StringUtil.isEmptyOrNull(statusCode)) {
 			statusCode = "" + httpStatus;
 		}
-		BaseResponse piscesjappBaseResponse = AppUtil.createBaseResponse(null, statusCode, message);
+		BaseResponse jappBaseResponse = AppUtil.createBaseResponse(null, statusCode, message);
 		Gson gson = new GsonBuilder().serializeNulls().create();
-		String jsonResponseStr = gson.toJson(piscesjappBaseResponse);
+		String jsonResponseStr = gson.toJson(jappBaseResponse);
 
 		httpResponse.setStatus(httpStatus);
 		PrintWriter out;

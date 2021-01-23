@@ -163,7 +163,6 @@ public class RecursiveDeepCopier {
 			return targetObj;
 		} catch (Throwable t) {
 			t.printStackTrace();
-			// logger.error(PiscesJappUtil.getStackTrace(t));
 			return targetObj;
 		}
 

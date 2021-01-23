@@ -62,12 +62,12 @@ public class CacheRefreshTimerTask {
 
 	@Scheduled(fixedRateString = "${jappcore.cache.refresh.interval:600000}")
 	public void run() {
-		logger.info("PiscesJappCacheRefreshTimerTask.run() - started......");
+		logger.info("CacheRefreshTimerTask.run() - started......");
 		if(cacheList == null || cacheList.isEmpty()) {
-			logger.debug("PiscesJappCacheRefreshTimerTask - cacheList is null or empty, do nothing...");
+			logger.debug("CacheRefreshTimerTask - cacheList is null or empty, do nothing...");
 			return;
 		}else {
-			String str = "PiscesJappCacheRefreshTimerTask.run() - cacheList size = " + cacheList.size();
+			String str = "CacheRefreshTimerTask.run() - cacheList size = " + cacheList.size();
 			for (RefreshableCache cache : cacheList) {
 				str = str + "\n - "+cache.getCacheSimpleName();
 			}
@@ -84,7 +84,7 @@ public class CacheRefreshTimerTask {
 		int todayInt = new Integer(today);
 
 		if (enableCacheDailyRefresh && (dailyRefreshDate == null || refreshDateInt < todayInt)) {
-			logger.info("PiscesJappCacheRefreshTimerTask.run() - Daily refresh start............");
+			logger.info("CacheRefreshTimerTask.run() - Daily refresh start............");
 
 			for (RefreshableCache cache : cacheList) {
 				// force to refresh anyway by set lastUpdatedTS = -1
@@ -103,7 +103,7 @@ public class CacheRefreshTimerTask {
 			dailyRefreshDate = today;
 
 			long end1 = System.currentTimeMillis();
-			logger.info("PiscesJappCacheRefreshTimerTask.run() - Daily refresh End...... took " + (end1 - start) + " ms.");
+			logger.info("CacheRefreshTimerTask.run() - Daily refresh End...... took " + (end1 - start) + " ms.");
 		} else {
 			for (RefreshableCache cache : cacheList) {
 				long lastUpdatedTS = cache.getLastUpdatedTS();
@@ -118,7 +118,7 @@ public class CacheRefreshTimerTask {
 				}
 			}
 		}
-		logger.info("PiscesJappCacheRefreshTimerTask.run() - end.........");
+		logger.info("CacheRefreshTimerTask.run() - end.........");
 
 	}
 }

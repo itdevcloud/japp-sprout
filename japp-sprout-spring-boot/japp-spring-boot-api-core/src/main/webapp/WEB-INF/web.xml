@@ -8,7 +8,7 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	<filter-mapping>
-		<filter-name>PiscesJappAuthenticationFilter</filter-name>
-		<url-pattern>/api/*</url-pattern>
+		<filter-name>JappApiAuthenticationFilter</filter-name>
+		<url-pattern>/jappcore/api/*</url-pattern>
 	</filter-mapping>
 </web-app>

@@ -37,6 +37,7 @@ import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * The LogoutServlet redirects client's logout requests to the predefined logout endpoint.
@@ -102,19 +103,19 @@ public class LogoutServlet extends javax.servlet.http.HttpServlet {
 		} else {
 			provider = provider.trim();
 		}
-		String piscesjappPostSignOutUri = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_POST_SIGNOUT_PAGE);
+		String jappPostSignOutUri = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_POST_SIGNOUT_PAGE);
 		if (AppConstant.AUTH_PROVIDER_AAD_OPENID.equals(provider)) {
-			piscesjappPostSignOutUri = piscesjappPostSignOutUri.replace("/#/", "/%23/");
+			jappPostSignOutUri = jappPostSignOutUri.replace("/#/", "/%23/");
 			String url = AppComponents.aadJwksCache.getAadAuthLogoutUri();
-			if(!StringUtils.isEmpty(piscesjappPostSignOutUri)){
-				url = url + "?post_logout_redirect_uri=" + piscesjappPostSignOutUri;
+			if(!StringUtil.isEmptyOrNull(jappPostSignOutUri)){
+				url = url + "?post_logout_redirect_uri=" + jappPostSignOutUri;
 			}
 			return url;
 		} else if (AppConstant.AUTH_PROVIDER_GENERAL_OAUTH2.equals(provider)) {
 			// SDC STS URL
-			return piscesjappPostSignOutUri;
+			return jappPostSignOutUri;
 		} else {
-			return piscesjappPostSignOutUri;
+			return jappPostSignOutUri;
 		}
 
 	}

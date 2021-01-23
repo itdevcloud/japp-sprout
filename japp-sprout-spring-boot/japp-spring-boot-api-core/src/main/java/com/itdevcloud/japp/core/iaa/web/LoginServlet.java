@@ -34,6 +34,7 @@ import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * The LoginServlet redirects client's login requests to the predefined login endpoint.
@@ -105,16 +106,16 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 		UUID uuid = UUID.randomUUID();
 		if (AppConstant.AUTH_PROVIDER_AAD_OPENID.equals(provider)) {
 			//String bitsUserEmail = getCookieValue(request, "BITS_USER_EMAIL");
-			String piscesjappUserEmail = request.getParameter("JAPPCORE_USER_EMAIL");
+			String jappUserEmail = request.getParameter("JAPPCORE_USER_EMAIL");
 			String clientId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.AAD_CLIENT_ID);
 			String appId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
 			String prompt = getAadAuthPrompt();
-			logger.debug("retrieveLoginUrl()......email cookie = " + piscesjappUserEmail);
+			logger.debug("retrieveLoginUrl()......email cookie = " + jappUserEmail);
 			String url = AppComponents.aadJwksCache.getAadAuthUri() + "?client_id=" + clientId
 					+ "&response_type=id_token" + "&response_mode=form_post" + "&scope=openid" + "&state=" + appId
 					+ prompt + "&nonce=" + uuid.toString();
-			if(!StringUtils.isEmpty(piscesjappUserEmail) ) {
-				url = url + "&login_hint="+piscesjappUserEmail;
+			if(!StringUtil.isEmptyOrNull(jappUserEmail) ) {
+				url = url + "&login_hint="+jappUserEmail;
 			}
 			return url;
 		} 
@@ -131,7 +132,7 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 			return url;
 		}
 		else if (AppConstant.AUTH_PROVIDER_JAPPCORE_DYNAMIC.equals(provider)) {
-			// PISCESJAPP-DYNAMIC URL
+			// JAPP-DYNAMIC URL
 			String server = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_DYNAMIC_AUTHROIZATION_URL);
 			String appid = "?appId=" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
 			return server + appid;

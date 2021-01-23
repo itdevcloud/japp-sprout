@@ -90,7 +90,7 @@ public class Verify2ndFactorServlet extends javax.servlet.http.HttpServlet {
 			String secondFactorValueFromReq = httpRequest.getParameter(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE);
 			String appId = httpRequest.getParameter("appId");
 			
-			// validate current piscesjapp token
+			// validate current japp token
 			String token = AppUtil.getJwtTokenFromRequest(httpRequest);
 			if (StringUtil.isEmptyOrNull(token)) {
 				// jwt token is null return 401
@@ -100,7 +100,7 @@ public class Verify2ndFactorServlet extends javax.servlet.http.HttpServlet {
 				return;
 
 			}
-			if (!AppComponents.jwtService.isValidToken(token, AppComponents.pkiKeyCache.getPiscesJappPublicKey(), null)) {
+			if (!AppComponents.jwtService.isValidToken(token, AppComponents.pkiKeyCache.getJappPublicKey(), null)) {
 				// jwt token is not valid, return 401
 				logger.error("Authentication Failed. code E305 - token is not validated, throw 401 error====");
 				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
@@ -119,15 +119,15 @@ public class Verify2ndFactorServlet extends javax.servlet.http.HttpServlet {
 			String userId = AppUtil.getSubjectFromJwt(token);
 			SecondFactorInfo secondFactorInfo = null;
 			String newToken = null;
-			if (AppComponents.jwtService.validatePiscesJappToken(token)) {
-				// PiscesJapp token is valid, no need to validate anymore
+			if (AppComponents.jwtService.validateJappToken(token)) {
+				// Japp token is valid, no need to validate anymore
 				String err = "2nd factor token has been verified, no need to validate anymore....";
 				logger.debug(err);
 				// no need to change token, just return original token
 				newToken = token;
 				AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_WARN_NOACTION, err);
 			} else {
-				Key key = AppComponents.pkiKeyCache.getPiscesJappPrivateKey();
+				Key key = AppComponents.pkiKeyCache.getJappPrivateKey();
 				// verify 2nd factor
 				secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
 				String type = secondFactorInfo.getType();
@@ -173,16 +173,16 @@ public class Verify2ndFactorServlet extends javax.servlet.http.HttpServlet {
 					}
 
 				}  else if (AppConstant.IAA_2NDFACTOR_TYPE_TOTP.equalsIgnoreCase(type)) {
-					IaaUser piscesjappIaaUser = AppComponents.iaaService.getIaaUserByUserId(userId);
-					if(piscesjappIaaUser == null) {
+					IaaUser iaaUser = AppComponents.iaaService.getIaaUserByUserId(userId);
+					if(iaaUser == null) {
 						logger.error(
 								"Can't retrieve user,  userId = " + userId + ".....");
 						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 								"Can't retrieve user.");
 						return;
 					}
-					String totpSecret = piscesjappIaaUser.getTotpSecret();
-					Totp totp = new Totp(piscesjappIaaUser.getTotpSecret());
+					String totpSecret = iaaUser.getTotpSecret();
+					Totp totp = new Totp(iaaUser.getTotpSecret());
 					if (StringUtil.isEmptyOrNull(totpSecret) || totp == null) {
 						String err = "no TOTP secret is setup for the user, '" + userId + "......";
 						logger.error(err);
@@ -221,7 +221,7 @@ public class Verify2ndFactorServlet extends javax.servlet.http.HttpServlet {
 
 			if (StringUtil.isEmptyOrNull(newToken)) {
 				logger.error(
-						"Verify2ndFactorServlet.doPost() - Authentication Failed. code E306. PISCESJAPP Token can not be created.....");
+						"Verify2ndFactorServlet.doPost() - Authentication Failed. code E306. JAPP Token can not be created.....");
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 						"Verify2ndFactorServlet Failed. code E306");
 				return;

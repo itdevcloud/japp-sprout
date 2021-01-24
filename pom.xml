@@ -13,6 +13,10 @@
 	<description>Build for Java APP</description>
 	<url>https://github.com/itdevcloud/japp-sprout</url>
 
+	<properties>
+		<java.version>15</java.version>
+	</properties>
+
 	<developers>
 		<developer>
 			<id>itdevcloud</id>

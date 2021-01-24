@@ -106,7 +106,7 @@ public class AppUtil {
 	public static BaseResponse createBaseResponse(String status, String message) {
 
 		BaseResponse response = new BaseResponse();
-		ResponseStatus responseStatus = createCommandResponseStatus(status, message);
+		ResponseStatus responseStatus = createResponseStatus(status, message);
 
 		response.setResponseStatus(responseStatus);
 
@@ -122,7 +122,7 @@ public class AppUtil {
 		BaseResponse response = new BaseResponse();
 		response.setCommand(command);
 		
-		ResponseStatus responseStatus = createCommandResponseStatus(status, message);
+		ResponseStatus responseStatus = createResponseStatus(status, message);
 
 		response.setResponseStatus(responseStatus);
 
@@ -134,11 +134,11 @@ public class AppUtil {
 		return response;
 	}
 
-	public static ResponseStatus createCommandResponseStatus(String status, String message) {
+	public static ResponseStatus createResponseStatus(String status, String message) {
 
-		ResponseStatus commandResponseStatus = new ResponseStatus(status, message);
+		ResponseStatus responseStatus = new ResponseStatus(status, message);
 
-		return commandResponseStatus;
+		return responseStatus;
 	}
 
 	public static <T> T GsonDeepCopy(Object sourceObj, Class<T> outputClass) {

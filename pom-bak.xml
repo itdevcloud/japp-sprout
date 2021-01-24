@@ -3,10 +3,10 @@
 	xmlns="http://maven.apache.org/POM/4.0.0"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-    
+
 	<groupId>com.itdevcloud.sprout</groupId>
 	<artifactId>japp-sprout</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<packaging>pom</packaging>
 
 	<name>Java APP Sprout</name>
@@ -27,7 +27,7 @@
 		<developerConnection>scm:git:ssh://github.com:itdevcloud/japp-sprout.git</developerConnection>
 		<url>https://github.com/itdevcloud/japp-sprout/tree/master</url>
 	</scm>
-	
+
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -35,16 +35,33 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	
+
 	<modules>
-		<module>japp-se-common</module>
-		<!-- 
-		<module>japp-sprout-spring-boot</module>
-		 -->
+		<!-- <module>japp-se-common</module> <module>japp-sprout-spring-boot</module> -->
 	</modules>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<release>15</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.2</version>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -132,6 +149,17 @@
 			</plugin>
 		</plugins>
 	</build>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>5.7.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<distributionManagement>
 		<snapshotRepository>

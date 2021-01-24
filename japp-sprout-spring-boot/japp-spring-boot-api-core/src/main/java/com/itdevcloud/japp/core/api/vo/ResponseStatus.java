@@ -75,49 +75,54 @@ public class ResponseStatus implements Serializable {
 		}
 	}
 
-	private String cmdStatusCode;
-	private String cmdStatusMessage;
-	private List<ResponseStatusItem> commandStatusItems;
+	private String statusCode;
+	private String statusMessage;
+	private List<ResponseStatusItem> responseStatusItems;
 
 
-	public ResponseStatus(String cmdStatusCode, String cmdStatusMessage) {
+	public ResponseStatus(String statusCode, String statusMessage) {
 		super();
-		if(StringUtil.isEmptyOrNull(cmdStatusCode)) {
-			cmdStatusCode = "CODE-IS-NULL";
+		if(StringUtil.isEmptyOrNull(statusCode)) {
+			statusCode = "CODE-IS-NULL";
 		}
-		this.cmdStatusCode = cmdStatusCode.trim().toUpperCase();
-		String preDefinedMsg = preDefinedStatusMessageMap.get(this.cmdStatusCode);
+		if(StringUtil.isEmptyOrNull(statusMessage)) {
+			statusMessage = "not provided.";
+		}
+		this.statusCode = statusCode.trim().toUpperCase();
+		String preDefinedMsg = preDefinedStatusMessageMap.get(this.statusCode);
 		if(!StringUtil.isEmptyOrNull(preDefinedMsg)) {
-			cmdStatusMessage = preDefinedMsg + "; Detail:" + cmdStatusMessage;
+			statusMessage = preDefinedMsg + "; Transaction Message: " + statusMessage;
+		}else {
+			statusMessage = "Status Code is not defined in the status-code property file, fix it! " + "Transaction Message: " + statusMessage;
 		}
-		this.cmdStatusMessage = cmdStatusMessage;
+		this.statusMessage = statusMessage;
 	}
 
-	public String getCmdStatusCode() {
-		return cmdStatusCode;
+	public String getStatusCode() {
+		return statusCode;
 	}
 
-	public String getCmdStatusMessage() {
-		return cmdStatusMessage;
+	public String getStatusMessage() {
+		return statusMessage;
 	}
 
 
-	public List<ResponseStatusItem> getCommandStatusItems() {
-		return commandStatusItems;
+	public List<ResponseStatusItem> getResponseStatusItems() {
+		return responseStatusItems;
 	}
 
-	public void setCommandStatusItems(List<ResponseStatusItem> commandStatusItems) {
-		this.commandStatusItems = commandStatusItems;
+	public void setResponseStatusItems(List<ResponseStatusItem> responseStatusItems) {
+		this.responseStatusItems = responseStatusItems;
 	}
 
-	public void addCommandStatusItem(ResponseStatusItem commandStatusItem) {
-		if (commandStatusItem == null) {
+	public void addResponseStatusItem(ResponseStatusItem responseStatusItem) {
+		if (responseStatusItem == null) {
 			return;
 		}
-		if (commandStatusItems == null) {
-			commandStatusItems = new ArrayList<ResponseStatusItem>();
+		if (responseStatusItems == null) {
+			responseStatusItems = new ArrayList<ResponseStatusItem>();
 		}
-		commandStatusItems.add(commandStatusItem);
+		responseStatusItems.add(responseStatusItem);
 	}
 
 }

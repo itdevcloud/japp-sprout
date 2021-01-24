@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+        
+    <wb-module deploy-name="ROOT">
+                
+        <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
+                
+        <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
+                
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/resources"/>
+                
+        <dependent-module archiveName="japp-spring-boot-api-core-0.0.1.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/japp-spring-boot-api-core/japp-spring-boot-api-core">
+                        
+            <dependency-type>uses</dependency-type>
+                    
+        </dependent-module>
+                
+        <dependent-module archiveName="japp-se-common-0.0.2.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/japp-se-common/japp-se-common">
+                        
+            <dependency-type>uses</dependency-type>
+                    
+        </dependent-module>
+                
+        <property name="context-root" value="ROOT"/>
+                
+        <property name="java-output-path" value="/japp-spring-boot-sample-api-app/target/classes"/>
+            
+    </wb-module>
+    
+</project-modules>

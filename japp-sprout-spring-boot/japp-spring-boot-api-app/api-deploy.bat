@@ -1,0 +1,1 @@
+mvn -f pom.xml clean tomcat7:redeploy -U -DskipTests

@@ -50,7 +50,7 @@ public class EchoProcessor extends RequestProcessor {
 
 		response.setMessage(req.getMessage());
 		response.setResponseStatus(
-				AppUtil.createCommandResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+				AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
 
 		logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = " + txnCtx.getTransactionId()
 		+ ">...... ");

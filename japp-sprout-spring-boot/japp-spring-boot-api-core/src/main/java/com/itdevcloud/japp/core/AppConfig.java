@@ -28,9 +28,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @since 1.0.0
  */
 @Configuration
-@ComponentScan(basePackages = "${jappcore.app.spring.scan.base.package}")
-@EnableJpaRepositories(basePackages = "${jappcore.app.spring.scan.base.package}")
-@EntityScan(basePackages = "${jappcore.app.spring.scan.base.package}")
+@ComponentScan(basePackages = {"com.itdevcloud.japp", "${jappcore.app.spring.scan.base.package}"})
+@EnableJpaRepositories(basePackages = {"com.itdevcloud.japp", "${jappcore.app.spring.scan.base.package}"})
+@EntityScan(basePackages = {"com.itdevcloud.japp", "${jappcore.app.spring.scan.base.package}"})
 public class AppConfig {
 
 

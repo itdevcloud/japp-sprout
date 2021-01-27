@@ -89,11 +89,15 @@ public class AzureJwksService implements AppFactoryComponentI{
 	public String getAadAuthUri() {
 
 		logger.info("getAadAuthUri() begin...");
-		if (!StringUtils.isEmpty(aadAuthUrl)) {
+		if (!StringUtil.isEmptyOrNull(aadAuthUrl)) {
 			logger.info("getAadAuthUri() get ...aadAuthUrl from property file = " + aadAuthUrl);
 			return aadAuthUrl;
 		}
 		logger.info("getAadAuthUri() read ...aadAuthUrl from aadOpenIdMetaDataUrl = " + aadOpenIdMetaDataUrl);
+		if (StringUtil.isEmptyOrNull(aadOpenIdMetaDataUrl)) {
+			logger.info("getAadAuthUri() aadOpenIdMetaDataUrl is null, do nothing... " );
+			return aadAuthUrl;
+		}
 
 		ByteArrayInputStream in = null;
 		BufferedInputStream bis = null;
@@ -151,6 +155,10 @@ public class AzureJwksService implements AppFactoryComponentI{
 			return aadAuthLogoutUrl;
 		}
 		logger.info("getAadAuthLogoutUri() read ...aadAuthLogoutUrl from aadOpenIdMetaDataUrl = " + aadOpenIdMetaDataUrl);
+		if (StringUtil.isEmptyOrNull(aadOpenIdMetaDataUrl)) {
+			logger.info("getAadAuthLogoutUri() aadOpenIdMetaDataUrl is null, do nothing... " );
+			return aadAuthUrl;
+		}
 
 		ByteArrayInputStream in = null;
 		BufferedInputStream bis = null;
@@ -209,6 +217,10 @@ public class AzureJwksService implements AppFactoryComponentI{
 		try {
 			// get meta data for the tenant
 			logger.info("\ngetJwksKeys() ..... aadOpenIdMetaDataUrl = " + aadOpenIdMetaDataUrl);
+			if (StringUtil.isEmptyOrNull(aadOpenIdMetaDataUrl)) {
+				logger.info("getJwksKeys() aadOpenIdMetaDataUrl is null, do nothing... " );
+				return null;
+			}
 			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
 			String openIdMetaData = httpResponse.getResposebody();
 

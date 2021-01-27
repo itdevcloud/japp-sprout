@@ -33,6 +33,7 @@ import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.iaa.service.azure.AzureJwksKey;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * This cache will be refreshed daily. 
@@ -89,7 +90,7 @@ public class AadJwksCache extends RefreshableCache {
 				String tmpAuthUri = AppComponents.azureJwksService.getAadAuthUri();
 				String tmpAuthLogoutUri = AppComponents.azureJwksService.getAadAuthLogoutUri();
 				String tmpClientId = AppComponents.azureJwksService.getAadClientId();
-				if (StringUtils.isEmpty(tmpAuthUri) || StringUtils.isEmpty(tmpClientId)||StringUtils.isEmpty(tmpAuthLogoutUri)) {
+				if (StringUtil.isEmptyOrNull(tmpAuthUri) || StringUtil.isEmptyOrNull(tmpClientId)||StringUtil.isEmptyOrNull(tmpAuthLogoutUri)) {
 					String info = "AadJwksCache.init()....cannot retrieveAAD Auth Uri, AuthLogoutUri,  or clientId, does not change these values in memeory.......!!!";
 					logger.error(info);
 					AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE, info);

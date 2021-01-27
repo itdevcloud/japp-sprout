@@ -45,7 +45,11 @@ public class CustomServletContextListener implements ServletContextListener {
 	
 	@Override
 	public void contextDestroyed(ServletContextEvent context) {
-		jappTaskExecutor.destroy();
+		if(jappTaskExecutor != null) {
+			jappTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
+			jappTaskExecutor.shutdown();
+			jappTaskExecutor.destroy();
+		}
 		AsyncExecutorFactory.shutdownAllPoolExecutors(true);
 	}
 

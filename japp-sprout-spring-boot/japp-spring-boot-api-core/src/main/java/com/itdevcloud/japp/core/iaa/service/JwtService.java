@@ -41,12 +41,17 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
+import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
+import com.itdevcloud.japp.core.iaa.token.AppLocalTokenHandler;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.security.Hasher;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import io.jsonwebtoken.Claims;
@@ -71,52 +76,20 @@ public class JwtService implements AppFactoryComponentI {
 	public void init() {
 	}
 
-	public boolean isValidAadIdToken(String idToken) {
-		try {
-			if (idToken == null || idToken.trim().isEmpty()) {
-				return false;
-			}
-			int idx = idToken.lastIndexOf('.');
-			String tokenWithoutSignature = idToken.substring(0, idx + 1);
-
-			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().parseClaimsJwt(tokenWithoutSignature);
-			Header header = jwtWithoutSignature.getHeader();
-			Claims claims = jwtWithoutSignature.getBody();
-
-			String kid = (header.containsKey("kid") ? (String) header.get("kid") : null);
-			String x5t = (header.containsKey("x5t") ? (String) header.get("xt5") : null);
-			PublicKey publicKey = AppComponents.aadJwksCache.getAadPublicKey(kid, x5t);
-			boolean isValid = isValidTokenByPublicKey(idToken, publicKey);
-
-			if (!isValid) {
-				logger.error("idToken is not Valid..........");
-				return false;
-			}
-			String aud = claims.getAudience();
-			Date nbf = claims.getNotBefore();
-			Date exp = claims.getExpiration();
-			String clientId = AppComponents.aadJwksCache.getAadClientId();
-			Date now = new Date();
-
-			if (clientId == null || !clientId.equals(aud)) {
-				logger.error("idToken aud claim is not valid.....");
-				return false;
-			}
-			if (exp == null || now.after(exp)) {
-				logger.error("idToken exp claim is not valid......");
-				return false;
-			}
-			if (nbf == null || now.before(nbf)) {
-				logger.error("idToken nbf claim is not valid.....");
-				return false;
-			}
-			return true;
-
-		} catch (SignatureException e) {
-			logger.error(e);
-			return false;
+	public TokenHandlerI getAccessTokenHandler() {
+		String handlerName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME);
+		TokenHandlerI tokenHandler = AppFactory.getTokenHandler(handlerName);
+		if(tokenHandler == null) {
+			logger.error("Can't find access token handler by name: " + handlerName + ", check configuration file! JappApiLocalTokenHandler instead......... ");
+			tokenHandler = AppFactory.getTokenHandler(AppLocalTokenHandler.class.getSimpleName());
 		}
+		return tokenHandler;
+	}
 
+	public String issueAccessToken(IaaUserI iaaUser) {
+		TokenHandlerI tokenHandler = getAccessTokenHandler();
+		Key privateKey = AppComponents.pkiService.getAppPrivateKey();
+		return tokenHandler.issueAccessToken(iaaUser, privateKey, -1, null);
 	}
 
 	public boolean isValidTokenByPublicKey(String token, PublicKey publicKey) {
@@ -134,7 +107,7 @@ public class JwtService implements AppFactoryComponentI {
 				logger.info("convert subject to upn ====== " + upn);
 				subject = (String) claims.get("upn");
 			}
-			AppThreadContext.setTokenSubject(subject);
+			//AppThreadContext.setTokenSubject(subject);
 			return true;
 		} catch (SignatureException e) {
 			logger.error(e);
@@ -206,283 +179,12 @@ public class JwtService implements AppFactoryComponentI {
 			}
 			return true;
 		} catch (Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
+			logger.error(CommonUtil.getStackTrace(t));
 			return false;
 		}
 	}
 	
-	/**
-	 * Check if it is a valid application specific JWT, and the content of JWT is correct as well.
-	 */
-	public boolean isValidJappToken(String token, PublicKey publicKey, InputStream certificate) {
-		try {
-			boolean isValid = isValidToken(token, publicKey, certificate);
-			if (!isValid) {
-				return false;
-			}
-			// check 2nd factor
-			return validateJappToken(token);
-		} catch (Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
-			return false;
-		}
-	}
 
-	public boolean validateJappToken(String token) {
-		try {
-			Map<String, Object> claims = AppUtil.parseJwtClaims(token);
-			if (claims == null || claims.isEmpty()) {
-				logger.error("validateJappToken() - can not parse token claims, return false.......");
-				return false;
-			}
-			//check target appid
-			String appIdInClaims = ""+claims.get(AppConstant.JWT_CLAIM_KEY_TARGET_APPID);
-			String appIdInConfig = ""+ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
-			if (!appIdInClaims.equalsIgnoreCase(appIdInConfig)) {
-				logger.error("validateJappToken() - target appid '" + appIdInClaims + "' is different from configured appid '" + appIdInConfig +"', return false.......");
-				return false;
-			}
-			//check target IP
-			boolean validateTokenIP = ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_TOKEN_VALIDATE_IP_ENABLED);
-			if (validateTokenIP) {
-				TransactionContext txnCtx = AppThreadContext.getTransactionContext();
-				String clientIP = txnCtx.getClientIP();
-				String ipInClaims = ""+claims.get(AppConstant.JWT_CLAIM_KEY_TARGET_IP);
-				if (!ipInClaims.equalsIgnoreCase(clientIP)) {
-					logger.error("validateJappToken() - target ip '" + ipInClaims + "' is different from client request ip '" + clientIP +"', return false.......");
-					return false;
-				}
-			}
 
-			// check 2nd factor
-			SecondFactorInfo secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
-			logger.debug("validateJappToken() - secondFactorInfo = " + secondFactorInfo);
-			boolean isVerified = secondFactorInfo.isVerified();
-			String type = secondFactorInfo.getType();
-			String value = secondFactorInfo.getValue();
-			if (StringUtil.isEmptyOrNull(type) || type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)
-					|| isVerified) {
-				logger.debug("validateJappToken() - no 2nd factor type in token or token has been verified, return true");
-				return true;
-			} else {
-				logger.error("validateJappToken() - 2nd factor value is not verified, return false...3....");
-				return false;
-			}
-		} catch (Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
-			return false;
-		}
-	}
-
-	/**
-	 * Create a new token by updating the expire time, and second factor authentication information in a existing token.
-	 */
-	public String updateToken(String token, Key privateKey, int expireMinutes, SecondFactorInfo secondFactorInfo) {
-		if (StringUtil.isEmptyOrNull(token)) {
-			return null;
-		}
-		Map<String, Object> claims = AppUtil.parseJwtClaims(token);
-		if (claims == null || claims.isEmpty()) {
-			return null;
-		}
-		if (expireMinutes <= 0) {
-			expireMinutes = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
-		}
-		try {
-			TransactionContext txnCtx = AppThreadContext.getTransactionContext();
-			String clientIP = txnCtx.getClientIP();
-
-			LocalDateTime now = LocalDateTime.now();
-			LocalDateTime expire = now.plusMinutes(expireMinutes);
-			Date expiryDate = java.util.Date.from(expire.atZone(ZoneId.systemDefault()).toInstant());
-
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-			String timeoutAt = expire.format(formatter);
-			logger.debug("updateToken======update JWT expiry date==============" + timeoutAt);
-
-			claims.put(AppConstant.JWT_CLAIM_KEY_TIMEOUT_AT, timeoutAt);
-			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID, ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
-			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_IP, clientIP);
-
-			claims = add2ndFactorClaims(claims, secondFactorInfo);
-
-			// setClaims first
-			String newToken = Jwts.builder().setClaims(claims).setIssuedAt(new Date()).setExpiration(expiryDate)
-					.signWith(SignatureAlgorithm.RS256, privateKey).compact();
-			return newToken;
-		} catch (Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
-			return null;
-		}
-	}
-
-	/**
-	 * Create a new token by extending the expire time in a existing token.
-	 */
-	public String extendToken(String token, int expireMinutes) {
-		if (StringUtil.isEmptyOrNull(token)) {
-			return null;
-		}
-		Map<String, Object> claims = AppUtil.parseJwtClaims(token);
-		if (claims == null || claims.isEmpty()) {
-			return null;
-		}
-		if (expireMinutes <= 0) {
-			expireMinutes = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
-		}
-		try {
-			TransactionContext txnCtx = AppThreadContext.getTransactionContext();
-			String clientIP = txnCtx.getClientIP();
-
-			LocalDateTime now = LocalDateTime.now();
-			LocalDateTime expire = now.plusMinutes(expireMinutes);
-			Date expiryDate = java.util.Date.from(expire.atZone(ZoneId.systemDefault()).toInstant());
-
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-			String timeoutAt = expire.format(formatter);
-			logger.debug("extendToken======extend JWT expiry date==============" + timeoutAt);
-
-			claims.put(AppConstant.JWT_CLAIM_KEY_TIMEOUT_AT, timeoutAt);
-			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID, ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
-			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_IP, clientIP);
-
-			Key privateKey = AppComponents.pkiKeyCache.getJappPrivateKey();
-			// setClaims first
-			String newToken = Jwts.builder().setClaims(claims).setIssuedAt(new Date()).setExpiration(expiryDate)
-					.signWith(SignatureAlgorithm.RS256, privateKey).compact();
-			return newToken;
-		} catch (Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
-			return null;
-		}
-	}
-
-	/**
-	 * Issue a JAPP JWT token
-	 */ 
-	public String issueJappToken(IaaUser iaaUser) {
-		logger.info("issueJappToken() - begin......");
-		if (iaaUser == null) {
-			logger.info("issueJappToken() - iaaUser is null, return null...");
-		}
-		String token = null;
-		int expireMins = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
-		try {
-			String secondFactorType = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_2NDFACTOR_TYPE);
-			SecondFactorInfo secondFactorInfo = new SecondFactorInfo();
-			String user2ndFactorType = iaaUser.getTwoFactorAuthType();
-			
-			if (user2ndFactorType.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)){
-				if ((secondFactorType.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE))){
-					secondFactorInfo.setType(secondFactorType);
-					secondFactorInfo.setVerified(false);
-					secondFactorInfo.setValue(null);
-					expireMins = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
-				}else {
-					secondFactorInfo.setType(secondFactorType);
-					secondFactorInfo.setVerified(false);
-					String tmpV = AppComponents.iaaService.getAndSend2ndfactorValue(iaaUser, secondFactorType);
-					secondFactorInfo.setValue(Hasher.hashPassword(tmpV));
-				}
-			} else {
-				secondFactorInfo.setType(user2ndFactorType);
-				secondFactorInfo.setVerified(false);
-				String tmpV = AppComponents.iaaService.getAndSend2ndfactorValue(iaaUser, user2ndFactorType);
-				secondFactorInfo.setValue(Hasher.hashPassword(tmpV));
-			}
-			Key key = AppComponents.pkiKeyCache.getJappPrivateKey();
-			token = issueToken(iaaUser, key, expireMins, secondFactorInfo);
-			logger.debug("issueJappToken() - Issue JAPP token...end....secondFactorInfo = " + secondFactorInfo);
-			return token;
-		} catch (Throwable t) {
-			logger.info("issueJappToken()  - failed - \n " + AppUtil.getStackTrace(t));
-			return null;
-		}
-
-	}
-
-	/**
-	 * Issue a JAPP JWT token
-	 */
-	public String issueToken(IaaUser iaaUser, Key privateKey, int expireMinutes,
-			SecondFactorInfo secondFactorInfo) {
-
-		if (iaaUser == null || privateKey == null) {
-			return null;
-		}
-		if (expireMinutes <= 0) {
-			expireMinutes = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
-		}
-		try {
-			LocalDateTime now = LocalDateTime.now();
-			LocalDateTime expire = now.plusMinutes(expireMinutes);
-			Date expiryDate = java.util.Date.from(expire.atZone(ZoneId.systemDefault()).toInstant());
-
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-			String timeoutAt = expire.format(formatter);
-			logger.debug("issueToken======JWT expiry date==============" + timeoutAt);
-
-			TransactionContext txnCtx = AppThreadContext.getTransactionContext();
-			String clientIP = txnCtx.getClientIP();
-			Map<String, Object> claims = AppComponents.iaaService.getTokenClaims(iaaUser);
-			if (claims == null || claims.isEmpty()) {
-				return null;
-			}
-			claims.put(AppConstant.JWT_CLAIM_KEY_TIMEOUT_AT, timeoutAt);
-			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID, ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
-			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_IP, clientIP);
-
-			claims = add2ndFactorClaims(claims, secondFactorInfo);
-
-			// setClaims first
-			String token = Jwts.builder().setClaims(claims).setIssuer(AppConstant.JWT_TOKEN_ISSUE_BY)
-					.setSubject(iaaUser.getUserId()).setIssuedAt(new Date()).setExpiration(expiryDate)
-					.signWith(SignatureAlgorithm.RS256, privateKey).compact();
-			return token;
-		} catch (Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
-			return null;
-		}
-	}
-
-	private Map<String, Object> add2ndFactorClaims(Map<String, Object> claimMap, SecondFactorInfo secondFactorInfo) {
-		if (secondFactorInfo == null) {
-			secondFactorInfo = new SecondFactorInfo();
-			secondFactorInfo.setType(AppConstant.IAA_2NDFACTOR_TYPE_NONE);
-			secondFactorInfo.setVerified(false);
-		}
-		boolean verified = secondFactorInfo.isVerified();
-		String type = secondFactorInfo.getType();
-		String value = secondFactorInfo.getValue();
-		//logger.error("hashed 2nd factor value in token (2) - " + value);
-
-		int retryCount = secondFactorInfo.getRetryCount();
-		if (claimMap == null) {
-			claimMap = new HashMap<String, Object>();
-		}
-		if (StringUtil.isEmptyOrNull(type) || type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)) {
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, AppConstant.IAA_2NDFACTOR_TYPE_NONE);
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, false);
-		} else if (type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE)){
-			if (!StringUtil.isEmptyOrNull(value)) {
-				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, verified);
-				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, type);
-				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE, value);
-				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT, retryCount);
-			} else {
-				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
-						"no verification code provided to create the token!");
-			}
-		} else if (type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_TOTP)){
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, verified);
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, type);
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE, null);
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT, retryCount);
-		}else {
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
-					"2 factor type is not supportrf! type = " + type);
-		}
-		return claimMap;
-	}
 
 }

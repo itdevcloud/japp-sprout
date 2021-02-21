@@ -4,21 +4,30 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * Class Definition
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
-public class DateUtils {
+public class DateUtil {
 	public static final String DEFAULT_DATE_FORMAT = "yyyyMMddHHmmss";
 	public static final String DDEFAULT_DISPLAY_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss z";
 
@@ -37,14 +46,94 @@ public class DateUtils {
 		return sdf.format(cal.getTime());
 	}
 
+	public static long dataToJsonNumericDate(Date date) {
+		if (date == null) {
+			return 0;
+		}
+		long numericDate = date.getTime()/1000;
+		return numericDate;
+	}
+	//json numericDate is second based RFC 7519
+	public static Date jsonNumericDateToDate(long numericDate) {
+		if (numericDate <= 0) {
+			return null;
+		}
+		Date date = new Date(numericDate*1000);
+		return date;
+	}
+	public static LocalDate convertToLocalDate(Date dateToConvert, ZoneId zoneId) {
+		if(zoneId == null) {
+			zoneId = ZoneId.systemDefault();
+		}
+	    return LocalDate.ofInstant(
+	      dateToConvert.toInstant(), zoneId);
+	}
+
+	public static LocalDateTime convertToLocalDateTime(Date dateToConvert, ZoneId zoneId) {
+		if(zoneId == null) {
+			zoneId = ZoneId.systemDefault();
+		}
+	    return LocalDateTime.ofInstant(
+	      dateToConvert.toInstant(), zoneId);
+	}
+	public static Date convertLocalDateToDate(LocalDate dateToConvert, ZoneId zoneId) {
+		if(zoneId == null) {
+			zoneId = ZoneId.systemDefault();
+		}
+	    return java.util.Date.from(dateToConvert.atStartOfDay()
+	      .atZone(zoneId)
+	      .toInstant());
+	}
+	public static Date convertLocalDateTimeToDate(LocalDateTime dateToConvert, ZoneId zoneId) {
+		if(zoneId == null) {
+			zoneId = ZoneId.systemDefault();
+		}
+	    return java.util.Date
+	      .from(dateToConvert.atZone(zoneId)
+	      .toInstant());
+	}
+	
+	public static List<String> getTimeZoneList() {
+		 
+		Set<String> availableZoneIds = ZoneId.getAvailableZoneIds();
+
+        LocalDateTime now = LocalDateTime.now();
+        
+        class ZoneComparator implements Comparator<ZoneId> {
+
+    	    @Override
+    	    public int compare(ZoneId zoneId1, ZoneId zoneId2) {
+    	        LocalDateTime now = LocalDateTime.now();
+    	        ZoneOffset offset1 = now.atZone(zoneId1).getOffset();
+    	        ZoneOffset offset2 = now.atZone(zoneId2).getOffset();
+
+    	        return offset1.compareTo(offset2);
+    	    }
+    	}
+        
+        return availableZoneIds
+                .stream()
+                .map(ZoneId::of)
+                .sorted(new ZoneComparator())
+                .map(id -> String.format("%s - %s", getOffset(now, id), id.getId()))
+                .collect(Collectors.toList());
+
+	}
+    public static String getOffset(LocalDateTime dateTime, ZoneId id) {
+        return dateTime
+          .atZone(id)
+          .getOffset()
+          .getId()
+          .replace("Z", "+00:00");
+    }	
 	public static String dateToString(Date date) {
 		return dateToString(date, DDEFAULT_DISPLAY_DATE_FORMAT);
 	}
 
 	public static String dateToString(Date date, String pattern) {
-		if (date == null)
+		if (date == null) {
 			return null;
-
+		}
 		return new SimpleDateFormat(pattern).format(date);
 	}
 

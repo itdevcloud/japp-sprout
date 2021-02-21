@@ -26,10 +26,10 @@ import com.itdevcloud.japp.core.cahce.IaaUserCache;
 import com.itdevcloud.japp.core.cahce.PkiKeyCache;
 import com.itdevcloud.japp.core.cahce.ReferenceCodeCache;
 import com.itdevcloud.japp.core.frontend.FrontendEnvSetupService;
+import com.itdevcloud.japp.core.iaa.azure.AzureJwksService;
 import com.itdevcloud.japp.core.iaa.service.IaaService;
 import com.itdevcloud.japp.core.iaa.service.JwtService;
 import com.itdevcloud.japp.core.iaa.service.PkiService;
-import com.itdevcloud.japp.core.iaa.service.azure.AzureJwksService;
 import com.itdevcloud.japp.core.service.email.AsyncEmailService;
 import com.itdevcloud.japp.core.service.email.EmailService;
 import com.itdevcloud.japp.core.service.log.LogFileService;
@@ -44,7 +44,6 @@ import com.itdevcloud.japp.core.service.startup.StartupService;
 @Component
 public class AppComponents {
 
-	private static final Logger logger = LogManager.getLogger(AppComponents.class);
 
 	public static CommonService commonService;
 	public static JwtService jwtService;

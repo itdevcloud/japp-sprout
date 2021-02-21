@@ -40,7 +40,7 @@ public class EchoProcessor extends RequestProcessor {
 	private static final Logger logger = LogManager.getLogger(EchoProcessor.class);
 
 	@Override
-	public BaseResponse processRequest(BaseRequest request) {
+	protected BaseResponse processRequest(BaseRequest request) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
 				+ txnCtx.getTransactionId() + ">...... ");
@@ -57,5 +57,6 @@ public class EchoProcessor extends RequestProcessor {
 
 		return response;
 	}
+
 
 }

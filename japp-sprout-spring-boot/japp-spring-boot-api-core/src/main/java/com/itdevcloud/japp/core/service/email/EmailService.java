@@ -39,6 +39,7 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import freemarker.core.ParseException;
@@ -114,7 +115,7 @@ public class EmailService implements AppFactoryComponentI{
 	 * @throws EmailException
 	 */
 	public void sendITNotification(String subject, String content, boolean async, boolean waitForResponse) throws EmailException {
-		if (StringUtils.isEmpty(itEmailToAddrs)) {
+		if (StringUtil.isEmptyOrNull(itEmailToAddrs)) {
 			throw new EmailException(103, "IT email toAddress is null.....no email will be sent...!!!");
 		}
 
@@ -142,7 +143,7 @@ public class EmailService implements AppFactoryComponentI{
 	 * @throws EmailException
 	 */
 	public void sendBusNotification(String subject, String content, boolean async, boolean waitForResponse) throws EmailException {
-		if (StringUtils.isEmpty(busEmailToAddrs)) {
+		if (StringUtil.isEmptyOrNull(busEmailToAddrs)) {
 			throw new EmailException(203, "Business email toaddresses is null........no email will be sent...!!!");
 		}
 
@@ -173,7 +174,7 @@ public class EmailService implements AppFactoryComponentI{
 	 * @throws EmailException
 	 */
 	public void sendEmail(String subject, String content, String toAddresses, boolean async, boolean waitForResponse) throws EmailException {
-		if (StringUtils.isEmpty(toAddresses)) {
+		if (StringUtil.isEmptyOrNull(toAddresses)) {
 			throw new EmailException(301, "sendEmail()...toAddresses is empty or null.....no email will be sent...!!!");
 		}
 		EmailAddress fromAddr = new EmailAddress(null, systemEmailFromAddr);
@@ -218,7 +219,7 @@ public class EmailService implements AppFactoryComponentI{
 	 */
 	public void sendEmail(String subject, String contentType, String content, String fromAddress, String replyToAddress, String toAddresses, String ccAddresses, String bccAddresses,
 			List<EmailAttachment> attachments, boolean async, boolean waitForResponse) throws EmailException {
-		if (StringUtils.isEmpty(toAddresses)) {
+		if (StringUtil.isEmptyOrNull(toAddresses)) {
 			throw new EmailException(401, "sendEmail()...toAddresses is empty or null.....no email will be sent...!!!");
 		}
 
@@ -284,7 +285,7 @@ public class EmailService implements AppFactoryComponentI{
 					}
 					logger.debug("Send email using async method - response = " + response);
 				} catch (Throwable t) {
-					logger.error(AppUtil.getStackTrace(t));
+					logger.error(CommonUtil.getStackTrace(t));
 					throw new EmailException(900, "Getting Email Response Failed: \n" + t.getMessage());
 				}
 				logger.debug("Send email using async method - end......");
@@ -323,16 +324,16 @@ public class EmailService implements AppFactoryComponentI{
 		logger.debug("send() - check and set default values.......");
 
 		// Set defaults
-		if (StringUtils.isEmpty(subject)) {
+		if (StringUtil.isEmptyOrNull(subject)) {
 			subject = StringUtil.changeFirstCharCase(appId, true) + " EMAIL Service";
 			logger.debug("subject is null, add default subject = "+subject);
 		}
 
-		if (StringUtils.isEmpty(fromAddr) || StringUtils.isEmpty(fromAddr.getAddress())) {
+		if (fromAddr == null || StringUtil.isEmptyOrNull(fromAddr.getAddress())) {
 			fromAddr = new EmailAddress(null, systemEmailFromAddr);
 			logger.debug("fromAddr is null, use default fromAddr = " + systemEmailFromAddr);
 		}
-		if (StringUtils.isEmpty(replyToAddr) || StringUtils.isEmpty(replyToAddr.getAddress())) {
+		if (replyToAddr == null || StringUtil.isEmptyOrNull(replyToAddr.getAddress())) {
 			replyToAddr = new EmailAddress(null, systemEmailReplyToAddr);
 			logger.debug("replyToAddr is null, use default replyToAddr = " + systemEmailReplyToAddr);
 		}
@@ -341,7 +342,7 @@ public class EmailService implements AppFactoryComponentI{
 		if (replyToAddr != null && !isValidAddress(replyToAddr)) {
 			throw new EmailException(504, "replyToAddr is not valid!");
 		}
-		if (StringUtils.isEmpty(contentType) || StringUtils.isEmpty(content)) {
+		if (StringUtil.isEmptyOrNull(contentType) || StringUtil.isEmptyOrNull(content)) {
 			throw new EmailException(505, "contentType and/or content are null or empty.......!");
 		}
 		if (!isValidAttachments(attachments)) {
@@ -361,7 +362,7 @@ public class EmailService implements AppFactoryComponentI{
 		}
 
 		// Template
-		if (!StringUtils.isEmpty(template)) {
+		if (!StringUtil.isEmptyOrNull(template)) {
 			freemarkerConfig.setClassForTemplateLoading(this.getClass(), "/templates/");
 			try {
 				logger.debug("send() - create content based on template.......");
@@ -423,7 +424,7 @@ public class EmailService implements AppFactoryComponentI{
 		if (attachments != null && !attachments.isEmpty()) {
 			for (EmailAttachment a : attachments) {
 				if (a != null) {
-					if (StringUtils.isEmpty(a.getContent()) || StringUtils.isEmpty(a.getType()) || StringUtils.isEmpty(a.getFilename()) ) {
+					if (StringUtil.isEmptyOrNull(a.getContent()) || StringUtil.isEmptyOrNull(a.getType()) || StringUtil.isEmptyOrNull(a.getFilename()) ) {
 						logger.debug("email attachment is not valid......attachment = " + a);
 						return false;
 					}

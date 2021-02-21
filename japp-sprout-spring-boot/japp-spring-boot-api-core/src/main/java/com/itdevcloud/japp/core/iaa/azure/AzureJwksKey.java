@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.iaa.service.azure;
+package com.itdevcloud.japp.core.iaa.azure;
 
 import java.security.PublicKey;
 import java.security.cert.Certificate;

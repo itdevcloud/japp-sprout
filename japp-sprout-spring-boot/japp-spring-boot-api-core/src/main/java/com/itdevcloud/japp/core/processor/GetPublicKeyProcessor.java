@@ -16,20 +16,22 @@
  */
 package com.itdevcloud.japp.core.processor;
 
+import java.security.PublicKey;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
-import com.itdevcloud.japp.core.api.bean.GetIaaProfileRequest;
-import com.itdevcloud.japp.core.api.bean.GetIaaProfileResponse;
+import com.itdevcloud.japp.core.api.bean.GetPublicKeyRequest;
+import com.itdevcloud.japp.core.api.bean.GetPublicKeyResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
+import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.core.common.AppUtil;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
 /**
  *
  * @author Marvin Sun
@@ -37,10 +39,9 @@ import com.itdevcloud.japp.core.iaa.service.IaaUser;
  */
 
 @Component
-public class GetIaaProfileProcessor extends RequestProcessor {
+public class GetPublicKeyProcessor extends RequestProcessor {
 
-	private static final Logger logger = LogManager.getLogger(GetIaaProfileProcessor.class);
-
+	private static final Logger logger = LogManager.getLogger(GetPublicKeyProcessor.class);
 
 	@Override
 	public BaseResponse processRequest(BaseRequest request) {
@@ -48,12 +49,16 @@ public class GetIaaProfileProcessor extends RequestProcessor {
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
 				+ txnCtx.getTransactionId() + ">...... ");
 
-		GetIaaProfileRequest req = (GetIaaProfileRequest) request;
-		GetIaaProfileResponse response = new GetIaaProfileResponse();
-
-		IaaUser<?> iaaUser = AppComponents.iaaService.getIaaUserByUserId(req.getUserId());
-		response.setIaaUser(iaaUser);
-
+		GetPublicKeyRequest req = (GetPublicKeyRequest) request;
+		GetPublicKeyResponse response = new GetPublicKeyResponse();
+		PublicKey publicKey = AppComponents.pkiKeyCache.getAppPublicKey();
+		if(publicKey == null) {
+			return null;
+		}
+		response.setPublicKey(SecurityUtil.getPublicKeyPemString(publicKey));
+		response.setAlgorithm(publicKey.getAlgorithm());
+		response.setFormat(publicKey.getFormat());
+		
 		response.setResponseStatus(
 				AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
 

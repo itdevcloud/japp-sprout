@@ -23,6 +23,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.util.StringUtils;
 
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  *
  * @author Marvin Sun
@@ -81,7 +83,7 @@ public class SpecialCharacterUtil {
 	 */
 	public static boolean checkCrossSiteScriptCharacters(String str){
 		boolean specialC = false;
-		if(!StringUtils.isEmpty(str) && str.trim().length() > 0){
+		if(!StringUtil.isEmptyOrNull(str) && str.trim().length() > 0){
 			String lowerStr = str.toLowerCase();
 			if (lowerStr.indexOf("<script") >= 0
 					|| lowerStr.indexOf("<object") >= 0
@@ -112,7 +114,7 @@ public class SpecialCharacterUtil {
 	public static boolean checkSpecialBlockCharacters(String note){
 		boolean specialC = false;
 
-		if(!StringUtils.isEmpty(note) && note.trim().length() > 0){
+		if(!StringUtil.isEmptyOrNull(note) && note.trim().length() > 0){
 			Pattern p = Pattern.compile(PATTERN_FOR_BLOCK);
 			Matcher m = p.matcher(note);
 			specialC = m.find();

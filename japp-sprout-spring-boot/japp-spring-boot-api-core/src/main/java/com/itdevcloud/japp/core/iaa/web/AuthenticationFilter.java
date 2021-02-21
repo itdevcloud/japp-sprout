@@ -38,35 +38,33 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
-import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
 import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.notification.SystemNotification;
 import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
-import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * This Servlet Filter provides the support for verifying that each incoming
  * http request includes a valid JWT and it is a valid request.
  * <p>
  * First, this filter checks CIDR whitelist of this application. Then it checks
- * if the JWT in each http request's header is valid. If this is a valid token,
- * then it will check if this is an authorized user. Finally, this filter will
- * check CIDR whitelist of the user. If this request passes all checks, that
- * means this user is an authorized user. Then the filter will continue to
- * process the request, otherwise, it will return 401 or 403 Error to the
- * client.
+ * whether the JWT in each http request's header is valid or not. If this is a
+ * valid token, then it will check whether this is an authorized user or not.
+ * Finally, this filter will check CIDR whitelist of the user. If this request
+ * passes all checks, that means this user is an authorized user. the filter
+ * will continue to process the request, otherwise, it will return 401 or 403
+ * Error to the client.
  * <p>
- * This Filter's url pattern is "/${apiroot}/api/*". All requests with url beginning with
- * "api" will trigger this filter. If you need a api service to bypass this
- * filter, define this api's url not starting with "api".
+ * This Filter's url pattern is "/${apiroot}/api/*". All requests with url
+ * beginning with "api" will trigger this filter. If you need a api service to
+ * bypass this filter, define this api's url not starting with "api".
  * <p>
  * This Filter logs the total processing time. If it is too long, a performance
  * alert/warning will be sent.
  * 
- *  * @author Ling Yang
+ * 
  * @author Marvin Sun
  * @since 1.0.0
  */
@@ -74,7 +72,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 //NOTE:
 //if update urlPattern, also need to update web.xml
 //
-@WebFilter(filterName = "JappApiAuthenticationFilter", urlPatterns = "/jappcore/api/*")
+@WebFilter(filterName = "JappApiAuthenticationFilter", urlPatterns = "/api/*")
 public class AuthenticationFilter implements Filter {
 
 	private static final Logger logger = LogManager.getLogger(AuthenticationFilter.class);
@@ -92,7 +90,7 @@ public class AuthenticationFilter implements Filter {
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 		AppUtil.initTransactionContext(httpRequest);
 		try {
-			logger.debug("JappApiAuthenticationFilter.doFilter() start ========>");
+			logger.debug("AuthenticationFilter.doFilter() start ========>");
 
 			// App CIDR white list check begin
 			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
@@ -108,8 +106,9 @@ public class AuthenticationFilter implements Filter {
 			String requestURI = httpRequest.getRequestURI();
 			String queryStr = httpRequest.getQueryString();
 
-			logger.info("JappApiAuthenticationFilter.doFilter====method=" + httpRequest.getMethod());
-			String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
+			logger.info("AuthenticationFilter.doFilter====method=" + httpRequest.getMethod());
+			String origin = ConfigFactory.appConfigService
+					.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
 
 			// control for CORS flow
 			if (httpRequest.getMethod().equals("OPTIONS")) {
@@ -121,13 +120,13 @@ public class AuthenticationFilter implements Filter {
 				return;
 			}
 			String activeProfile = AppUtil.getSpringActiveProfile();
-			logger.debug("JappApiAuthenticationFilter activeProfile = " + activeProfile);
+			logger.debug("AuthenticationFilter activeProfile = " + activeProfile);
 
 			if (httpRequest.getMethod().equals("GET")) {
 				httpResponse.addHeader("Cache-Control", "no-cache");
 			}
 
-			IaaUser iaaUser = null;
+			IaaUserI iaaUser = null;
 
 			// check skip auth
 			boolean enableAuth = ConfigFactory.appConfigService
@@ -135,106 +134,67 @@ public class AuthenticationFilter implements Filter {
 			if (enableAuth || AppConstant.JAPPCORE_SPRING_ACTIVE_PROFILE_PROD.equalsIgnoreCase(activeProfile)) {
 				// verify JWT from a header,
 				String token = AppUtil.getJwtTokenFromRequest(httpRequest);
-				if (StringUtil.isEmptyOrNull(token)) {
-					// jwt token is null return 401
-					logger.error("Authentication Failed. code E204 - token is not validated, throw 401 error====");
-					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authentication Failed. code E204");
-					return;
-
-				}
-				if (!AppComponents.jwtService.isValidJappToken(token, AppComponents.pkiKeyCache.getJappPublicKey(),
-						null)) {
-					// jwt token is not valid, return 401
-					logger.error("Authentication Failed. code E205 - token is not validated, throw 401 error====");
-					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY_INVALID_TOKEN,
-							"Authentication Failed. code E205");
-					return;
-				}
-
-				String newToken = null;
-				String provider = ConfigFactory.appConfigService
-						.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER);
-				// retrieve userInfo for Authorization
-				// token subject must be userId!!!
-				String userId = AppThreadContext.getTokenSubject();
-				if (StringUtil.isEmptyOrNull(userId)) {
-					logger.error(
-							"Authentication Failed. code E206 - JappThreadContext.getLoginId() returns null, JappThreadContext have no login ID set.");
-					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authentication Failed. code E206");
-					return;
-				}
 				try {
-					iaaUser = AppComponents.iaaService.getIaaUserByUserId(userId);
+					iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token);
 					if (iaaUser == null) {
-						logger.error("Authorization Failed. code E207 - Can not retrive user by userId '" + userId
-								+ "'.....");
+						String errStr = "Authorization Failed. code E207 - Can not retrieve iaaUser";
+						logger.error(errStr);
 						httpResponse.setStatus(403);
+						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errStr);
+						return;
+					}
+					// Application role list check
+					if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
+						logger.error(
+								"Authorization Failed. code E508 - requestor's is not on the APP's role list" + ".....");
 						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-								"Authorization Failed. code E207");
+								"Authorization Failed. code E508");
+						return;
+					}
+					// CIDR white list check begin
+					if (!AppComponents.commonService.matchUserIpWhiteList(httpRequest, iaaUser)) {
+						logger.error(
+								"Authorization Failed. code E210 - request IP is not on the user's IP white list, user loginId: '"
+										+ iaaUser.getLoginId() + "', IP = " + AppUtil.getClientIp(httpRequest) + ".....");
+						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+								"Authorization Failed. code E210");
+						return;
+					}
+					// handle maintenance mode
+					if (AppComponents.commonService.inMaintenanceMode(httpResponse, iaaUser.getLoginId())) {
 						return;
 					}
 				} catch (AppException e) {
-					logger.error("Authorization Failed. code E208 - " + e);
-					logger.error(AppUtil.getStackTrace(e));
-					AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authorization Failed. code E208");
+					String errStr = e.getMessage();
+					logger.error(errStr);
+					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errStr);
 					return;
 				}
-				// Application role list check
-				if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
-					logger.error(
-							"Authorization Failed. code E508 - requestor's is not on the APP's role list" + ".....");
-					AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authorization Failed. code E508");
-					return;
-				}
-				// CIDR white list check begin
-				if (!AppComponents.commonService.matchUserIpWhiteList(httpRequest, iaaUser)) {
-					logger.error(
-							"Authorization Failed. code E210 - request IP is not on the user's IP white list, user userId '"
-									+ iaaUser.getUserId() + "', IP = " + AppUtil.getClientIp(httpRequest) + ".....");
-					AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authorization Failed. code E210");
-					return;
-				}
-				// handle maintenance mode
-				if (AppComponents.commonService.inMaintenanceMode(httpResponse, userId)) {
-					return;
-				}
-
-				// generate new JWT token.
-				SecondFactorInfo secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
-				newToken = AppComponents.jwtService.issueToken(iaaUser,
-						AppComponents.pkiKeyCache.getJappPrivateKey(), ConfigFactory.appConfigService
-								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH),
-						secondFactorInfo);
-				httpResponse.addHeader("Token", newToken);
-				// httpResponse.addHeader("Access-Control-Allow-Origin",
-				// authParameters.getAngularOrigin());
-				// httpResponse.addHeader("Access-Control-Allow-Headers",
-				// "X-Requested-With,Origin,Content-Type, Accept, Token");
+				//SecondFactorInfo secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
+				//String newToken = AppComponents.iaaService.issueToken(iaaUser, secondFactorInfo);
+				//httpResponse.addHeader("Token", newToken);
+//				 httpResponse.addHeader("Access-Control-Allow-Origin",
+//				 authParameters.getAngularOrigin());
+				 httpResponse.addHeader("Access-Control-Allow-Headers",
+				 "X-Requested-With,Origin,Content-Type, Accept, Token");
 				httpResponse.addHeader("Access-Control-Expose-Headers", "Token");
 
-				logger.info("JappAuthenticationFilter - Issue new token........");
-
+				logger.info("AuthenticationFilter - Issue new token........");
+				
 			} else {
 
 				// japp auth
-				String userId = request.getParameter("loginId");
+				String loginId = request.getParameter("loginId");
 
-				iaaUser = AppComponents.iaaService.getDummyIaaUserByUserId(userId);
+				iaaUser = AppComponents.iaaService.getDummyIaaUserByLoginId(loginId);
 
 				// handle maintenance mode
-				if (AppComponents.commonService.inMaintenanceMode(httpResponse, userId)) {
+				if (AppComponents.commonService.inMaintenanceMode(httpResponse, loginId)) {
 					return;
 				}
-				logger.warn(
-						"JappAuthenticationFilter - back-end skip auth.......!!!!!!!, get dummy user with userId = "
-								+ userId);
+				logger.warn("AuthenticationFilter - back-end skip auth.......!!!!!!!, get dummy user with loginId = "
+						+ loginId);
 
-				AppThreadContext.setIaaUser(iaaUser);
 			}
 
 			chain.doFilter(request, httpResponse);// sends request to next resource
@@ -268,12 +228,15 @@ public class AuthenticationFilter implements Filter {
 				AppComponents.systemNotifyService.addNotification(sn);
 			}
 			logger.info(infoStr);
-		} finally {
-			AppUtil.clearTransactionContext();
-		}
+		}finally
+
+	{
+		AppUtil.clearTransactionContext();
+	}
 	}
 
 	@Override
 	public void destroy() {
+		AppUtil.clearTransactionContext();
 	}
 }

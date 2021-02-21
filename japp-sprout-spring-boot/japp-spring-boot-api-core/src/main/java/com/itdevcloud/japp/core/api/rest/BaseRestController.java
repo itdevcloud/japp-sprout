@@ -24,26 +24,25 @@ public abstract class BaseRestController {
 	private static final Logger logger = LogManager.getLogger(BaseRestController.class);
 
 
-	public Object processRequest(BaseRequest request) {
+	public <O extends BaseResponse, I extends BaseRequest> O processRequest(I request, Class<O> responseClass) {
+		
 		logger.debug("processRequest() - start ===>");
 		if (request == null) {
-			BaseResponse response = AppUtil.createBaseResponse(
-					ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
-					"processRequest() - request parameter is null");
+			O response = AppUtil.createResponse(responseClass, "N/A",
+					ResponseStatus.STATUS_CODE_ERROR_VALIDATION, " request parameter is null!");
 			return response;
 		}
 		String requestSimpleName = request.getClass().getSimpleName();
 
 		RequestProcessor requestProcessor = AppFactory.getRequestProcessor(requestSimpleName);
 		if (requestProcessor == null) {
-			BaseResponse response = AppUtil.createBaseResponse(
-					ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
-					"processRequest() - processor not found for request: '" + requestSimpleName
-					+ "'....");
+			O response = AppUtil.createResponse(responseClass, "N/A",
+					ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "processor not found for request: '" + requestSimpleName
+						+ "'....");
 			return response;
 		}
 
-		Object response = requestProcessor.process(request);
+		O response = requestProcessor.process(request, responseClass);
 
 		logger.debug("processRequest() - end <=== request = '" + requestSimpleName + "'");
 		return response;

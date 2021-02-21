@@ -26,15 +26,20 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
+import java.security.spec.X509EncodedKeySpec;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +64,7 @@ import com.google.gson.GsonBuilder;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import io.jsonwebtoken.Claims;
@@ -73,7 +79,7 @@ import io.jsonwebtoken.Jwts;
  */
 @Component
 public class AppUtil {
-	
+
 	private static final Logger logger = LogManager.getLogger(AppUtil.class);
 
 	public static final DateFormat defaulDateStringFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -102,7 +108,6 @@ public class AppUtil {
 		return startupDate;
 	}
 
-
 	public static BaseResponse createBaseResponse(String status, String message) {
 
 		BaseResponse response = new BaseResponse();
@@ -117,11 +122,12 @@ public class AppUtil {
 
 		return response;
 	}
-	public static BaseResponse createBaseResponse(String command, String status, String message) {
 
-		BaseResponse response = new BaseResponse();
+	public static <T extends BaseResponse> T createResponse(Class<T> responseClass, String command, String status, String message) {
+
+		T response = AppFactory.getInstance(responseClass);
 		response.setCommand(command);
-		
+
 		ResponseStatus responseStatus = createResponseStatus(status, message);
 
 		response.setResponseStatus(responseStatus);
@@ -133,6 +139,7 @@ public class AppUtil {
 
 		return response;
 	}
+
 
 	public static ResponseStatus createResponseStatus(String status, String message) {
 
@@ -154,7 +161,7 @@ public class AppUtil {
 			return targetObj;
 		} catch (Throwable t) {
 			t.printStackTrace();
-			logger.error(AppUtil.getStackTrace(t));
+			logger.error(CommonUtil.getStackTrace(t));
 			return null;
 		}
 	}
@@ -163,113 +170,11 @@ public class AppUtil {
 		if (sourceObj == null) {
 			return null;
 		}
-		return GsonDeepCopy(sourceObj, (Class<T>)sourceObj.getClass());
+		return GsonDeepCopy(sourceObj, (Class<T>) sourceObj.getClass());
 	}
 
-	public static String getStackTrace(Throwable t) {
-		if (t == null) {
-			return null;
-		}
-		StringWriter sw = new StringWriter();
-		t.printStackTrace(new PrintWriter(sw));
-		return t.getMessage() + "\n" + sw.toString();
-	}
 
-	public static RuntimeException throwRuntimeException(Throwable e) {
-		if (e == null) {
-			throw new RuntimeException("AppUtil.throwRuntimeException() --- Throwable is null!");
-		} else if (e instanceof RuntimeException) {
-			throw (RuntimeException) e;
-		} else {
-			throw new RuntimeException(e);
-		}
-	}
 
-	/**
-	 * parse a String to a X.509 Certificate object.
-	 * 
-	 */
-	public static Certificate getCertificateFromString(String certStr) {
-		if (StringUtils.isEmpty(certStr)) {
-			return null;
-		}
-		ByteArrayInputStream in = null;
-		BufferedInputStream bis = null;
-		try {
-			certStr = "-----BEGIN CERTIFICATE-----\n" + certStr + "\n-----END CERTIFICATE-----";
-			// logger.debug(".........certStr=" + certStr);
-			in = new ByteArrayInputStream(certStr.getBytes(StandardCharsets.UTF_8));
-			bis = new BufferedInputStream(in);
-			CertificateFactory cf = CertificateFactory.getInstance("X.509");
-
-			while (bis.available() <= 0) {
-				// logger.debug(".........certStr=" + certStr);
-				String err = "Can't Parse certificate: ...Stop....!!!!!!!!!!!!!!";
-				logger.error(err);
-				throw new RuntimeException(err);
-			}
-			Certificate cert = cf.generateCertificate(bis);
-			bis.close();
-			bis = null;
-			in.close();
-			in = null;
-			return cert;
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.error(e);
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
-			} else {
-				throw new RuntimeException(e);
-			}
-
-		} finally {
-			if (bis != null) {
-				try {
-					bis.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	public static PublicKey getPublicKeyFromCertificate(Certificate certificate) {
-		if (certificate == null) {
-			return null;
-		}
-		return certificate.getPublicKey();
-	}
-
-	public static boolean isSameBigDecimal(BigDecimal b1, BigDecimal b2) {
-		if (b1 == null && b2 == null) {
-			return true;
-		} else if (b1 == null) {
-			return false;
-		} else if (b2 == null) {
-			return false;
-		} else {
-			return b1.longValue() == b2.longValue();
-		}
-	}
-
-	public static boolean isSameTimestamp(Timestamp ts1, Timestamp ts2) {
-		if (ts1 != null && ts2 != null) {
-			return ts1.equals(ts2);
-		} else if (ts1 != null) {
-			return false;
-		} else {
-			return ts2 == null;
-		}
-	}
 
 	public static String getQuestionMarks1(List list) {
 		if (list == null || list.size() == 0) {
@@ -296,7 +201,6 @@ public class AppUtil {
 
 		return result;
 	}
-
 
 	public static String getSpringActiveProfile() {
 		if (StringUtil.isEmptyOrNull(springActiveProfile)) {
@@ -356,35 +260,6 @@ public class AppUtil {
 
 	}
 
-	public static void setPropertyValue(Class<?> targetClass, Object targetObj, String targetPropertyName, Object targetValue) {
-		if (targetObj == null && targetClass == null) {
-			logger.error("setPropertyValue() - object and targetClass can not be both null, do nothing...");
-		}
-		if (StringUtil.isEmptyOrNull(targetPropertyName)) {
-			logger.error("setPropertyValue() - propertyName can not be null, do nothing...");
-		}
-		//object class override target class
-		targetClass = (targetObj == null?targetClass:targetObj.getClass());
-		while (targetClass != null) {
-			try {
-				Field field = targetClass.getDeclaredField(targetPropertyName);
-				if (field != null) {
-					field.setAccessible(true);
-					field.set(targetObj, targetValue);
-				} else {
-					logger.error("setPropertyValue() - propertyName <" + targetPropertyName + "> is not defined in class "
-								+ targetClass.getSimpleName() + ", do nothing...");
-				}
-				return;
-			} catch (NoSuchFieldException e) {
-				targetClass = targetClass.getSuperclass();
-			} catch (Exception e) {
-				logger.error("setPropertyValue() - failed, exception: " + AppUtil.getStackTrace(e));
-				return;
-			}
-		}
-		return;
-	}
 
 	public static String[] parseHttpBasicAuthString(ServletRequest request) {
 		if (request == null || !(request instanceof HttpServletRequest)) {
@@ -418,7 +293,7 @@ public class AppUtil {
 		try {
 			code = httpRequest.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
 		} catch (IOException e) {
-			logger.error(AppUtil.getStackTrace(e));
+			logger.error(CommonUtil.getStackTrace(e));
 			return null;
 		}
 		// logger.debug("verification code = " + code);
@@ -444,23 +319,23 @@ public class AppUtil {
 			remoteAddr = request.getHeader("X-FORWARDED-FOR");
 			if (StringUtil.isEmptyOrNull(remoteAddr)) {
 				remoteAddr = request.getRemoteAddr();
-			}else {
+			} else {
 				logger.debug("-------------remoteAddr 1-----X-FORWARDED-FOR-----" + remoteAddr);
 				int idx = remoteAddr.indexOf(",");
-				if(idx > 0) {
-					//client part
+				if (idx > 0) {
+					// client part
 					remoteAddr = remoteAddr.substring(0, idx);
 				}
 				idx = remoteAddr.lastIndexOf(":");
-				if(idx > 0) {
+				if (idx > 0) {
 					remoteAddr = remoteAddr.substring(0, idx);
 				}
 				logger.debug("-------------remoteAddr 2-------------------------" + remoteAddr);
 			}
 		}
-		if(InetAddressValidator.getInstance().isValid(remoteAddr)) {
+		if (InetAddressValidator.getInstance().isValid(remoteAddr)) {
 			return remoteAddr;
-		}else {
+		} else {
 			return "n/a";
 		}
 
@@ -471,7 +346,7 @@ public class AppUtil {
 		if (StringUtil.isEmptyOrNull(statusCode)) {
 			statusCode = "" + httpStatus;
 		}
-		BaseResponse jappBaseResponse = AppUtil.createBaseResponse(null, statusCode, message);
+		BaseResponse jappBaseResponse = AppUtil.createResponse(BaseResponse.class, null, statusCode, message);
 		Gson gson = new GsonBuilder().serializeNulls().create();
 		String jsonResponseStr = gson.toJson(jappBaseResponse);
 
@@ -480,7 +355,7 @@ public class AppUtil {
 		try {
 			out = httpResponse.getWriter();
 		} catch (Exception e) {
-			logger.error(AppUtil.getStackTrace(e));
+			logger.error(CommonUtil.getStackTrace(e));
 			return;
 		}
 		httpResponse.setContentType("application/json");
@@ -507,30 +382,30 @@ public class AppUtil {
 
 	}
 
-	public static SecondFactorInfo getSecondFactorInfoFromToken(String jwtToken) {
-		SecondFactorInfo secondFactorInfo = new SecondFactorInfo();
-		Map<String, Object> claims = parseJwtClaims(jwtToken);
-		if (claims == null) {
-			return null;
-		}
-		String tmpV = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED);
-		// logger.debug("getSecondFactorInfoFromToken() - tmpV = " + tmpV);
-		boolean isVerified = Boolean.valueOf(StringUtil.isEmptyOrNull(tmpV) ? "false" : tmpV);
-
-		String type = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE);
-		String value = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE);
-
-		// logger.error("hashed 2nd factor value in token (1) - " + value);
-
-		tmpV = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT);
-		int retryCount = Integer.valueOf((NumberUtils.isCreatable(tmpV) ? tmpV : "0"));
-
-		secondFactorInfo.setVerified(isVerified);
-		secondFactorInfo.setType(StringUtil.isEmptyOrNull(type) ? AppConstant.IAA_2NDFACTOR_TYPE_NONE : type);
-		secondFactorInfo.setValue(value);
-		secondFactorInfo.setRetryCount(retryCount);
-		return secondFactorInfo;
-	}
+//	public static SecondFactorInfo getSecondFactorInfoFromToken(String jwtToken) {
+//		SecondFactorInfo secondFactorInfo = new SecondFactorInfo();
+//		Map<String, Object> claims = parseJwtClaims(jwtToken);
+//		if (claims == null) {
+//			return null;
+//		}
+//		String tmpV = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED);
+//		// logger.debug("getSecondFactorInfoFromToken() - tmpV = " + tmpV);
+//		boolean isVerified = Boolean.valueOf(StringUtil.isEmptyOrNull(tmpV) ? "false" : tmpV);
+//
+//		String type = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE);
+//		String value = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE);
+//
+//		// logger.error("hashed 2nd factor value in token (1) - " + value);
+//
+//		tmpV = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT);
+//		int retryCount = Integer.valueOf((NumberUtils.isCreatable(tmpV) ? tmpV : "0"));
+//
+//		secondFactorInfo.setVerified(isVerified);
+//		secondFactorInfo.setType(StringUtil.isEmptyOrNull(type) ? AppConstant.IAA_2NDFACTOR_TYPE_NONE : type);
+//		secondFactorInfo.setValue(value);
+//		secondFactorInfo.setRetryCount(retryCount);
+//		return secondFactorInfo;
+//	}
 
 	public static Map<String, Object> parseJwtClaims(String jwtToken) {
 		try {
@@ -554,7 +429,7 @@ public class AppUtil {
 			return map;
 
 		} catch (Exception e) {
-			logger.error(AppUtil.getStackTrace(e));
+			logger.error(CommonUtil.getStackTrace(e));
 			return null;
 		}
 
@@ -581,7 +456,7 @@ public class AppUtil {
 			return subject;
 
 		} catch (Exception e) {
-			logger.error(AppUtil.getStackTrace(e));
+			logger.error(CommonUtil.getStackTrace(e));
 			return null;
 		}
 	}
@@ -616,7 +491,5 @@ public class AppUtil {
 		AppThreadContext.clean();
 		ThreadContext.clearAll();
 	}
-
-
 
 }

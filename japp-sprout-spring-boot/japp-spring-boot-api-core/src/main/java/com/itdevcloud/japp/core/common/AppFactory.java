@@ -38,9 +38,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
+import com.itdevcloud.japp.core.cahce.RefreshableCache;
 import com.itdevcloud.japp.core.processor.RequestProcessor;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.CustomizableComponentI;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -60,6 +63,8 @@ public class AppFactory {
 	private static Map<String, CommandInfo> commandInfoMap = null;
 	private static Map<Class<?>, AppFactoryComponentI> classComponentMap = null;
 	private static List<AppFactoryComponentI> factoryComponentList = null;
+	private static List<RefreshableCache> cacheList = null;
+	private static List<TokenHandlerI> tokenHandlerList = null;
 
 	@Autowired
 	public AppFactory(List<AppFactoryComponentI> componentList) {
@@ -77,10 +82,18 @@ public class AppFactory {
 		commandInfoMap = new HashMap<String, CommandInfo>();
 		classComponentMap = new HashMap<Class<?>, AppFactoryComponentI>();
 		Map<Class<?>, List<CustomizableComponentI>> customizableServiceMap = new HashMap<Class<?>, List<CustomizableComponentI>>();
-
+		cacheList = new ArrayList<RefreshableCache>();
+		tokenHandlerList = new ArrayList<TokenHandlerI>();
+		
 		List<String> processorErrorList = new ArrayList<String>();
 
 		for (AppFactoryComponentI component : factoryComponentList) {
+			if (component instanceof RefreshableCache) {
+				cacheList.add((RefreshableCache)component);
+			}
+			if (component instanceof TokenHandlerI) {
+				tokenHandlerList.add((TokenHandlerI)component);
+			}
 			if (component instanceof RequestProcessor) {
 				RequestProcessor processor = (RequestProcessor) component;
 				CommandInfo commandInfo = getCommandInfo(processor);
@@ -260,11 +273,11 @@ public class AppFactory {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("initAppComponents() - failed, exception: " + AppUtil.getStackTrace(e));
-			throw AppUtil.throwRuntimeException(e);
+			logger.error("initAppComponents() - failed, exception: " + CommonUtil.getStackTrace(e));
+			CommonUtil.throwRuntimeException(e);
 		}
 		if(!errorFieldList.isEmpty()) {
-			String errStr = "Following Fields cannot be initialized, check code!\n";
+			String errStr = "initAppComponents() - Following Fields cannot be initialized, check code!\n";
 			for(String fieldStr: errorFieldList) {
 				errStr = errStr + fieldStr + "\n";
 			}
@@ -326,7 +339,38 @@ public class AppFactory {
 
 		}
 	}
+	
+	public static TokenHandlerI getTokenHandler(String name) {
+		if(tokenHandlerList== null ) {
+			return null;
+		}
+		for (TokenHandlerI handler : tokenHandlerList) {
+			if (handler.getClass().getSimpleName().equals(name)) {
+				return handler;
+			}
+		}
+		return null;
+	}
+	
+	public static <T> T getRefreshableCache(Class<T> cacheClass) {
+		if(cacheList == null || cacheClass == null) {
+			return null;
+		}
+		for (RefreshableCache cache : cacheList) {
+			if (cacheClass.getName().equals(cache.getClass().getName())) {
+				return (T) cache;
+			}
+		}
+		return null;
+	}
 
+	public static List<RefreshableCache> getRefreshableCacheList() {
+		if(cacheList == null ) {
+			return null;
+		}
+		
+		return new ArrayList<RefreshableCache>(cacheList);
+	}
 
 	@SuppressWarnings("unchecked")
 	public static <T> T getInstance(Class<T> interfaceImpl, Class<?>[] parameterTypes, Object[] initargs) {

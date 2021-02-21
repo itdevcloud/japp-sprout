@@ -25,14 +25,12 @@ import javax.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
-import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.iaa.service.azure.AzureJwksKey;
+import com.itdevcloud.japp.core.iaa.azure.AzureJwksKey;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -68,8 +66,8 @@ public class AadJwksCache extends RefreshableCache {
 
 	@Override
 	public synchronized void initCache() {
-		if (!AppConstant.AUTH_PROVIDER_AAD_OPENID.equalsIgnoreCase(ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER))) {
-			String info = "AadJwksCache.init()...... Authentication Provider is not " + AppConstant.AUTH_PROVIDER_AAD_OPENID
+		if (!AppConstant.IDENTITY_PROVIDER_AAD_OIDC.equalsIgnoreCase(ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER))) {
+			String info = "AadJwksCache.init()...... Authentication Provider is not " + AppConstant.IDENTITY_PROVIDER_AAD_OIDC
 					+ ", no cache is needed, do nothing......";
 			logger.info(info);
 			AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE, info);
@@ -117,7 +115,7 @@ public class AadJwksCache extends RefreshableCache {
 				AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE, info);
 			}
 		} catch (Exception e) {
-			String errStr = AppUtil.getStackTrace(e);
+			String errStr = CommonUtil.getStackTrace(e);
 			logger.error(errStr);
 			AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE, errStr);
 		} finally {

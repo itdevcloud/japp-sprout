@@ -32,15 +32,15 @@ public abstract class RefreshableCache implements AppFactoryComponentI{
 
 	private static final Logger logger = LogManager.getLogger(RefreshableCache.class);
 
-	protected static boolean initInProcess = false;
-	protected static long lastUpdatedTS = -1;
+	protected  boolean initInProcess = false;
+	protected  long lastUpdatedTS = -1;
 
-	public static long getLastUpdatedTS() {
+	public  long getLastUpdatedTS() {
 		return lastUpdatedTS;
 	}
 
-	public static void setLastUpdatedTS(long lastUpdatedTS) {
-		RefreshableCache.lastUpdatedTS = lastUpdatedTS;
+	public  void setLastUpdatedTS(long lastUpdatedTS) {
+		this.lastUpdatedTS = lastUpdatedTS;
 	}
 
 	public String getCacheSimpleName() {

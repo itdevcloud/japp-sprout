@@ -15,33 +15,25 @@
  *
  */
 package com.itdevcloud.japp.core.api.bean;
+/**
+  *
+ *
+ * @author Marvin Sun
+ * @since 1.0.0
+ */
 
 import org.springframework.stereotype.Component;
-
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
-
 /**
+ * Class Definition
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
 
 @Component
-public class GetIaaProfileResponse extends BaseResponse {
+public class GetPublicKeyRequest extends BaseRequest {
 
-
-	private IaaUser iaaUser;
-
-	public IaaUser getIaaUser() {
-		return iaaUser;
-	}
-
-	public void setIaaUser(IaaUser iaaUser) {
-		this.iaaUser = iaaUser;
-	}
-
-
-
+	private static final long serialVersionUID = 1L;
 
 
 }

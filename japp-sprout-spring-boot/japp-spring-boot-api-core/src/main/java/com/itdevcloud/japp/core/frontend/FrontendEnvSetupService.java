@@ -21,6 +21,7 @@ import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -118,7 +119,7 @@ public class FrontendEnvSetupService implements AppFactoryComponentI {
 			logger.error("CopyAngulerEnvJsonFile() - error = " + e);
 			logger.error(e);
 			logger.warn("CopyAngulerEnvJsonFile() - UI will use defult: environment.json");
-			String info = "CopyAngulerEnvJsonFile() - error = " + e + "\n" + AppUtil.getStackTrace(e);
+			String info = "CopyAngulerEnvJsonFile() - error = " + e + "\n" + CommonUtil.getStackTrace(e);
 			AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_FRONTEND_UI_ENVIRONMENT, info);
 		} finally {
 			try {

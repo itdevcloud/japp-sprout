@@ -85,7 +85,7 @@ public class ApiController extends BaseRestController {
 	@PostMapping("/open/v1/auth")
 	LoginResponse login(@RequestBody LoginRequest request) {
 
-		LoginResponse response = (LoginResponse) processRequest(request);
+		LoginResponse response = (LoginResponse) processRequest(request, LoginResponse.class);
 
 		return response;
 	}

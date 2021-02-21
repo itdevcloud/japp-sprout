@@ -49,6 +49,7 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_APP_SPRING_SCAN_BASE_PACKAGE = "jappcore.app.spring.scan.base.package";
 	public static final String JAPPCORE_APP_API_CONTROLLER_PATH_ROOT = "jappcore.app.api.controller.path.root";
 	public static final String JAPPCORE_APP_MAINTENANCE_MODE_ENABLED = "jappcore.app.maintenance.mode.enabled";
+	public static final String JAPPCORE_APP_MAINTENANCE_MODE_ROLE_ALLOWED = "jappcore.app.maintenance.mode.role.allowed";
 	public static final String JAPPCORE_APP_SYSTEM_NOTIFICATION_EMAIL_ENABLED = "jappcore.app.system.notification.email.enabled";
 	public static final String JAPPCORE_APP_SYSTEM_NOTIFICATION_SCHEDULE_CRON = "jappcore.app.system.notification.schedule.cron";
 	public static final String JAPPCORE_APP_SYSTEM_MAINTENANCE_CRON = "jappcore.app.system.maintenance.cron";
@@ -58,6 +59,9 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_APP_LOG_FILE_PREFIX = "jappcore.app.log.file.prefix";
 	public static final String JAPPCORE_APP_LOG_CURRENT_LOG_FILENAME = "jappcore.app.log.current.log.filename";
 	public static final String JAPPCORE_APP_STARTUP_NOTIFICATION_WAITING_SECONDS = "jappcore.app.startup.notification.waiting.seconds";
+	public static final String JAPPCORE_APP_COMMAND_CONTROLLER_ENABLED = "jappcore.app.command.controller.enabled";
+	public static final String JAPPCORE_APP_PKI_CONTROLLER_ENABLED = "jappcore.app.pki.controller.enabled";
+	public static final String JAPPCORE_APP_DEFAULT_CONTROLLER_ENABLED = "jappcore.app.default.controller.enabled";
 
 	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_IP_ENABLED = "jappcore.iaa.token.validate.ip.enabled";
 	public static final String JAPPCORE_IAA_2NDFACTOR_TYPE = "jappcore.iaa.2ndfactor.type";
@@ -68,10 +72,14 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_API_AUTH_ENABLED = "jappcore.iaa.japp.api.auth.enabled";
 	public static final String JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH = "jappcore.iaa.token.expiration.length";
 	public static final String JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH = "jappcore.iaa.token.verify.expiration.length";
+	public static final String JAPPCORE_IAA_TOKEN_ISSUE_ISS = "jappcore.iaa.token.issue.iss";
+	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_AUD = "jappcore.iaa.token.validate.aud";
 	public static final String JAPPCORE_IAA_AUTHENTICATION_PROVIDER = "jappcore.iaa.authentication.provider";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLECHECK_ENABLED = "jappcore.iaa.application.rolecheck.enabled";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLE_LIST = "jappcore.iaa.application.rolelist";
 	public static final String JAPPCORE_IAA_AUTH_APP_CALLBACK_URL = "jappcore.iaa.auth.app.callback.url";
+	//public static final String JAPPCORE_IAA_USE_THIRDPARTY_TOKEN = "jappcore.iaa.use.thirdparty.token";
+	public static final String JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME = "jappcore.iaa.accessstoken.handler.name";
 
 	public static final String JAPPCORE_FRONTEND_UI_FRAMEWORK = "jappcore.frontend.ui.framework";
 	public static final String JAPPCORE_FRONTEND_UI_ORIGIN = "jappcore.frontend.ui.origin";

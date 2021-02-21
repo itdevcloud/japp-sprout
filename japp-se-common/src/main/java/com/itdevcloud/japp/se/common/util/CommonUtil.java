@@ -20,14 +20,18 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+
 /**
  * Class Definition
  *
@@ -78,25 +82,54 @@ public class CommonUtil {
 		return uuidStr;
 	}
 
-	public static String objectToString(Object obj, int level) {
+	public static List<String> getListFromString(String setString) {
+		try {
+			if (StringUtil.isEmptyOrNull(setString)) {
+				return null;
+			}
+			String[] strArr = setString.split(",|;");
+			return Arrays.asList(strArr);
+
+		} catch (Exception e) {
+			e.printStackTrace();;
+			return null;
+		}
+	}
+
+	public static Set<String> getSetFromString(String setString) {
+		try {
+			if (StringUtil.isEmptyOrNull(setString)) {
+				return null;
+			}
+			String[] strArr = setString.split(",|;");
+			Set<String> strSet = new HashSet<String>(Arrays.asList(strArr));
+			return strSet;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static String objectToStringForPrint(Object obj, int level) {
 		if (obj == null) {
 			return null;
 		}
 		if (obj instanceof Map) {
-			return mapToString((Map<?, ?>) obj, level);
+			return mapToStringForPrint((Map<?, ?>) obj, level);
 		}else if (obj instanceof Set) {
-			return setToString((Set<?>) obj, level);
+			return setToStringForPrint((Set<?>) obj, level);
 		}else if (obj instanceof List) {
-			return listToString((List<?>) obj, level);
+			return listToStringForPrint((List<?>) obj, level);
 		} else if (obj.getClass().isArray()) {
-			return arrayToString((Object[]) obj, level);
+			return arrayToStringForPrint((Object[]) obj, level);
 		} else if (obj instanceof Properties) {
-			return propertiesToString((Properties) obj, level);
+			return propertiesToStringForPrint((Properties) obj, level);
 		} else {
 			return obj.toString();
 		}
 	}
-	public static String propertiesToString(Properties properties, int level) {
+	public static String propertiesToStringForPrint(Properties properties, int level) {
 		if (properties == null) {
 			return null;
 		}
@@ -121,12 +154,12 @@ public class CommonUtil {
 			key = keyArr[i];
 			value = properties.get(key);
 			sb.append(prefix + key + " = ");
-			sb.append(objectToString(value, level + 1) + "\n");
+			sb.append(objectToStringForPrint(value, level + 1) + "\n");
 		}
 		return sb.toString();
 	}
 
-	public static String mapToString(Map<?, ?> map, int level) {
+	public static String mapToStringForPrint(Map<?, ?> map, int level) {
 		if (map == null) {
 			return null;
 		}
@@ -151,12 +184,12 @@ public class CommonUtil {
 			key = keyArr[i];
 			value = map.get(key);
 			sb.append(prefix + key + " = ");
-			sb.append(objectToString(value, level + 1) + "\n");
+			sb.append(objectToStringForPrint(value, level + 1) + "\n");
 		}
 		return sb.toString();
 	}
 
-	public static String listToString(List<?> list, int level) {
+	public static String listToStringForPrint(List<?> list, int level) {
 		if (list == null) {
 			return null;
 		}
@@ -173,12 +206,12 @@ public class CommonUtil {
 		for (int i = 0; i < list.size(); i++) {
 			value = list.get(i);
 			sb.append(prefix + i + " = ");
-			sb.append(objectToString(value, level + 1) + "\n");
+			sb.append(objectToStringForPrint(value, level + 1) + "\n");
 		}
 		return sb.toString();
 	}
 	
-	public static String setToString(Set<?> set, int level) {
+	public static String setToStringForPrint(Set<?> set, int level) {
 		if (set == null) {
 			return null;
 		}
@@ -194,12 +227,12 @@ public class CommonUtil {
 		sb.append("( Set ):\n");
 
 		for (Object object : set){ 
-			sb.append(objectToString(object, level + 1) + "\n");
+			sb.append(objectToStringForPrint(object, level + 1) + "\n");
 		}
 		return sb.toString();
 	}
 	
-	public static String arrayToString(Object[] arr, int level) {
+	public static String arrayToStringForPrint(Object[] arr, int level) {
 		if (arr == null) {
 			return null;
 		}
@@ -216,12 +249,12 @@ public class CommonUtil {
 		for (int i = 0; i < arr.length; i++) {
 			value = arr[i];
 			sb.append(prefix + i + " = ");
-			sb.append(objectToString(value, level + 1) + "\n");
+			sb.append(objectToStringForPrint(value, level + 1) + "\n");
 		}
 		return sb.toString();
 	}
 
-	public static String listToString(List<?> list) {
+	public static String listToStringForPrint(List<?> list) {
 		if(list == null || list.isEmpty()){
 			return null;
 		}
@@ -263,5 +296,73 @@ public class CommonUtil {
 		return d1+d2;
 	}
 
+	public String getFullName(String firstName, String middleName, String lastName) {
+		if(StringUtil.isEmptyOrNull(firstName) && StringUtil.isEmptyOrNull(middleName) && StringUtil.isEmptyOrNull(lastName)) {
+			return null;
+		}
+		firstName = (firstName==null?"":firstName.trim());
+		middleName = (middleName==null?"":middleName.trim());
+		lastName = (lastName==null?"":lastName.trim());
+		String fullName = null;
+		if(StringUtil.isEmptyOrNull(middleName)) {
+			fullName = StringUtil.changeFirstCharCase(firstName, true) + " " + StringUtil.changeFirstCharCase(lastName, true);
+		}else {
+			fullName = StringUtil.changeFirstCharCase(firstName, true) + " " + StringUtil.changeFirstCharCase(middleName, true) + " " + StringUtil.changeFirstCharCase(lastName, true);
+		}
+		return fullName;
+	}
+	
+	public static boolean isSameBigDecimal(BigDecimal b1, BigDecimal b2) {
+		if (b1 == null && b2 == null) {
+			return true;
+		} else if (b1 == null) {
+			return false;
+		} else if (b2 == null) {
+			return false;
+		} else {
+			return b1.longValue() == b2.longValue();
+		}
+	}
+
+	public static boolean isSameTimestamp(Timestamp ts1, Timestamp ts2) {
+		if (ts1 != null && ts2 != null) {
+			return ts1.equals(ts2);
+		} else if (ts1 != null) {
+			return false;
+		} else {
+			return ts2 == null;
+		}
+	}
+
+	public static void setPropertyValue(Class<?> targetClass, Object targetObj, String targetPropertyName,
+			Object targetValue) {
+		if (targetObj == null && targetClass == null) {
+			System.out.println("setPropertyValue() - object and targetClass can not be both null, do nothing...");
+		}
+		if (StringUtil.isEmptyOrNull(targetPropertyName)) {
+			System.out.println("setPropertyValue() - propertyName can not be null, do nothing...");
+		}
+		// object class override target class
+		targetClass = (targetObj == null ? targetClass : targetObj.getClass());
+		while (targetClass != null) {
+			try {
+				Field field = targetClass.getDeclaredField(targetPropertyName);
+				if (field != null) {
+					field.setAccessible(true);
+					field.set(targetObj, targetValue);
+				} else {
+					System.out.println("setPropertyValue() - propertyName <" + targetPropertyName
+							+ "> is not defined in class " + targetClass.getSimpleName() + ", do nothing...");
+				}
+				return;
+			} catch (NoSuchFieldException e) {
+				targetClass = targetClass.getSuperclass();
+			} catch (Exception e) {
+				System.out.println("setPropertyValue() - failed, exception: " + CommonUtil.getStackTrace(e));
+				return;
+			}
+		}
+		return;
+	}
 
 }

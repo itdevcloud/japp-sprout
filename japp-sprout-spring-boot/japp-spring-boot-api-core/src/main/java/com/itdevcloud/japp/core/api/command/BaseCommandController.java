@@ -25,9 +25,8 @@ package com.itdevcloud.japp.core.api.command;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -37,20 +36,31 @@ import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.CommandInfo;
+import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.processor.RequestProcessor;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 @Component
 public abstract class BaseCommandController {
 
 	private static final Logger logger = LogManager.getLogger(BaseCommandController.class);
+	
+	@Value("${" + AppConfigKeys.JAPPCORE_APP_COMMAND_CONTROLLER_ENABLED + ":false}")
+	private boolean commandControllerEnabled;
 
 	public String processCommand(String command, String jsonRequest) {
 
+    	if(!commandControllerEnabled) {
+			BaseResponse response = AppUtil.createResponse(BaseResponse.class, "N/A",
+					ResponseStatus.STATUS_CODE_WARN_NOACTION, "command controller is not enabled!");
+			return toJsonResponse(response);
+		}
+    	
 		if (StringUtil.isEmptyOrNull(command) && StringUtil.isEmptyOrNull(jsonRequest)) {
-			BaseResponse response = AppUtil.createBaseResponse("N/A",
+			BaseResponse response = AppUtil.createResponse(BaseResponse.class, "N/A",
 					ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "command and jsonRequest can not be both null or empty!");
 			return toJsonResponse(response);
 		}
@@ -64,7 +74,7 @@ public abstract class BaseCommandController {
 			//command can not be null in this block
 			request = getNewRequestInstanceFromCommand(command);
 			if (request == null) {
-				BaseResponse response = AppUtil.createBaseResponse(command,
+				BaseResponse response = AppUtil.createResponse(BaseResponse.class, command,
 						ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
 						"processCommand() - there is no request bean defined for command <" + command + ">");
 				return toJsonResponse(response);
@@ -83,7 +93,7 @@ public abstract class BaseCommandController {
 			command = cmd;
 		}else {
 			if(cmd != null && !cmd.equalsIgnoreCase(command)) {
-				BaseResponse response = AppUtil.createBaseResponse(command,
+				BaseResponse response = AppUtil.createResponse(BaseResponse.class, command,
 						ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "Command provided in query Parameter <" + command + "> does not match command provided in JSON request <" + cmd + "> !");
 				return toJsonResponse(response);
 
@@ -92,8 +102,8 @@ public abstract class BaseCommandController {
 
 		logger.info("processCommand() - start ===>>> command = '" + command + "'" + ", jsonRequest = \n" + jsonRequest);
 		try {
-			if (StringUtils.isEmpty(command) ) {
-				BaseResponse response = AppUtil.createBaseResponse("N/A",
+			if (StringUtil.isEmptyOrNull(command) ) {
+				BaseResponse response = AppUtil.createResponse(BaseResponse.class, "N/A",
 						ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "Request must be Json String and command must be provided through query paraneter or inside JSON request!");
 
 				return toJsonResponse(response);
@@ -102,7 +112,7 @@ public abstract class BaseCommandController {
 			request = toRequest(command, jsonRequest);
 
 			if (request == null) {
-				BaseResponse response = AppUtil.createBaseResponse(command,
+				BaseResponse response = AppUtil.createResponse(BaseResponse.class, command,
 						ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
 						"can't initialize request instance for command: '" + command + "', check command  or json request string. ");
 
@@ -113,6 +123,7 @@ public abstract class BaseCommandController {
 			BaseResponse response = processRequest(request);
 			//make sure command is set
 			response.setCommand(command);
+			response.setClientTxId(request.getClientTxId());
 			
 			String jsonResponse = toJsonResponse(response);
 			logger.info("processCommand() - end <<<=== command = '" + command + "'");
@@ -124,14 +135,14 @@ public abstract class BaseCommandController {
 			t.printStackTrace();
 			logger.error(t);
 			BaseResponse response = AppUtil
-					.createBaseResponse(command, ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, t.getMessage());
+					.createResponse(BaseResponse.class, command, ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, t.getMessage());
 			return toJsonResponse(response);
 		}
 	}
 
 	private BaseRequest getNewRequestInstanceFromCommand(String command) {
 		logger.debug("getEmptyRequestInstanceFromCommand() start ...");
-		if (StringUtils.isEmpty(command)) {
+		if (StringUtil.isEmptyOrNull(command)) {
 			return null;
 		}
 		CommandInfo commandInfo = AppFactory.getCommandInfo(command);
@@ -147,7 +158,7 @@ public abstract class BaseCommandController {
 		logger.debug("processRequest() - start ...");
 		if (request == null) {
 			//should not goes into here anyway
-			BaseResponse response = AppUtil.createBaseResponse("N/A",
+			BaseResponse response = AppUtil.createResponse(BaseResponse.class, "N/A",
 					ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
 					"processRequest() - request parameter is null, check code!");
 			return response;
@@ -157,7 +168,7 @@ public abstract class BaseCommandController {
 		BaseResponse response = null;
 		CommandInfo commandInfo = AppFactory.getCommandInfo(requestSimpleName);
 		if (commandInfo == null) {
-			response = AppUtil.createBaseResponse(request.getCommand(),
+			response = AppUtil.createResponse(BaseResponse.class, request.getCommand(),
 					ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
 					"processRequest() - processor not found for request: '" + requestSimpleName
 					+ "'....");
@@ -165,14 +176,14 @@ public abstract class BaseCommandController {
 		}
 		RequestProcessor requestProcessor = commandInfo.getProcessor();
 		if (requestProcessor == null) {
-			response = AppUtil.createBaseResponse(request.getCommand(),
+			response = AppUtil.createResponse(BaseResponse.class, request.getCommand(),
 					ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
 					"processRequest() - processor not found for request: '" + requestSimpleName
 					+ "'....");
 			return response;
 		}
 
-		response = requestProcessor.process(request);
+		response = requestProcessor.process(request, BaseResponse.class);
 
 		logger.debug("processRequest() - end ... request = '" + requestSimpleName + "'");
 		return response;
@@ -205,7 +216,7 @@ public abstract class BaseCommandController {
 			cmd = (jsonElement==null?null:jsonElement.getAsString());
 			return cmd;
 		}catch(Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
+			logger.error(CommonUtil.getStackTrace(t));
 			return null;
 		}
 

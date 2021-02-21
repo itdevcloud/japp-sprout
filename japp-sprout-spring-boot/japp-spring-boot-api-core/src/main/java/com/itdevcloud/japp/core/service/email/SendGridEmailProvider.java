@@ -29,7 +29,9 @@ import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.sendgrid.Client;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
@@ -77,7 +79,7 @@ public class SendGridEmailProvider implements EmailServiceProvider {
 		}
 
 		String sendgridApiKey = getSendgridApiKey();
-		if (StringUtils.isEmpty(sendgridApiKey)) {
+		if (StringUtil.isEmptyOrNull(sendgridApiKey)) {
 			throw new EmailException(702, "sendgridApiKey is empty or null......!");
 		}
 
@@ -86,7 +88,7 @@ public class SendGridEmailProvider implements EmailServiceProvider {
 
 		// send email
 		SendGrid sg;
-		if (StringUtils.isEmpty(httpProxyServer) || httpProxyPort == 0) {
+		if (StringUtil.isEmptyOrNull(httpProxyServer) || httpProxyPort == 0) {
 			sg = new SendGrid(sendgridApiKey);
 		} else {
 			CloseableHttpClient httpclient = HttpClients.custom().useSystemProperties()
@@ -105,7 +107,7 @@ public class SendGridEmailProvider implements EmailServiceProvider {
 			logger.debug(
 					"sending email end. Response.code=" + response.getStatusCode() + ", message=" + response.getBody());
 		} catch (Exception e) {
-			throw new EmailException(704, AppUtil.getStackTrace(e));
+			throw new EmailException(704, CommonUtil.getStackTrace(e));
 		}
 	}
 
@@ -115,7 +117,7 @@ public class SendGridEmailProvider implements EmailServiceProvider {
 		Mail mail = new Mail();
 		// from
 		Email fromEmail = new Email();
-		if (!StringUtils.isEmpty(fromAddr.getName())) {
+		if (!StringUtil.isEmptyOrNull(fromAddr.getName())) {
 			fromEmail.setName(fromAddr.getName());
 		}
 		fromEmail.setEmail(fromAddr.getAddress());
@@ -126,7 +128,7 @@ public class SendGridEmailProvider implements EmailServiceProvider {
 		Personalization personalization = new Personalization();
 		for (EmailAddress addr : toAddrList) {
 			Email to = new Email();
-			if (!StringUtils.isEmpty(addr.getName())) {
+			if (!StringUtil.isEmptyOrNull(addr.getName())) {
 				to.setName(addr.getName());
 			}
 			to.setEmail(addr.getAddress());
@@ -135,7 +137,7 @@ public class SendGridEmailProvider implements EmailServiceProvider {
 		if (ccAddrList != null) {
 			for (EmailAddress addr : ccAddrList) {
 				Email cc = new Email();
-				if (!StringUtils.isEmpty(addr.getName())) {
+				if (!StringUtil.isEmptyOrNull(addr.getName())) {
 					cc.setName(addr.getName());
 				}
 				cc.setEmail(addr.getAddress());
@@ -145,7 +147,7 @@ public class SendGridEmailProvider implements EmailServiceProvider {
 		if (bccAddrList != null) {
 			for (EmailAddress addr : bccAddrList) {
 				Email bcc = new Email();
-				if (!StringUtils.isEmpty(addr.getName())) {
+				if (!StringUtil.isEmptyOrNull(addr.getName())) {
 					bcc.setName(addr.getName());
 				}
 				bcc.setEmail(addr.getAddress());
@@ -175,7 +177,7 @@ public class SendGridEmailProvider implements EmailServiceProvider {
 		if (replyToAddr != null) {
 
 			Email replyTo = new Email();
-			if (StringUtils.isEmpty(replyToAddr.getName())) {
+			if (StringUtil.isEmptyOrNull(replyToAddr.getName())) {
 				replyTo.setName(replyToAddr.getName());
 			}
 			replyTo.setEmail(replyToAddr.getAddress());

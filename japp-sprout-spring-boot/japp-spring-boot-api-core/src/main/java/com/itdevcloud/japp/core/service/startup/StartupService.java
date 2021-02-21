@@ -37,6 +37,7 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.StartupServiceHelperI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 /**
  *
  * @author Marvin Sun
@@ -94,7 +95,7 @@ public class StartupService implements AppFactoryComponentI {
 			AppComponents.emailService.sendITNotification(subject, info);
 			logger.info("sendStartupNotification() - end....");
 		} catch (Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
+			logger.error(CommonUtil.getStackTrace(t));
 		}
 	}
 	

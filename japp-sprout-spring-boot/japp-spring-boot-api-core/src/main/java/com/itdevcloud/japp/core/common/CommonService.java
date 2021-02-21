@@ -35,9 +35,10 @@ import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  *
@@ -63,8 +64,9 @@ public class CommonService implements AppFactoryComponentI {
 			logger.error("handleMaintenanceMode() - httpResponse is null, return as in maintenance mode, check code!...");
 			return true;
 		}
+		String roleAllowed = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_MAINTENANCE_MODE_ROLE_ALLOWED);
 		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_APP_MAINTENANCE_MODE_ENABLED)
-				&& !AppComponents.iaaService.isAccessAllowed(AppConstant.BUSINESS_ROLE_IT_SUPPORT)) {
+				&& !AppComponents.iaaService.isAccessAllowed(roleAllowed)) {
 
 			httpResponse.addHeader("MaitainenaceMode", "true");
 			httpResponse.addHeader("Access-Control-Expose-Headers", "MaitainenaceMode");
@@ -104,7 +106,7 @@ public class CommonService implements AppFactoryComponentI {
 	}
 	
 
-	public boolean matchUserIpWhiteList(HttpServletRequest httpRequest, IaaUser<?> iaaUser) {
+	public boolean matchUserIpWhiteList(HttpServletRequest httpRequest, IaaUserI iaaUser) {
 		if(httpRequest == null || iaaUser == null) {
 			logger.error("userIpWhiteListCheck() - httpRequest and/or iaaUser is null, return false.....");
 			return false;
@@ -173,7 +175,7 @@ public class CommonService implements AppFactoryComponentI {
 	}
 
 
-	public boolean matchAppRoleList(IaaUser<?> iaaUser) {
+	public boolean matchAppRoleList(IaaUserI iaaUser) {
 		if(iaaUser == null ) {
 			logger.error("matchAppRoleList() - iaaUser is null, return false.....");
 			return false;
@@ -249,12 +251,12 @@ public class CommonService implements AppFactoryComponentI {
 			logger.debug("Server Instance Info:  Hostname: " + hostname + ", IP address : " + hostIP);
 
 		} catch (Exception e) {
-			logger.error(AppUtil.getStackTrace(e));
+			logger.error(CommonUtil.getStackTrace(e));
 			hostIP = (StringUtil.isEmptyOrNull(hostIP)?"0.0.0.0": hostIP);
 			hostname = (StringUtil.isEmptyOrNull(hostname)?"unknown.hostname": hostname);
 		}
-		severInstanceInfo.setLocalIP(hostIP);
-		severInstanceInfo.setLocalHostName(hostname);
+//		severInstanceInfo.setLocalIP(hostIP);
+//		severInstanceInfo.setLocalHostName(hostname);
 		severInstanceInfo.setActiveProfileName(AppUtil.getSpringActiveProfile());
 		severInstanceInfo.setApplicationId(applicationId);
 		severInstanceInfo.setStartupDate(AppUtil.getStartupDate());

@@ -25,12 +25,11 @@ import javax.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 /**
  * This class is used to refresh various caches based on pre-defined schedules.
@@ -49,12 +48,12 @@ public class CacheRefreshTimerTask {
 	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 
 
-	private List<RefreshableCache> cacheList;
+	//private List<RefreshableCache> cacheList;
 
-	@Autowired
-	public CacheRefreshTimerTask(List<RefreshableCache> cacheList) {
-		this.cacheList = cacheList;
-	}
+//	@Autowired
+//	public CacheRefreshTimerTask(List<RefreshableCache> cacheList) {
+//		cacheList = cacheList;
+//	}
 
 	@PostConstruct
 	public void init() {
@@ -62,6 +61,9 @@ public class CacheRefreshTimerTask {
 
 	@Scheduled(fixedRateString = "${jappcore.cache.refresh.interval:600000}")
 	public void run() {
+		
+		List<RefreshableCache> cacheList = AppFactory.getRefreshableCacheList();
+		
 		logger.info("CacheRefreshTimerTask.run() - started......");
 		if(cacheList == null || cacheList.isEmpty()) {
 			logger.debug("CacheRefreshTimerTask - cacheList is null or empty, do nothing...");
@@ -80,8 +82,8 @@ public class CacheRefreshTimerTask {
 		Date now = new Date();
 		long nowTS = now.getTime();
 		String today = sdf.format(now);
-		int refreshDateInt = (dailyRefreshDate == null ? 0 : new Integer(dailyRefreshDate));
-		int todayInt = new Integer(today);
+		int refreshDateInt = (dailyRefreshDate == null ? 0 : Integer.parseInt(dailyRefreshDate));
+		int todayInt = Integer.parseInt(today);
 
 		if (enableCacheDailyRefresh && (dailyRefreshDate == null || refreshDateInt < todayInt)) {
 			logger.info("CacheRefreshTimerTask.run() - Daily refresh start............");
@@ -121,4 +123,5 @@ public class CacheRefreshTimerTask {
 		logger.info("CacheRefreshTimerTask.run() - end.........");
 
 	}
+	
 }

@@ -39,6 +39,7 @@ import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  *
@@ -79,7 +80,7 @@ public class LogFileService implements AppFactoryComponentI {
 	public Map<String, List<String>> searchLogDir(String searchText, String startDateStr, String endDateStr) {
 		String logDir = getLogFileDir();
 		LogFileNameFilter filter = new LogFileNameFilter();
-		if (StringUtils.isEmpty(startDateStr) && StringUtils.isEmpty(endDateStr)) {
+		if (StringUtil.isEmptyOrNull(startDateStr) && StringUtil.isEmptyOrNull(endDateStr)) {
 			return searchLinesFromDir(logDir, filter, searchText);
 		} else  {
 			List<String> fileNameList = getLogFileNameList(startDateStr, endDateStr);
@@ -88,7 +89,7 @@ public class LogFileService implements AppFactoryComponentI {
 	}
 
 	private List<String> getLogFileNameList(String startDateStr, String endDateStr){
-		if(StringUtils.isEmpty(startDateStr) && StringUtils.isEmpty(endDateStr) ) {
+		if(StringUtil.isEmptyOrNull(startDateStr) && StringUtil.isEmptyOrNull(endDateStr) ) {
 			return null;
 		}
 		String currentLogFile = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_LOG_CURRENT_LOG_FILENAME);
@@ -108,17 +109,17 @@ public class LogFileService implements AppFactoryComponentI {
 						continue;
 					}
 					String dateStr = getDateString(file);
-					if(StringUtils.isEmpty(dateStr)) {
+					if(StringUtil.isEmptyOrNull(dateStr)) {
 						if(!fileNameList.contains(currentLogFile)) {
 							fileNameList.add(currentLogFile);
 						}
 						continue;
 					}
-					if(!StringUtils.isEmpty(startDateStr) && StringUtils.isEmpty(endDateStr)) {
+					if(!StringUtil.isEmptyOrNull(startDateStr) && StringUtil.isEmptyOrNull(endDateStr)) {
 						if(dateStr.compareTo(startDateStr) >= 0) {
 							fileNameList.add(file.getAbsolutePath());
 						}
-					}else if(StringUtils.isEmpty(startDateStr) && !StringUtils.isEmpty(endDateStr)) {
+					}else if(StringUtil.isEmptyOrNull(startDateStr) && !StringUtil.isEmptyOrNull(endDateStr)) {
 						if(dateStr.compareTo(endDateStr) <= 0) {
 							fileNameList.add(file.getAbsolutePath());
 						}
@@ -147,7 +148,7 @@ public class LogFileService implements AppFactoryComponentI {
 	}
 
 	public List<String> searchLinesFromFile(String fileName, String searchText) {
-		if (StringUtils.isEmpty(fileName) || StringUtils.isEmpty(searchText) || searchText.trim().length() < 5) {
+		if (StringUtil.isEmptyOrNull(fileName) || StringUtil.isEmptyOrNull(searchText) || searchText.trim().length() < 5) {
 			logger.error(
 					"searchLinesFromFile()......fileName or searchText is empty or searchText less than 5 characters, do nothing....!!!");
 			return null;
@@ -173,7 +174,7 @@ public class LogFileService implements AppFactoryComponentI {
 				if (matcher.find()) {
 					//this is logLine start line
 					//search current logLine
-					if(!StringUtils.isEmpty(logLine)) {
+					if(!StringUtil.isEmptyOrNull(logLine)) {
 						if (logLine.trim().toLowerCase().contains(searchText)) {
 							list.add(logLine);
 						}
@@ -186,7 +187,7 @@ public class LogFileService implements AppFactoryComponentI {
 					continue;
 				}
 			}
-			if(!StringUtils.isEmpty(logLine)) {
+			if(!StringUtil.isEmptyOrNull(logLine)) {
 				if (logLine.trim().toLowerCase().contains(searchText)) {
 					list.add(logLine);
 				}
@@ -197,7 +198,7 @@ public class LogFileService implements AppFactoryComponentI {
 		} catch (Exception e) {
 			logger.error(e);
 			e.printStackTrace();
-			throw AppUtil.throwRuntimeException(e);
+			throw CommonUtil.getRuntimeException(e);
 		} finally {
 			if (br != null) {
 				try {
@@ -212,7 +213,7 @@ public class LogFileService implements AppFactoryComponentI {
 	}
 
 	public Map<String, List<String>> searchLinesFromFiles(List<String> fileNameList, String searchText) {
-		if (fileNameList == null || fileNameList.isEmpty() || StringUtils.isEmpty(searchText)
+		if (fileNameList == null || fileNameList.isEmpty() || StringUtil.isEmptyOrNull(searchText)
 				|| searchText.trim().length() < 5) {
 			logger.error(
 					"searchLinesFromFiles()......fileNameList or searchText is empty or searchText less than 5 characters, do nothing....!!!");
@@ -236,7 +237,7 @@ public class LogFileService implements AppFactoryComponentI {
 	}
 
 	public Map<String, List<String>> searchLinesFromDir(String dir, FilenameFilter filter, String searchText) {
-		if (StringUtils.isEmpty(dir) || StringUtils.isEmpty(searchText) || searchText.trim().length() < 5) {
+		if (StringUtil.isEmptyOrNull(dir) || StringUtil.isEmptyOrNull(searchText) || searchText.trim().length() < 5) {
 			logger.error(
 					"searchLinesFromDir()......dir or searchText is empty or searchText less than 5 characters, do nothing....!!!");
 			return null;

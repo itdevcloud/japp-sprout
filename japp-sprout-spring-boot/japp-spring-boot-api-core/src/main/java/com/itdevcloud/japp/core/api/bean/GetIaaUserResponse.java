@@ -14,34 +14,34 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.iaa.service.azure;
+package com.itdevcloud.japp.core.api.bean;
 
-import java.util.List;
+import org.springframework.stereotype.Component;
+
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
 
 /**
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
-public class AzureJwksKeys {
 
-	private List<AzureJwksKey> keys;
+@Component
+public class GetIaaUserResponse extends BaseResponse {
 
 
-	public List<AzureJwksKey> getKeys() {
-		return keys;
+	private IaaUserI iaaUser;
+
+	public IaaUserI getIaaUser() {
+		return iaaUser;
+	}
+
+	public void setIaaUser(IaaUserI iaaUser) {
+		this.iaaUser = iaaUser;
 	}
 
 
-	public void setKeys(List<AzureJwksKey> keys) {
-		this.keys = keys;
-	}
 
 
-	@Override
-	public String toString() {
-		return "AzureJwksKeys [azureJwksKeys=" + keys + "]";
-	}
-	
-	
+
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.iaa.service.azure;
+package com.itdevcloud.japp.core.iaa.azure;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -42,6 +42,7 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.config.AppConfigService;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -168,7 +169,7 @@ public class AzureJwksService implements AppFactoryComponentI{
 			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
 			String openIdMetaData = httpResponse.getResposebody();
 
-			JsonObject obj = new JsonParser().parse(openIdMetaData).getAsJsonObject();
+			JsonObject obj = JsonParser.parseString(openIdMetaData).getAsJsonObject();
 
 			// get authUri
 			aadAuthLogoutUrl = obj.get("end_session_endpoint").getAsString();
@@ -224,7 +225,7 @@ public class AzureJwksService implements AppFactoryComponentI{
 			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
 			String openIdMetaData = httpResponse.getResposebody();
 
-			JsonObject obj = new JsonParser().parse(openIdMetaData).getAsJsonObject();
+			JsonObject obj = JsonParser.parseString(openIdMetaData).getAsJsonObject();
 
 			// get jwks key uri
 			String jwksUrl = obj.get("jwks_uri").getAsString();
@@ -258,8 +259,8 @@ public class AzureJwksService implements AppFactoryComponentI{
 					logger.error(err);
 					throw new RuntimeException(err);
 				}
-				Certificate cert = AppUtil.getCertificateFromString(certStr);
-				PublicKey publicKey = AppUtil.getPublicKeyFromCertificate(cert);
+				Certificate cert = SecurityUtil.getCertificateFromString(certStr);
+				PublicKey publicKey = SecurityUtil.getPublicKeyFromCertificate(cert);
 
 				key.setCertificate(cert);
 				key.setPublicKey(publicKey);

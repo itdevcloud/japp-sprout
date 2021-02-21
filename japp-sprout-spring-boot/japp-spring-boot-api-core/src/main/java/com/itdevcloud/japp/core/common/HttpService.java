@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -148,15 +149,15 @@ public class HttpService implements AppFactoryComponentI {
 			return httpResponse;
 
 		} catch (Throwable t) {
-			log.error(AppUtil.getStackTrace(t));
-			throw AppUtil.throwRuntimeException(t);
+			log.error(CommonUtil.getStackTrace(t));
+			throw CommonUtil.getRuntimeException(t);
 		} finally {
 			if (in != null) {
 				try {
 					in.close();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
-					log.error(AppUtil.getStackTrace(e));
+					log.error(CommonUtil.getStackTrace(e));
 				}
 			}
 			if (conn != null) {
@@ -233,14 +234,14 @@ public class HttpService implements AppFactoryComponentI {
 			httpResponse.setResposebody(sb.toString());
 			return httpResponse;
 		} catch (Throwable t) {
-			log.error(AppUtil.getStackTrace(t));
-			throw AppUtil.throwRuntimeException(t);
+			log.error(CommonUtil.getStackTrace(t));
+			throw CommonUtil.getRuntimeException(t);
 		} finally {
 			if (in != null) {
 				try {
 					in.close();
 				} catch (IOException e) {
-					log.error(AppUtil.getStackTrace(e));
+					log.error(CommonUtil.getStackTrace(e));
 				}
 			}
 			if (conn != null) {

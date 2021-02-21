@@ -24,7 +24,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Configuration
 public class OpenApiConfig {
 	
-	private static final Logger logger = LogManager.getLogger(OpenApiConfig.class);
+	//private static final Logger logger = LogManager.getLogger(OpenApiConfig.class);
 
 	@Value("${jappcore.openapi.info.title}")
 	private String infoTitle;

@@ -23,28 +23,18 @@ package com.itdevcloud.japp.core.common;
  */
 public class AppConstant {
 
-	public static final String AUTH_PROVIDER_AAD_OPENID = "AAD-OAUTH2";
-	public static final String AUTH_PROVIDER_GENERAL_OAUTH2 = "GENERAL-OAUTH2";
-	public static final String AUTH_PROVIDER_JAPPCORE_BASIC_AUTH = "JAPP-BASIC-AUTH";
-	public static final String AUTH_PROVIDER_JAPPCORE_DYNAMIC = "JAPP-DYNAMIC";
-	public static final String AUTH_PROVIDER_GOSECURE = "GOSECURE";
+	public static final String IDENTITY_PROVIDER_AAD_OIDC = "AAD-OIDC";
+	//public static final String AUTH_PROVIDER_GENERAL_OAUTH2 = "GENERAL-OAUTH2";
+	public static final String IDENTITY_PROVIDER_APP_LOCAL_BASIC = "APP-LOCAL";
+	public static final String IDENTITY_PROVIDER_APP_LOCAL_DYNAMIC = "APP-LOCAL-DYNAMIC";
+	public static final String IDENTITY_PROVIDER_APP_REMOTE = "APP-BASIC-REMOTE";
+	//public static final String IDENTITY_PROVIDER_JAPPCORE_DYNAMIC = "APP-DYNAMIC";
+	public static final String IDENTITY_PROVIDER_AUTH0 = "AUTH0";
 	public static final String JAPPCORE_TX_ID = "JAPPCORE_TX_ID";
 
 	public static final String FRONTEND_UI_FRAMEWORK_NONE = "none";
 	public static final String FRONTEND_UI_FRAMEWORK_ANGULAR = "angular";
 
-	public static final String JWT_TOKEN_NAME = "Japp_Jwt";
-	public static final String JWT_TOKEN_ISSUE_BY = "Japp_ApiServer";
-
-	public static final String JWT_CLAIM_KEY_ISSUE_APPID = "issueAppId";
-	public static final String JWT_CLAIM_KEY_TARGET_APPID = "targetAppId";
-	
-	public static final String JWT_CLAIM_KEY_TARGET_IP = "targetIp";
-	public static final String JWT_CLAIM_KEY_TIMEOUT_AT = "timeoutAt";
-	public static final String JWT_CLAIM_KEY_2NDFACTOR_VERIFIED = "secondFactorVerified";
-	public static final String JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT = "secondFactorRetryCount";
-	public static final String JWT_CLAIM_KEY_2NDFACTOR_TYPE = "secondFactorType";
-	public static final String JWT_CLAIM_KEY_2NDFACTOR_VALUE = "secondFactorValue";
 
 	public static final String IAA_2NDFACTOR_TYPE_NONE = "none";
 	public static final String IAA_2NDFACTOR_TYPE_VERIFICATION_CODE = "verificationCode";
@@ -52,8 +42,6 @@ public class AppConstant {
 
 	public static final String HTTP_AUTHORIZATION_HEADER_NAME = "Authorization";
 	public static final String HTTP_AUTHORIZATION_COOKIE_NAME = "Japp_Token_Cookie";
-
-	public static final String BUSINESS_ROLE_IT_SUPPORT = "JAPP.BR.IT.SUPPORT";
 
 
 	public static final String JAPPCORE_SPRING_ACTIVE_PROFILE_PROD = "PROD";

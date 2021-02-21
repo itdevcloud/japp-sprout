@@ -34,6 +34,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  *
@@ -63,11 +65,11 @@ public class SpringEmailProvider implements EmailServiceProvider {
 			String[] toArr = this.getAddressArray(toAddrList);
 			logger.debug("createAndSendEmail......to = " + Arrays.toString(toArr));
 			helper.setTo(toArr);
-			if (fromAddr != null && !StringUtils.isEmpty(fromAddr.getAddress())) {
+			if (fromAddr != null && !StringUtil.isEmptyOrNull(fromAddr.getAddress())) {
 				helper.setFrom(fromAddr.getAddress());
 				logger.debug("createAndSendEmail......from = " + fromAddr);
 			}
-			if (replyToAddr != null && !StringUtils.isEmpty(replyToAddr.getAddress())) {
+			if (replyToAddr != null && !StringUtil.isEmptyOrNull(replyToAddr.getAddress())) {
 				helper.setReplyTo(replyToAddr.getAddress());
 				logger.debug("createAndSendEmail......replyTo = " + replyToAddr);
 			}
@@ -108,7 +110,7 @@ public class SpringEmailProvider implements EmailServiceProvider {
 
 			sender.send(message);
 		} catch (Exception e) {
-			throw new EmailException(604, AppUtil.getStackTrace(e));
+			throw new EmailException(604, CommonUtil.getStackTrace(e));
 		}
 
 	}
@@ -139,7 +141,7 @@ public class SpringEmailProvider implements EmailServiceProvider {
 	}
 
 	private boolean isValidAddress(EmailAddress addr) {
-		if (addr == null || StringUtils.isEmpty(addr.getAddress()) || !addr.getAddress().contains("@")) {
+		if (addr == null || StringUtil.isEmptyOrNull(addr.getAddress()) || !addr.getAddress().contains("@")) {
 			logger.debug("email address is not valid......addr = " + addr);
 			return false;
 		}

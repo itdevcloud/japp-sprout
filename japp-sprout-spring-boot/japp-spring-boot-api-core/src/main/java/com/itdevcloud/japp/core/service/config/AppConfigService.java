@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -124,7 +125,7 @@ public class AppConfigService {
 			Integer value = Integer.valueOf(valueStr);
 			return value;
 		} catch (Exception e) {
-			logger.error("get property '" + key + "' failed with exception: " + AppUtil.getStackTrace(e));
+			logger.error("get property '" + key + "' failed with exception: " + CommonUtil.getStackTrace(e));
 			return defaultValue;
 		}
 	}
@@ -140,7 +141,7 @@ public class AppConfigService {
 			Double value = Double.valueOf(valueStr);
 			return value;
 		} catch (Exception e) {
-			logger.error("get property '" + key + "' failed with exception: " + AppUtil.getStackTrace(e));
+			logger.error("get property '" + key + "' failed with exception: " + CommonUtil.getStackTrace(e));
 			return defaultValue;
 		}
 	}
@@ -156,7 +157,7 @@ public class AppConfigService {
 			Boolean value = Boolean.valueOf(valueStr);
 			return value;
 		} catch (Exception e) {
-			logger.error("get property '" + key + "' failed with exception: " + AppUtil.getStackTrace(e));
+			logger.error("get property '" + key + "' failed with exception: " + CommonUtil.getStackTrace(e));
 			return defaultValue;
 		}
 	}

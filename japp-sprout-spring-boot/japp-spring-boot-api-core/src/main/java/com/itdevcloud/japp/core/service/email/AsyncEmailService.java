@@ -22,14 +22,13 @@ import java.util.concurrent.Future;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
-import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 
 /**
  *
@@ -50,7 +49,7 @@ public class AsyncEmailService implements AppFactoryComponentI {
 			logger.info("AsyncEmailService.sendEmail(), end.......");
 			return new AsyncResult<String>("Success");
 		} catch (Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
+			logger.error(CommonUtil.getStackTrace(t));
 			return new AsyncResult<String>("Email Sending Failed: " + t.getMessage());
 		}
 	}

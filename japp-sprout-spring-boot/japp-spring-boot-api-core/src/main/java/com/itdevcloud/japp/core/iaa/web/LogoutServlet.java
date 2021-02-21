@@ -99,22 +99,24 @@ public class LogoutServlet extends javax.servlet.http.HttpServlet {
 		String provider = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER);
 		if (provider == null || provider.trim().equals("")) {
 			// default
-			provider = AppConstant.AUTH_PROVIDER_AAD_OPENID;
+			provider = AppConstant.IDENTITY_PROVIDER_AAD_OIDC;
 		} else {
 			provider = provider.trim();
 		}
 		String jappPostSignOutUri = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_POST_SIGNOUT_PAGE);
-		if (AppConstant.AUTH_PROVIDER_AAD_OPENID.equals(provider)) {
+		if (AppConstant.IDENTITY_PROVIDER_AAD_OIDC.equals(provider)) {
 			jappPostSignOutUri = jappPostSignOutUri.replace("/#/", "/%23/");
 			String url = AppComponents.aadJwksCache.getAadAuthLogoutUri();
 			if(!StringUtil.isEmptyOrNull(jappPostSignOutUri)){
 				url = url + "?post_logout_redirect_uri=" + jappPostSignOutUri;
 			}
 			return url;
-		} else if (AppConstant.AUTH_PROVIDER_GENERAL_OAUTH2.equals(provider)) {
-			// SDC STS URL
-			return jappPostSignOutUri;
-		} else {
+		} 
+//		else if (AppConstant.AUTH_PROVIDER_GENERAL_OAUTH2.equals(provider)) {
+//			// SDC STS URL
+//			return jappPostSignOutUri;
+//		} 
+		else {
 			return jappPostSignOutUri;
 		}
 

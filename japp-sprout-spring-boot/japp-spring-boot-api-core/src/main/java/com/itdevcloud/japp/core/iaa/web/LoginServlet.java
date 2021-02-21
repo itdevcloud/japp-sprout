@@ -99,12 +99,12 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 		String provider = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER);
 		if (provider == null || provider.trim().equals("")) {
 			// default
-			provider = AppConstant.AUTH_PROVIDER_AAD_OPENID;
+			provider = AppConstant.IDENTITY_PROVIDER_AAD_OIDC;
 		} else {
 			provider = provider.trim();
 		}
 		UUID uuid = UUID.randomUUID();
-		if (AppConstant.AUTH_PROVIDER_AAD_OPENID.equals(provider)) {
+		if (AppConstant.IDENTITY_PROVIDER_AAD_OIDC.equals(provider)) {
 			//String bitsUserEmail = getCookieValue(request, "BITS_USER_EMAIL");
 			String jappUserEmail = request.getParameter("JAPPCORE_USER_EMAIL");
 			String clientId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.AAD_CLIENT_ID);
@@ -119,19 +119,19 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 			}
 			return url;
 		} 
-		else if (AppConstant.AUTH_PROVIDER_GENERAL_OAUTH2.equals(provider)) {
-			String server = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.OAUTH2_AUTHROIZATION_URL);
-			String clientid = "?client_id=" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.OAUTH2_CLIENT_ID);
-			String redirecturi = "&redirect_uri=" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.OAUTH2_REDIRECT_URI);
-			String resource = "&resource=" +  ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.OAUTH2_RESOURCE);
-			return server + clientid + redirecturi + resource;
-		} 
-		else if (AppConstant.AUTH_PROVIDER_JAPPCORE_BASIC_AUTH.equals(provider)) {
+//		else if (AppConstant.AUTH_PROVIDER_GENERAL_OAUTH2.equals(provider)) {
+//			String server = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.OAUTH2_AUTHROIZATION_URL);
+//			String clientid = "?client_id=" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.OAUTH2_CLIENT_ID);
+//			String redirecturi = "&redirect_uri=" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.OAUTH2_REDIRECT_URI);
+//			String resource = "&resource=" +  ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.OAUTH2_RESOURCE);
+//			return server + clientid + redirecturi + resource;
+//		} 
+		else if (AppConstant.IDENTITY_PROVIDER_APP_LOCAL_BASIC.equals(provider)) {
 			// SK-BASIC AUTH URL
 			String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_BASIC_AUTHROIZATION_URL);			
 			return url;
 		}
-		else if (AppConstant.AUTH_PROVIDER_JAPPCORE_DYNAMIC.equals(provider)) {
+		else if (AppConstant.IDENTITY_PROVIDER_APP_LOCAL_DYNAMIC.equals(provider)) {
 			// JAPP-DYNAMIC URL
 			String server = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_DYNAMIC_AUTHROIZATION_URL);
 			String appid = "?appId=" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);

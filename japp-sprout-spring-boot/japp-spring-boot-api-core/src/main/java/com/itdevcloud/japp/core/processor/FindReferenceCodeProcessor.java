@@ -48,21 +48,13 @@ public class FindReferenceCodeProcessor extends RequestProcessor {
 	private static final Logger logger = LogManager.getLogger(FindReferenceCodeProcessor.class);
 
 	@Override
-	public BaseResponse processRequest(BaseRequest request) {
+	protected BaseResponse processRequest(BaseRequest request) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
 				+ txnCtx.getTransactionId() + ">...... ");
 
 		FindReferenceCodeResponse response = new FindReferenceCodeResponse();
 		List<ReferenceCode> codeList = new ArrayList<ReferenceCode>();
-
-		if (request == null ) {
-			codeList = AppComponents.referenceCodeService.getReferenceCodeListByEntityType(null);
-			response.setReferenceCodeList(codeList);
-			response.setResponseStatus(
-					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
-			return response;
-		}
 
 		FindReferenceCodeRequest req = (FindReferenceCodeRequest) request;
 		if (req.getId() == null && req.getParentId() == null &&

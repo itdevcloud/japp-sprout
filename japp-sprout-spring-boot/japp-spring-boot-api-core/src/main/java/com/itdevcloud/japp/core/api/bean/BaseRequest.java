@@ -34,7 +34,8 @@ public class BaseRequest implements Serializable, AppFactoryComponentI {
 	private static final long serialVersionUID = 1L;
 
 	private String command = AppUtil.getCorrespondingCommand(this);
-
+	private String clientTxId;
+	
 	public String getCommand() {
 		if(StringUtil.isEmptyOrNull(this.command )) {
 			this.command = AppUtil.getCorrespondingCommand(this);
@@ -47,6 +48,14 @@ public class BaseRequest implements Serializable, AppFactoryComponentI {
 			command = AppUtil.getCorrespondingCommand(this);
 		}
 		this.command = command;
+	}
+
+	public String getClientTxId() {
+		return clientTxId;
+	}
+
+	public void setClientTxId(String clientTxId) {
+		this.clientTxId = clientTxId;
 	}
 
 

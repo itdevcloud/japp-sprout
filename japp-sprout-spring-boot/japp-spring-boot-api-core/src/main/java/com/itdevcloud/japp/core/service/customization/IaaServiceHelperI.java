@@ -19,8 +19,6 @@ package com.itdevcloud.japp.core.service.customization;
 import java.util.List;
 import java.util.Map;
 
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
-import com.itdevcloud.japp.core.iaa.service.UserAppSpMap;
 /**
  *
  * @author Marvin Sun
@@ -28,24 +26,25 @@ import com.itdevcloud.japp.core.iaa.service.UserAppSpMap;
  */
 public interface IaaServiceHelperI extends CustomizableComponentI {
 
-	public Map<String, Object> getJappTokenClaims(IaaUser iaaUser);
+	//public Map<String, Object> getTokenClaims(IaaUserI iaaUser);
 	
-	public IaaUser getIaaUserFromRepositoryByUserId(String userId);
+	public IaaUserI getIaaUserFromRepositoryBySystemUid(String uid);
 	
-	public IaaUser getIaaUserFromRepositoryByLoginId(String loginId, String... args);
+	public IaaUserI getIaaUserFromRepositoryByLoginId(String loginId, String... args);
 	
-	public String getIaaUserIdByLoginId(String loginId, String... args);
-	
-	public List<UserAppSpMap> getAuthenticationSpType(String loginId, String... args);
-	
+	//public IaaUserI getIaaUserFromToken(String jwt);
+
 	public List<String> getUpdatedIaaUsers(long lastCheckTimestamp);
 
-	public String getAndSend2ndfactorValue(IaaUser iIaaUser, String SecondFactorType);
+	//public String getAndSend2factorValue(IaaUserI iIaaUser, String SecondFactorType);
 
-	public String getHashed2ndFactorValueFromRepositoryByUserId(String userId);
-
+	//public String getHashed2FactorVerificationCodeFromRepositoryByUid(String uid);
+	
 	public boolean isAccessAllowed(String userId, String targetNodeId, String targetRoles);
 	
-	public IaaUser getDummyIaaUserByUserId(String userId);
+	public IaaUserI getDummyIaaUserByLoginId(String loginId, String... args);
+	
+	//public boolean validateJwtToken(String token);
+
 
 }

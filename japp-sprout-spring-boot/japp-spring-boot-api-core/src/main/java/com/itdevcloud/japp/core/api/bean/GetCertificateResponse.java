@@ -15,27 +15,32 @@
  *
  */
 package com.itdevcloud.japp.core.api.bean;
-
-import org.springframework.stereotype.Component;
 /**
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
 
+import org.springframework.stereotype.Component;
+
 @Component
-public class GetIaaProfileRequest extends BaseRequest {
+public class GetCertificateResponse extends BaseResponse {
 
-	private static final long serialVersionUID = 1L;
 
-	private String userId = null;
 
-	public String getUserId() {
-		return userId;
+	private String certificate;
+	private String type;
+	public String getCertificate() {
+		return certificate;
 	}
-
-	public void setUserId(String userId) {
-		this.userId = userId;
+	public void setCertificate(String certificate) {
+		this.certificate = certificate;
+	}
+	public String getType() {
+		return type;
+	}
+	public void setType(String type) {
+		this.type = type;
 	}
 
 

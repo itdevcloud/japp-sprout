@@ -16,7 +16,19 @@
  */
 package com.itdevcloud.japp.se.common.util;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateFactory;
 import java.security.spec.KeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -172,6 +184,134 @@ public class SecurityUtil {
 		} 
     }
 
+
+	/**
+	 * parse a String to a X.509 Certificate object.
+	 * 
+	 */
+	public static Certificate getCertificateFromString(String certStr) {
+		if (StringUtil.isEmptyOrNull(certStr)) {
+			return null;
+		}
+		ByteArrayInputStream in = null;
+		BufferedInputStream bis = null;
+		try {
+			if(certStr.indexOf("-----BEGIN CERTIFICATE-----") < 0 ) {
+				//change to pem string
+				certStr = "-----BEGIN CERTIFICATE-----" + System.lineSeparator() + certStr + System.lineSeparator() + "-----END CERTIFICATE-----";
+			}
+			// logger.debug(".........certStr=" + certStr);
+			in = new ByteArrayInputStream(certStr.getBytes(StandardCharsets.UTF_8));
+			bis = new BufferedInputStream(in);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+
+			while (bis.available() <= 0) {
+				// logger.debug(".........certStr=" + certStr);
+				String err = "Can't Parse certificate: ...Stop....!!!!!!!!!!!!!!";
+				System.out.println(err);
+				throw new RuntimeException(err);
+			}
+			Certificate cert = cf.generateCertificate(bis);
+			bis.close();
+			bis = null;
+			in.close();
+			in = null;
+			return cert;
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println(e);
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			} else {
+				throw new RuntimeException(e);
+			}
+
+		} finally {
+			if (bis != null) {
+				try {
+					bis.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public static String getCertificatePemString(Certificate certificate) {
+		if (certificate == null) {
+			return null;
+		}
+		byte[] bytes;
+		try {
+			bytes = certificate.getEncoded();
+			String encodedKey = null;
+			if (bytes != null) {
+				encodedKey = new String(Base64.getEncoder().encodeToString(bytes));
+				encodedKey = "-----BEGIN CERTIFICATE-----" + System.lineSeparator() + encodedKey
+						+ System.lineSeparator() + "-----END CERTIFICATE-----";
+			}
+			return encodedKey;
+		} catch (CertificateEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+
+	public static String getPublicKeyPemString(PublicKey key) {
+		if (key == null) {
+			return null;
+		}
+		byte[] bytes = key.getEncoded();
+		String encodedKey = null;
+		if (bytes != null) {
+			encodedKey = new String(Base64.getEncoder().encodeToString(bytes));
+			encodedKey = "-----BEGIN PUBLIC KEY-----" + System.lineSeparator() + encodedKey + System.lineSeparator()
+					+ "-----END PUBLIC KEY-----";
+		}
+		return encodedKey;
+
+	}
+
+	/**
+	 * parse a String to a X.509 PublicKey object.
+	 * 
+	 */
+	public static PublicKey getPublicKeyeFromString(String keyStr, String algorithm) {
+		if (StringUtil.isEmptyOrNull(keyStr)) {
+			return null;
+		}
+		try {
+			keyStr = keyStr.replace("-----BEGIN PUBLIC KEY-----", "");
+			keyStr = keyStr.replace("-----END PUBLIC KEY-----", "");
+			byte[] decodedStr = Base64.getDecoder().decode(keyStr);
+			X509EncodedKeySpec spec = new X509EncodedKeySpec(decodedStr);
+			KeyFactory kf = KeyFactory.getInstance(algorithm);
+			if (kf != null) {
+				return kf.generatePublic(spec);
+			} else {
+				return null;
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static PublicKey getPublicKeyFromCertificate(Certificate certificate) {
+		if (certificate == null) {
+			return null;
+		}
+		return certificate.getPublicKey();
+	}
 
 	
 

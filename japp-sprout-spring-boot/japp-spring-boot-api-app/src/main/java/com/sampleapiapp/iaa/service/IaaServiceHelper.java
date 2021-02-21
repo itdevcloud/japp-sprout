@@ -21,9 +21,9 @@ import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
-import com.itdevcloud.japp.core.iaa.service.UserAppSpMap;
+import com.itdevcloud.japp.core.iaa.service.DefaultIaaServiceHelper;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -31,7 +31,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
 @Component
-public class IaaServiceHelper implements IaaServiceHelperI{
+public class IaaServiceHelper extends DefaultIaaServiceHelper {
 
 	private static final Logger logger = LogManager.getLogger(IaaServiceHelper.class);
 
@@ -45,23 +45,13 @@ public class IaaServiceHelper implements IaaServiceHelperI{
 	private void init() {
 	}
 	
-	@Override
-	public String getIaaUserIdByLoginId(String loginId, String... authSpType) {
-		//default login Id = user Id
-		if(StringUtil.isEmptyOrNull(loginId) || authSpType == null) {
-			logger.error("getIaaUserIdByLoginId() loginId and/or loginProvider is null / empty, check code!");
-			return null;
-		}
-		return loginId;
-	}
 	
-	@Override
-	public IaaUser getIaaUserFromRepositoryByUserId(String userId) {
+	public IaaUserI getIaaUserFromRepositoryByUserId(String loginId) {
 		logger.info("getIaaUserFromRepository() begins ...");
 		long start = System.currentTimeMillis();
 
 
-			IaaUser iaaUser = null;
+			IaaUserI iaaUser = null;
 //
 //			try {
 //
@@ -102,10 +92,10 @@ public class IaaServiceHelper implements IaaServiceHelperI{
 //			}
 
 
-		iaaUser = getDummyIaaUserByUserId(userId);
+		iaaUser = getDummyIaaUserByLoginId(loginId);
 
 		long end = System.currentTimeMillis();
-		logger.info("getIaaUserFromRepository() end........ took " + (end - start) + " ms. " + userId);
+		logger.info("getIaaUserFromRepository() end........ took " + (end - start) + " ms. " + loginId);
 		return iaaUser;
 	}
 
@@ -119,105 +109,36 @@ public class IaaServiceHelper implements IaaServiceHelperI{
 		return idList;
 	}
 
-	@Override
-	public String getAndSend2ndfactorValue(IaaUser iaaUser, String secondFactorType) {
-		// TODO Auto-generated method stub
-		if (AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE.equalsIgnoreCase(secondFactorType)) {
-			String email = (iaaUser == null ? null : iaaUser.getEmail());
-			if (StringUtil.isEmptyOrNull(email)) {
-				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
-						"can't get email address to send the verification code!");
-			}
-			String subject = "verification code from JAPP";
-			int length = 6;
-			boolean useLetters = false;
-			boolean useNumbers = true;
-			String content = RandomStringUtils.random(length, useLetters, useNumbers);
-			String toAddresses = email;
-			try {
-				AppComponents.emailService.sendEmail(subject, content, toAddresses);
-				return content;
-			} catch (Exception e) {
-				logger.error(AppUtil.getStackTrace(e));
-				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR, "can't send the verification code!", e);
-			}
-		}else if (AppConstant.IAA_2NDFACTOR_TYPE_TOTP.equalsIgnoreCase(secondFactorType)) {
-			return null;
-		}else {
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR, " 2 factor auth type is not supported! secondFactorType = " + secondFactorType);
-		}
-	}
+//	@Override
+//	public String getAndSend2factorValue(IaaUserI iaaUser, String secondFactorType) {
+//		// TODO Auto-generated method stub
+//		if (AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE.equalsIgnoreCase(secondFactorType)) {
+//			String email = (iaaUser == null ? null : iaaUser.getEmail());
+//			if (StringUtil.isEmptyOrNull(email)) {
+//				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
+//						"can't get email address to send the verification code!");
+//			}
+//			String subject = "verification code from JAPP";
+//			int length = 6;
+//			boolean useLetters = false;
+//			boolean useNumbers = true;
+//			String content = RandomStringUtils.random(length, useLetters, useNumbers);
+//			String toAddresses = email;
+//			try {
+//				AppComponents.emailService.sendEmail(subject, content, toAddresses);
+//				return content;
+//			} catch (Exception e) {
+//				logger.error(CommonUtil.getStackTrace(e));
+//				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR, "can't send the verification code!", e);
+//			}
+//		}else if (AppConstant.IAA_2NDFACTOR_TYPE_TOTP.equalsIgnoreCase(secondFactorType)) {
+//			return null;
+//		}else {
+//			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR, " 2 factor auth type is not supported! secondFactorType = " + secondFactorType);
+//		}
+//	}
 
-	@Override
-	public IaaUser getDummyIaaUserByUserId(String userId) {
-		IaaUser iaaUser = new IaaUser();
-		if (StringUtil.isEmptyOrNull(userId)) {
-			iaaUser.setUserId("userId-1");
-			iaaUser.setCurrentLoginId("loginId-1");
-		} else {
-			iaaUser.setUserId(userId);
-			iaaUser.setCurrentLoginId(userId);
-		}
-		iaaUser.setCurrentHashedPassword(Hasher.hashPassword("12345"));
-		iaaUser.setFirstName("FN-1");
-		iaaUser.setLastName("LN-1");
-		iaaUser.setEmail("email-1@dummy.ca");
-		//Base32.random();
-		iaaUser.setTotpSecret("E47CWVVTI7BAXDD3");
-		iaaUser.setPhone(null);
-		iaaUser.setCidrWhiteList(null);
-		iaaUser.setBusinessRoles(null);
-		iaaUser.setApplicationRoles(null);
-		return iaaUser;
-	}
 
-	@Override
-	public String getHashed2ndFactorValueFromRepositoryByUserId(String userId) {
-		// return null means use hashed value in token
-		return null;
-	}
-
-	@Override
-	public Map<String, Object> getJappTokenClaims(IaaUser iaaUser) {
-		if (iaaUser == null) {
-			return null;
-		}
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("loginId", iaaUser.getCurrentLoginId());
-		claims.put("userId", iaaUser.getUserId());
-		claims.put("email", iaaUser.getEmail());
-		claims.put("firstName", iaaUser.getFirstName());
-		claims.put("lastName", iaaUser.getLastName());
-		claims.put("busRole", iaaUser.getBusinessRoles());
-		claims.put("appRole", iaaUser.getApplicationRoles());
-		return claims;
-	}
-
-	@Override
-	public List<UserAppSpMap> getAuthenticationSpType(String loginId, String... appId) {
-		List<UserAppSpMap> mapList= new ArrayList<UserAppSpMap>();
-		
-		String spType = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER);
-		if(!StringUtil.isEmptyOrNull(spType)) {
-			UserAppSpMap map = new UserAppSpMap();
-			map.setAppId(appId[0]);
-			map.setLoginId(loginId);
-			map.setSpType(spType);
-			mapList.add(map);
-		}
-		return mapList;
-	}
-
-	@Override
-	public IaaUser getIaaUserFromRepositoryByLoginId(String loginId, String... loginSpType) {
-		return getIaaUserFromRepositoryByUserId(loginId);
-	}
-
-	@Override
-	public boolean isAccessAllowed(String userId, String targetNodeId, String targetRoles) {
-		// TODO Auto-generated method stub
-		return true;
-	}
 
 	@Override
 	public Class<?> getInterfaceClass() {

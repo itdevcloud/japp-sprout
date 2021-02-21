@@ -27,8 +27,8 @@ public class ServerInstanceInfo {
 
 	private String activeProfileName;
 	private String applicationId;
-	private String localHostName;
-	private String localIP;
+	//private String localHostName;
+	//private String localIP;
 	private Date startupDate;
 
 	public String getActiveProfileName() {
@@ -43,18 +43,18 @@ public class ServerInstanceInfo {
 	public void setApplicationId(String applicationId) {
 		this.applicationId = applicationId;
 	}
-	public String getLocalHostName() {
-		return localHostName;
-	}
-	public void setLocalHostName(String localHostName) {
-		this.localHostName = localHostName;
-	}
-	public String getLocalIP() {
-		return localIP;
-	}
-	public void setLocalIP(String localIP) {
-		this.localIP = localIP;
-	}
+//	public String getLocalHostName() {
+//		return localHostName;
+//	}
+//	public void setLocalHostName(String localHostName) {
+//		this.localHostName = localHostName;
+//	}
+//	public String getLocalIP() {
+//		return localIP;
+//	}
+//	public void setLocalIP(String localIP) {
+//		this.localIP = localIP;
+//	}
 	public Date getStartupDate() {
 		return startupDate;
 	}
@@ -64,7 +64,7 @@ public class ServerInstanceInfo {
 	@Override
 	public String toString() {
 		return "ServerInstanceInfo [activeProfileName=" + activeProfileName + ", applicationId=" + applicationId
-				+ ", localHostName=" + localHostName + ", localIP=" + localIP + ", startupDateTime=" + startupDate
+				+ ", startupDateTime=" + startupDate
 				+ "]";
 	}
 

@@ -18,6 +18,9 @@ package com.itdevcloud.japp.core.iaa.service;
 
 import java.io.Serializable;
 
+import com.itdevcloud.japp.core.common.AppConstant;
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  *
  * @author Marvin Sun
@@ -26,16 +29,21 @@ import java.io.Serializable;
 public class SecondFactorInfo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	//private String status;
 	private String type;
 	private String value;
-	private int retryCount;
-	private boolean verified;
+	private int retryCount = 0;
+	private boolean verified = false;
 
 	public String getType() {
+		if(StringUtil.isEmptyOrNull(type)) {
+			type = AppConstant.IAA_2NDFACTOR_TYPE_NONE;
+		}
 		return type;
 	}
 	public void setType(String type) {
+		if(StringUtil.isEmptyOrNull(type)) {
+			type = AppConstant.IAA_2NDFACTOR_TYPE_NONE;
+		}
 		this.type = type;
 	}
 	public String getValue() {
@@ -45,9 +53,15 @@ public class SecondFactorInfo implements Serializable {
 		this.value = value;
 	}
 	public int getRetryCount() {
+		if(retryCount < 0) {
+			retryCount = 0;
+		}
 		return retryCount;
 	}
 	public void setRetryCount(int retryCount) {
+		if(retryCount < 0) {
+			retryCount = 0;
+		}
 		this.retryCount = retryCount;
 	}
 	public boolean isVerified() {

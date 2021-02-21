@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 
 
 /**
@@ -28,8 +28,8 @@ public class ReQueueRejectedExecutionHandler implements RejectedExecutionHandler
 			try {
 				executor.getQueue().put(r);
 			} catch (Throwable t) {
-				logger.error(AppUtil.getStackTrace(t));
-				throw AppUtil.throwRuntimeException(t);
+				logger.error(CommonUtil.getStackTrace(t));
+				CommonUtil.throwRuntimeException(t);
 			}
 		}
 	}

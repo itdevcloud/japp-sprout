@@ -42,26 +42,30 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 	private static final Logger logger = LogManager.getLogger(RequestProcessor.class);
 
 
-	public abstract BaseResponse processRequest(BaseRequest request);
+	protected abstract BaseResponse processRequest(BaseRequest request);
 
-	public BaseResponse process(BaseRequest request) {
+	public <T extends BaseResponse> T process(BaseRequest request, Class<T> responseClass) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
-		BaseResponse response = null;
+		T response = null;
 		try {
 			logger.info("RequestProcessor before process request,  TransactionContext = " + txnCtx + "......");
-			response = processRequest(request);
+			if (request == null) {
+				response = AppUtil.createResponse(responseClass, "N/A",
+						ResponseStatus.STATUS_CODE_ERROR_VALIDATION, " request parameter is null!");
+				return response;
+			}
+			response = (T) processRequest(request);
 			if(response == null) {
 				String simpleName = this.getClass().getSimpleName();
-				BaseResponse commandResponse = AppUtil
-						.createBaseResponse(request.getCommand(), ResponseStatus.STATUS_CODE_NA, simpleName + " returns null response object");
+				T commandResponse = AppUtil
+						.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_NA, simpleName + " returns null response object");
 				response = commandResponse;
 			}
-
 		} catch (Throwable t) {
 			t.printStackTrace();
 			logger.error(t.getMessage(), t);
-			BaseResponse commandResponse = AppUtil
-					.createBaseResponse(request.getCommand(), ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, t.getMessage());
+			T commandResponse = AppUtil
+					.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, t.getMessage());
 			response = commandResponse;
 		}
 		return response;

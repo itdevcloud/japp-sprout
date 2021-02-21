@@ -13,9 +13,9 @@ import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.iaa.service.IaaService;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
 import com.itdevcloud.japp.core.iaa.service.JwtService;
 import com.itdevcloud.japp.core.processor.RequestProcessor;
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.sampleapiapp.api.bean.AppRequest;
@@ -72,9 +72,9 @@ public class LoginProcessor extends RequestProcessor {
 		// ====== business logic starts ======
 		String username = request.getUsername();
 		String password = request.getPassword();
-		IaaUser iaaUser = null;
+		IaaUserI iaaUser = null;
 		try {
-			iaaUser = iaaService.loginByLoginIdPassword(username, password);
+			iaaUser = iaaService.login(username, password, null);
 			if (iaaUser == null) {
 				logger.error(
 						"Authentication Failed. Can not retrive user by loginId '" + username + "' and/or password.....");
@@ -92,11 +92,11 @@ public class LoginProcessor extends RequestProcessor {
 		}
 
 		// issue new JWT token;
-		String token = jwtService.issueJappToken(iaaUser);
+		String token = jwtService.issueAccessToken(iaaUser);
 		if (StringUtil.isEmptyOrNull(token)) {
-			logger.error("JWT Token can not be created for login Id '" + iaaUser.getCurrentLoginId() + "', username = "
+			logger.error("JWT Token can not be created for login Id '" + iaaUser.getLoginId() + "', username = "
 					+ username);
-			responseStatus = new ResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "JWT Token can not be created for login Id '" + iaaUser.getCurrentLoginId() + "', username = "
+			responseStatus = new ResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "JWT Token can not be created for login Id '" + iaaUser.getLoginId() + "', username = "
 					+ username);
 			response.setHeader(responseHeader);
 			response.setResponseStatus(responseStatus);

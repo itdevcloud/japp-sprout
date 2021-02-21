@@ -115,7 +115,7 @@ public class RecursiveDeepCopier {
 		//out.println("------*********** copy starts.... " + srcObj.getClass());
 		try {
 			Method[] allMethods = srcObj.getClass().getMethods();
-			targetObj = (T) srcObj.getClass().newInstance();
+			targetObj = (T) srcObj.getClass().getDeclaredConstructor().newInstance();
 			for (Method method : allMethods) {
 				String methodName = method.getName();
 				if (methodName.startsWith("get") && method.getParameterCount() == 0

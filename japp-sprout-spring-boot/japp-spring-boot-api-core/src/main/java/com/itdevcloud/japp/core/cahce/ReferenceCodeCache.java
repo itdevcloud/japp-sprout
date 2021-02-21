@@ -35,6 +35,7 @@ import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.ReferenceCodeServiceHelperI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -99,7 +100,7 @@ public class ReferenceCodeCache extends RefreshableCache{
 
 			}
 		} catch (Exception e) {
-			String errStr = AppUtil.getStackTrace(e);
+			String errStr = CommonUtil.getStackTrace(e);
 			logger.error(errStr);
 			AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_REFERENCE_CODE_CACHE, errStr);
 		} finally {
@@ -161,7 +162,7 @@ public class ReferenceCodeCache extends RefreshableCache{
 	public ReferenceCode getReferenceCodeByCode(String type, String code) {
 		waitForInit();
 		logger.info("Type=" + type + " Code=" + code);
-		if (StringUtils.isEmpty(type) || referenceCodeMap == null || StringUtils.isEmpty(code)) {
+		if (StringUtil.isEmptyOrNull(type) || referenceCodeMap == null || StringUtil.isEmptyOrNull(code)) {
 			return null;
 		}
 		List<ReferenceCode> codeList = referenceCodeMap.get(type);

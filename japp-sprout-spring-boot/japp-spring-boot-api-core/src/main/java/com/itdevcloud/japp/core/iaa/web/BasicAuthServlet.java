@@ -27,9 +27,9 @@ import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
-import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -52,13 +52,14 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 			// App CIDR white list check begin
 			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
 				logger.error(
-						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = " + AppUtil.getClientIp(httpRequest) + ".....");
+						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = "
+								+ AppUtil.getClientIp(httpRequest) + ".....");
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 						"Authorization Failed. code E209");
 				return;
 			}
 
-			IaaUser iaaUser = null;
+			IaaUserI iaaUser = null;
 
 			String[] basicInfo = AppUtil.parseHttpBasicAuthString(httpRequest);
 			if (basicInfo == null || basicInfo.length != 2) {
@@ -69,27 +70,23 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 						"Authentication Failed. code E101");
 				return;
 			}
-			String id = basicInfo[0];
+			String loginId = basicInfo[0];
 			String pwd = basicInfo[1];
 
-		
-			String userId = null;
 			try {
-				iaaUser = AppComponents.iaaService.loginByLoginIdPassword(id, pwd);
+				iaaUser = AppComponents.iaaService.getIaaUserFromRepositoryByLoginId(loginId, pwd);
 				if (iaaUser == null) {
-					logger.error("Authentication Failed. code E102 - Can not retrive user by loginId '" + id
+					logger.error("Authentication Failed. code E102 - Can not retrive user by loginId '" + loginId
 							+ "' and password.....");
 					httpResponse.setStatus(401);
 					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 							"Authentication Failed. code E102");
 					return;
 				}
-				userId = iaaUser.getUserId();
-				AppThreadContext.setUserId(userId);
 
 			} catch (AppException e) {
 				logger.error("Authentication Failed. code E103 - " + e);
-				logger.error(AppUtil.getStackTrace(e));
+				logger.error(CommonUtil.getStackTrace(e));
 				httpResponse.setStatus(401);
 				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 						"Authentication Failed. code E103");
@@ -97,36 +94,35 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			// handle maintenance mode
-			if (AppComponents.commonService.inMaintenanceMode(httpResponse, userId)) {
+			if (AppComponents.commonService.inMaintenanceMode(httpResponse, loginId)) {
 				return;
 			}
 
-			
 			// issue new JAPP JWT token;
-			String token = AppComponents.jwtService.issueJappToken(iaaUser);
+			String token = AppComponents.jwtService.issueAccessToken(iaaUser);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error(
 						"BasicAuthServlet.doPost() - Authentication Failed. code E104. JAPP Token can not be created for login Id '"
-								+ iaaUser.getCurrentLoginId() + "', userId = " + userId);
+								+ loginId);
 				httpResponse.setStatus(403);
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 						"Authentication Failed. code E104");
 				return;
 			}
-			
-				httpResponse.addHeader("Japp-Token", token);
-				
-				httpResponse.addHeader("Content-Security-Policy", "default-src 'self';");
-				httpResponse.addHeader("X-XSS-Protection", "1; mode=block");
-				httpResponse.setStatus(200);			
-				AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_SUCCESS, "succeed");
-				return;
-				
+
+			httpResponse.addHeader("Token", token);
+
+			httpResponse.addHeader("Content-Security-Policy", "default-src 'self';");
+			httpResponse.addHeader("X-XSS-Protection", "1; mode=block");
+			httpResponse.addHeader("Access-Control-Expose-Headers", "Token,MaintenanceMode");
+			httpResponse.setStatus(200);
+			AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_SUCCESS, "succeed");
+			return;
+
 		} finally {
 			AppUtil.clearTransactionContext();
 		}
 
 	}
-	
 
 }

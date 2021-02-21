@@ -49,7 +49,7 @@ public class RadomUtil {
 		for (int i = 0;  i < radomLength;  i++) {
 			randomChars[i] = supportedChars[random.nextInt(supportedChars.length)];
 		}
-		String sdate = DateUtils.dateToString(new Date(), "yyMMddHHmmssSSS");
+		String sdate = DateUtil.dateToString(new Date(), "yyMMddHHmmssSSS");
 
 		String str = sdate.substring(0, 2);
 		//repeat every 35 years

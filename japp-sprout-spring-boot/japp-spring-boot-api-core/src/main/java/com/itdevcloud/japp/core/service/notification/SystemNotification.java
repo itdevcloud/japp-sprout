@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -58,7 +59,7 @@ public class SystemNotification implements Serializable{
 		} catch (Exception e) {
 			this.notifyDateTime = null;
 			logger.error("notifyDateTimeStr must use 'yyyy-MM-dd HH:mm' format, can't parse notifyDateTimeStr, use null value!");
-			logger.error(AppUtil.getStackTrace(e));
+			logger.error(CommonUtil.getStackTrace(e));
 		}
 	}
 
@@ -94,7 +95,7 @@ public class SystemNotification implements Serializable{
 		} catch (Exception e) {
 			this.notifyDateTime = null;
 			logger.error("notifyDateTimeStr must use 'yyyy-MM-dd HH:mm' format, can't parse notifyDateTimeStr, use null value!");
-			logger.error(AppUtil.getStackTrace(e));
+			logger.error(CommonUtil.getStackTrace(e));
 		}
 	}
 	public void setNotifyDateTime(Date notifyDateTime) {

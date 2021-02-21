@@ -36,6 +36,7 @@ public class BaseResponse implements Serializable, AppFactoryComponentI {
 
 	private ResponseStatus responseStatus = null;
 	private String command;
+	private String clientTxId;
 	private String serverTxId;
 
 	public BaseResponse() {
@@ -75,6 +76,14 @@ public class BaseResponse implements Serializable, AppFactoryComponentI {
 
 	public void setServerTxId(String serverTxId) {
 		this.serverTxId = serverTxId;
+	}
+
+	public String getClientTxId() {
+		return clientTxId;
+	}
+
+	public void setClientTxId(String clientTxId) {
+		this.clientTxId = clientTxId;
 	}
 
 }

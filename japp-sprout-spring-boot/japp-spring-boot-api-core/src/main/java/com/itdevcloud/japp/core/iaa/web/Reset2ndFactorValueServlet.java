@@ -15,18 +15,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
-import com.itdevcloud.japp.core.cahce.PkiKeyCache;
-import com.itdevcloud.japp.core.common.CommonService;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppException;
-import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
-import com.itdevcloud.japp.core.iaa.service.IaaService;
-import com.itdevcloud.japp.core.iaa.service.JwtService;
-import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  *
@@ -73,23 +68,23 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 				return;
 
 			}
-			if (!AppComponents.jwtService.isValidToken(token, AppComponents.pkiKeyCache.getJappPublicKey(), null)) {
+			if (!AppComponents.jwtService.isValidToken(token, AppComponents.pkiKeyCache.getAppPublicKey(), null)) {
 				// jwt token is not valid, return 401
 				logger.error("Authentication Failed. code E805 - token is not validated, throw 401 error====");
 				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 						"Authentication Failed. code E805");
 				return;
 			}
-			//subject must be userId, not loginId!!!
-			String userId = AppUtil.getSubjectFromJwt(token);
+			//subject must be uid, not loginId!!!
+			String uid = AppUtil.getSubjectFromJwt(token);
 
-			IaaUser iaaUser = null;
+			IaaUserI iaaUser = null;
 			try{
-				iaaUser = AppComponents.iaaService.getIaaUserByUserId(userId);
+				iaaUser = AppComponents.iaaService.getIaaUserBySystemUid(uid);
 			}catch(AppException e){
 				logger.error(
-						"Reset2ndFactorValueServlet.doPost() - Authentication Failed. code E306. can't retrieve iaa user - userId =" + userId + " - \n"
-								+ AppUtil.getStackTrace(e));
+						"Reset2ndFactorValueServlet.doPost() - Authentication Failed. code E306. can't retrieve iaa user - uid =" + uid + " - \n"
+								+ CommonUtil.getStackTrace(e));
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 						"Authentication Failed. code E306");
 				return;
@@ -105,11 +100,11 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			// issue new JAPP JWT token;
-			String newToken = AppComponents.jwtService.issueJappToken(iaaUser);
+			String newToken = AppComponents.jwtService.issueAccessToken(iaaUser);
 
 			if (StringUtil.isEmptyOrNull(newToken)) {
 				logger.error(
-						"Reset2ndFactorValueServlet.doPost() - Authentication Failed. code E307. JAPP Token can not be created..for userId =" + userId);
+						"Reset2ndFactorValueServlet.doPost() - Authentication Failed. code E307. JWT Token can not be created..for uid =" + uid);
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 						"Reset2ndFactorValueServlet Failed. code E307");
 				return;

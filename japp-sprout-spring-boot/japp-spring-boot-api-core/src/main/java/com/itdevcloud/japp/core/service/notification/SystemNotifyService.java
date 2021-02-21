@@ -36,6 +36,7 @@ import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -155,7 +156,7 @@ public class SystemNotifyService implements AppFactoryComponentI{
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(AppUtil.getStackTrace(e));
+			logger.error(CommonUtil.getStackTrace(e));
 		}
 		return;
 

@@ -27,10 +27,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -38,9 +35,7 @@ import com.google.gson.JsonParser;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.HttpResponse;
-import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.service.config.AppConfigService;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;

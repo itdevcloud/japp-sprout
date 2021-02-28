@@ -24,11 +24,6 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -36,30 +31,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
-import com.itdevcloud.japp.core.common.AppConstant;
-import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppFactory;
-import com.itdevcloud.japp.core.common.AppThreadContext;
-import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.iaa.token.AppLocalTokenHandler;
-import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
-import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
-import com.itdevcloud.japp.se.common.util.StringUtil;
-
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 /**
  *
@@ -91,7 +74,12 @@ public class JwtService implements AppFactoryComponentI {
 		Key privateKey = AppComponents.pkiService.getAppPrivateKey();
 		return tokenHandler.issueAccessToken(iaaUser, privateKey, -1, null);
 	}
-
+	
+	public boolean isValidToken(String token, Map<String, String> claimMatchMap, String... args ) {
+		TokenHandlerI tokenHandler = getAccessTokenHandler();
+		return tokenHandler.isValidToken(token, claimMatchMap, args );
+	}
+	
 	public boolean isValidTokenByPublicKey(String token, PublicKey publicKey) {
 		logger.debug("isValidTokenByPublicKey.............begin....");
 		if (token == null || publicKey == null) {

@@ -16,30 +16,16 @@
  */
 package com.itdevcloud.japp.core.common;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateFactory;
-import java.security.spec.X509EncodedKeySpec;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,19 +37,15 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
-import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -107,6 +89,7 @@ public class AppUtil {
 	public static Date getStartupDate() {
 		return startupDate;
 	}
+
 
 	public static BaseResponse createBaseResponse(String status, String message) {
 

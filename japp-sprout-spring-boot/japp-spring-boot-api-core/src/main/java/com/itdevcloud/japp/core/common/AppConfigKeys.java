@@ -62,6 +62,8 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_APP_COMMAND_CONTROLLER_ENABLED = "jappcore.app.command.controller.enabled";
 	public static final String JAPPCORE_APP_PKI_CONTROLLER_ENABLED = "jappcore.app.pki.controller.enabled";
 	public static final String JAPPCORE_APP_DEFAULT_CONTROLLER_ENABLED = "jappcore.app.default.controller.enabled";
+	public static final String JAPPCORE_APP_SECURITY_CONTROLLER_ENABLED = "jappcore.app.security.controller.enabled";
+	public static final String JAPPCORE_APP_AUTH_CONTROLLER_ENABLED = "jappcore.app.auth.controller.enabled";
 
 	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_IP_ENABLED = "jappcore.iaa.token.validate.ip.enabled";
 	public static final String JAPPCORE_IAA_2NDFACTOR_TYPE = "jappcore.iaa.2ndfactor.type";

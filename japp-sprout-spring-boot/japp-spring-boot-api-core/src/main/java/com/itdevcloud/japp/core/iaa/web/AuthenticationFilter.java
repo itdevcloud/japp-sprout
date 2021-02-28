@@ -40,7 +40,6 @@ import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.notification.SystemNotification;
 import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
@@ -88,7 +87,10 @@ public class AuthenticationFilter implements Filter {
 
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
-		AppUtil.initTransactionContext(httpRequest);
+		
+		//move to SpecialCharacterFilter
+		//AppUtil.initTransactionContext(httpRequest);
+		
 		try {
 			logger.debug("AuthenticationFilter.doFilter() start ========>");
 

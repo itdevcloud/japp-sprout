@@ -18,6 +18,7 @@ package com.itdevcloud.japp.core.iaa.token;
 
 import java.security.Key;
 import java.security.PublicKey;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +31,6 @@ import org.springframework.stereotype.Component;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.iaa.service.DefaultIaaUser;
-import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
@@ -75,14 +75,14 @@ public class AppLocalTokenHandler implements TokenHandlerI {
 			long nbf = (claims.get(JWT_CLAIM_KEY_NOT_BEFORE) == null? -1: (Long) claims.get(JWT_CLAIM_KEY_NOT_BEFORE));
 			long exp = (claims.get(JWT_CLAIM_KEY_EXPIRE) == null? -1: (Long) claims.get(JWT_CLAIM_KEY_EXPIRE));
 			
-			Date now = new Date();
-			Date expDate = DateUtil.jsonNumericDateToDate(exp);
-			Date nbfDate = DateUtil.jsonNumericDateToDate(nbf);
-			if (exp < -1 || now.after(expDate)) {
+			LocalDateTime now = LocalDateTime.now().withNano(0);
+			LocalDateTime expDateTime = DateUtil.epochSecondToLocalDateTime(exp);
+			LocalDateTime nbfDateTime = DateUtil.epochSecondToLocalDateTime(nbf);
+			if (exp < 0 || now.isAfter(expDateTime)) {
 				logger.error("token exp claim is not valid......");
 				return false;
   		    }
-			if (nbf < -1 || now.before(nbfDate)) {
+			if (nbf < 0 || now.isBefore(nbfDateTime)) {
 				logger.error("token nbf claim is not valid.....");
 				return false;
 		    }

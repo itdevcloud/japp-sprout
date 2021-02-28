@@ -25,10 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.itdevcloud.japp.core.common.AppConfigKeys;
-import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;

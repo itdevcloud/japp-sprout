@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -40,27 +41,58 @@ public class DateUtil {
                 "Exception while obtaining DatatypeFactory instance", dce);
         }
     }  
+    
 	public static String currentDate() {
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat(DDEFAULT_DISPLAY_DATE_FORMAT);
 		return sdf.format(cal.getTime());
 	}
-
-	public static long dataToJsonNumericDate(Date date) {
-		if (date == null) {
-			return 0;
-		}
-		long numericDate = date.getTime()/1000;
-		return numericDate;
-	}
-	//json numericDate is second based RFC 7519
-	public static Date jsonNumericDateToDate(long numericDate) {
-		if (numericDate <= 0) {
+	
+	public static Long LocalDateTimeToEpochSecond(LocalDateTime localDateTime) {
+		if(localDateTime == null) {
 			return null;
 		}
-		Date date = new Date(numericDate*1000);
-		return date;
+		return localDateTime.toEpochSecond(ZoneOffset.UTC);
+		
 	}
+	public static Long LocalDateTimeToEpochMilliSecond(LocalDateTime localDateTime) {
+		if(localDateTime == null) {
+			return null;
+		}
+		Instant instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant();	
+		return instant.toEpochMilli(); 	
+	}
+	
+	public static LocalDateTime epochSecondToLocalDateTime(Long timeInSeconds) {
+		if(timeInSeconds == null) {
+			return null;
+		}
+		return LocalDateTime.ofEpochSecond(timeInSeconds, 0, ZoneOffset.UTC);
+	}	
+	
+	public static LocalDateTime epochMilliSecondToLocalDateTime(Long timeInMilliSeconds) {
+		if(timeInMilliSeconds == null) {
+			return null;
+		}
+		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMilliSeconds), ZoneId.systemDefault()); 
+	}	
+	
+//	public static long dataToJsonNumericDate(Date date) {
+//		if (date == null) {
+//			return 0;
+//		}
+//		long numericDate = date.getTime()/1000;
+//		return numericDate;
+//	}
+//	//json numericDate is second based RFC 7519
+//	public static Date jsonNumericDateToDate(long numericDate) {
+//		if (numericDate <= 0) {
+//			return null;
+//		}
+//		Date date = new Date(numericDate*1000);
+//		return date;
+//	}
+	
 	public static LocalDate convertToLocalDate(Date dateToConvert, ZoneId zoneId) {
 		if(zoneId == null) {
 			zoneId = ZoneId.systemDefault();
@@ -134,6 +166,7 @@ public class DateUtil {
 		if (date == null) {
 			return null;
 		}
+
 		return new SimpleDateFormat(pattern).format(date);
 	}
 

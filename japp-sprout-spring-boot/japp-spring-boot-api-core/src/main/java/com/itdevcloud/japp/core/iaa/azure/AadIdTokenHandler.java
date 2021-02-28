@@ -20,31 +20,22 @@ import java.security.Key;
 import java.security.PublicKey;
 import java.util.Date;
 import java.util.Map;
-import java.util.Set;
-
 import javax.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
-import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
-import com.itdevcloud.japp.core.iaa.service.DefaultIaaUser;
-import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
 import com.itdevcloud.japp.core.common.AppUtil;
-import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
-import com.itdevcloud.japp.se.common.util.CommonUtil;
-import com.itdevcloud.japp.se.common.util.DateUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 
 /**

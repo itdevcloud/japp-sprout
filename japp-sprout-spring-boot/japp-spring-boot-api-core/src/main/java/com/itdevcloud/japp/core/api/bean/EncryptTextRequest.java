@@ -16,35 +16,42 @@
  */
 package com.itdevcloud.japp.core.api.bean;
 /**
-  *
- *
- * @author Marvin Sun
- * @since 1.0.0
- */
+*
+* @author Marvin Sun
+* @since 1.0.0
+*/
 
 import org.springframework.stereotype.Component;
-/**
- * Class Definition
- *
- * @author Marvin Sun
- * @since 1.0.0
- */
+
 
 @Component
-public class EchoRequest extends BaseRequest {
+public class  EncryptTextRequest extends BaseRequest {
 
 	private static final long serialVersionUID = 1L;
 
-	String message;
-
-	public String getMessage() {
-		return message;
+	private String clearText;
+	private String encodedSymmetricKey;
+	private boolean symmetric;
+	
+	public String getClearText() {
+		return clearText;
+	}
+	public void setClearText(String clearText) {
+		this.clearText = clearText;
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
+	public String getEncodedSymmetricKey() {
+		return encodedSymmetricKey;
 	}
-
+	public void setEncodedSymmetricKey(String encodedSymmetricKey) {
+		this.encodedSymmetricKey = encodedSymmetricKey;
+	}
+	public boolean isSymmetric() {
+		return symmetric;
+	}
+	public void setSymmetric(boolean symmetric) {
+		this.symmetric = symmetric;
+	}
 
 
 

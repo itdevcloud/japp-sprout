@@ -17,6 +17,7 @@
 package com.itdevcloud.japp.core.iaa.service;
 
 import java.security.Key;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import javax.annotation.PostConstruct;
@@ -50,8 +51,8 @@ public class PkiService implements AppFactoryComponentI {
 	}
 	
 	
-	public Key getAppPrivateKey() {
-		return AppComponents.pkiKeyCache.getAppPrivateKey();
+	public PrivateKey getAppPrivateKey() {
+		return (PrivateKey) AppComponents.pkiKeyCache.getAppPrivateKey();
 	}
 
 	public PublicKey getAppPublicKey() {

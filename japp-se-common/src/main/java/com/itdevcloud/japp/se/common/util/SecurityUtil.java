@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -35,6 +36,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.itdevcloud.japp.se.common.security.AsymmetricCrypter;
 import com.itdevcloud.japp.se.common.security.Crypter;
 import com.itdevcloud.japp.se.common.security.EncryptedInfo;
 /**
@@ -184,7 +186,74 @@ public class SecurityUtil {
 		} 
     }
 
+	public static String encryptAsym(String clearText, PrivateKey privateKey, PublicKey publicKey) {
+		if (StringUtil.isEmptyOrNull(clearText)) {
+			return null;
+		}
+		if (privateKey == null || publicKey == null) {
+			throw new RuntimeException("publicKey and/or privateKey can not be null, check code!");
+		}		
+		AsymmetricCrypter crypter = new AsymmetricCrypter(null, privateKey, publicKey);
+		return crypter.encryptText(clearText);
+	}
+	
+	public static String decryptAsym(String encryptedText, PrivateKey privateKey, PublicKey publicKey) {
+		if (StringUtil.isEmptyOrNull(encryptedText)) {
+			return null;
+		}
+		if (privateKey == null || publicKey == null) {
+			throw new RuntimeException("publicKey and/or privateKey can not be null, check code!");
+		}		
+		AsymmetricCrypter crypter = new AsymmetricCrypter(null, privateKey, publicKey);
+		return crypter.decryptText(encryptedText);
+	}
 
+	public static String encryptFileAsym(String inputFileName, PrivateKey privateKey, PublicKey publicKey) {
+		if (StringUtil.isEmptyOrNull(inputFileName) ) {
+			return null;
+		}
+		if (privateKey == null || publicKey == null) {
+			throw new RuntimeException("publicKey and/or privateKey can not be null, check code!");
+		}		
+		AsymmetricCrypter crypter = new AsymmetricCrypter(null, privateKey, publicKey);
+		return crypter.encryptFile(inputFileName);
+	}
+	public static void encryptFileAsym(String inputFileName, String outputFileName, PrivateKey privateKey, PublicKey publicKey ) {
+		if (StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
+			throw new RuntimeException("inputFileName and/or outputFileName can not be null, check code!");
+		}
+		if (privateKey == null || publicKey == null) {
+			throw new RuntimeException("publicKey and/or privateKey can not be null, check code!");
+		}		
+		
+		AsymmetricCrypter crypter = new AsymmetricCrypter(null, privateKey, publicKey);
+		crypter.encryptFileNoEncode(inputFileName, outputFileName);
+	}
+	
+	public static String decryptFileAsym(String inputFileName, PrivateKey privateKey, PublicKey publicKey) {
+		if (StringUtil.isEmptyOrNull(inputFileName)) {
+			throw new RuntimeException("iputFileName can not be null, check code!");
+		}
+		if (privateKey == null || publicKey == null) {
+			throw new RuntimeException("publicKey and/or privateKey can not be null, check code!");
+		}		
+		AsymmetricCrypter crypter = new AsymmetricCrypter(null, privateKey, publicKey);
+		return crypter.decryptFileNoEncode(inputFileName);
+	}
+	
+	public static void decryptFile(String inputFileName, String outputFileName, PrivateKey privateKey, PublicKey publicKey) {
+		if (StringUtil.isEmptyOrNull(inputFileName) || StringUtil.isEmptyOrNull(outputFileName)) {
+			throw new RuntimeException("inputFileName and/or outputFileName can not be null, check code!");
+		}
+		if (privateKey == null || publicKey == null) {
+			throw new RuntimeException("publicKey and/or privateKey can not be null, check code!");
+		}		
+		AsymmetricCrypter crypter = new AsymmetricCrypter(null, privateKey, publicKey);
+		crypter.decryptFileNoEncode(inputFileName, outputFileName);
+	}
+    
+
+    
 	/**
 	 * parse a String to a X.509 Certificate object.
 	 * 
@@ -254,8 +323,10 @@ public class SecurityUtil {
 			String encodedKey = null;
 			if (bytes != null) {
 				encodedKey = new String(Base64.getEncoder().encodeToString(bytes));
-				encodedKey = "-----BEGIN CERTIFICATE-----" + System.lineSeparator() + encodedKey
-						+ System.lineSeparator() + "-----END CERTIFICATE-----";
+//				encodedKey = "-----BEGIN CERTIFICATE-----" + System.lineSeparator() + encodedKey
+//						+ System.lineSeparator() + "-----END CERTIFICATE-----";
+				encodedKey = "-----BEGIN CERTIFICATE-----" + encodedKey
+						+ "-----END CERTIFICATE-----";
 			}
 			return encodedKey;
 		} catch (CertificateEncodingException e) {
@@ -273,8 +344,9 @@ public class SecurityUtil {
 		String encodedKey = null;
 		if (bytes != null) {
 			encodedKey = new String(Base64.getEncoder().encodeToString(bytes));
-			encodedKey = "-----BEGIN PUBLIC KEY-----" + System.lineSeparator() + encodedKey + System.lineSeparator()
-					+ "-----END PUBLIC KEY-----";
+//			encodedKey = "-----BEGIN PUBLIC KEY-----" + System.lineSeparator() + encodedKey + System.lineSeparator()
+//					+ "-----END PUBLIC KEY-----";
+			encodedKey = "-----BEGIN PUBLIC KEY-----" +  encodedKey + "-----END PUBLIC KEY-----";
 		}
 		return encodedKey;
 

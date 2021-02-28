@@ -14,32 +14,33 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.service.config;
+package com.itdevcloud.japp.core.api.bean;
+/**
+*
+* @author Marvin Sun
+* @since 1.0.0
+*/
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
-/**
- *
- * @author Marvin Sun
- * @since 1.0.0
- */
+import com.itdevcloud.japp.se.common.security.EncryptedInfo;
+
 
 @Component
-public class DefaultConfigServiceHelper implements ConfigServiceHelperI {
+public class  DecryptTextRequest extends BaseRequest {
 
-	//private static final Logger logger = LogManager.getLogger(DefaultConfigServiceHelper.class);
+	private static final long serialVersionUID = 1L;
 
+	private EncryptedInfo encryptedInfo;
 
-	@Override
-	public Map<String, String> createConfigMapFromAppRepository() {
-		Map<String, String> configeMap = new HashMap<String, String>();
-		return configeMap;
+	public EncryptedInfo getEncryptedInfo() {
+		return encryptedInfo;
 	}
+
+	public void setEncryptedInfo(EncryptedInfo encryptedInfo) {
+		this.encryptedInfo = encryptedInfo;
+	}
+
+
 
 }

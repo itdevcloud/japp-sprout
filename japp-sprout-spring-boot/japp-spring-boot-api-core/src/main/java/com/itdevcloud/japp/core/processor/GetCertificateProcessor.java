@@ -51,7 +51,7 @@ public class GetCertificateProcessor extends RequestProcessor {
 
 		GetCertificateRequest req = (GetCertificateRequest) request;
 		GetCertificateResponse response = new GetCertificateResponse();
-		Certificate certificate = AppComponents.pkiKeyCache.getAppCertificate();
+		Certificate certificate = AppComponents.pkiService.getAppCertificate();
 		if(certificate == null) {
 			return null;
 		}

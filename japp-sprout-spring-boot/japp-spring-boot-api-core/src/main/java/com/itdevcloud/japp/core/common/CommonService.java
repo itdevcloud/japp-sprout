@@ -16,7 +16,11 @@
  */
 package com.itdevcloud.japp.core.common;
 
-
+/**
+*
+* @author Marvin Sun
+* @since 1.0.0
+*/
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -40,11 +44,7 @@ import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-/**
- *
- * @author Marvin Sun
- * @since 1.0.0
- */
+
 
 @Component
 public class CommonService implements AppFactoryComponentI {

@@ -61,12 +61,16 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 						.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_NA, simpleName + " returns null response object");
 				response = commandResponse;
 			}
+			response.populateReuqstInfo(request);
 		} catch (Throwable t) {
 			t.printStackTrace();
 			logger.error(t.getMessage(), t);
 			T commandResponse = AppUtil
 					.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, t.getMessage());
 			response = commandResponse;
+			if(request != null) {
+				response.populateReuqstInfo(request);
+			}
 		}
 		return response;
 	}

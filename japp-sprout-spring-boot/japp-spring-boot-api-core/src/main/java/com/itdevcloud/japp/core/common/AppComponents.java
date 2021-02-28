@@ -17,8 +17,6 @@
 package com.itdevcloud.japp.core.common;
 
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.cahce.AadJwksCache;

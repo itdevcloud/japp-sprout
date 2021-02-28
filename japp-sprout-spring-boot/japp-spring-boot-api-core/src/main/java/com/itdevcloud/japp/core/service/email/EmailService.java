@@ -30,15 +30,10 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
-import org.springframework.util.StringUtils;
-
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
-import com.itdevcloud.japp.core.common.AppFactory;
-import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
-import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 

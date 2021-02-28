@@ -52,7 +52,7 @@ public class LoginProcessor extends RequestProcessor {
 		// =====create response object =====
 		LoginResponse response = new LoginResponse();
 		ResponseHeader responseHeader = new ResponseHeader();
-		responseHeader.setServerTransactionId(txnCtx.getTransactionId());
+		response.setServerTxId(txnCtx.getTransactionId());
 		
 		// ====== validate request ======
 		ResponseStatus responseStatus = validator.validate(appRrequest);

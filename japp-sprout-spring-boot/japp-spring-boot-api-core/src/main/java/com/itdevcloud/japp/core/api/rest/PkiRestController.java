@@ -1,3 +1,20 @@
+
+/*
+ * Copyright (c) 2018 the original author(s). All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 package com.itdevcloud.japp.core.api.rest;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -21,12 +38,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 /**
- * Spring restful controller.
- *
- *  e.g.
- *  - Request - EchoRequest.java
- *  - Response - EchoResponse.java
- *  - Processor - EchoProcessor.java
  *
  * @author Marvin Sun
  * @since 1.0.0
@@ -52,7 +63,7 @@ public class PkiRestController extends BaseRestController {
 	}
     @Operation(summary = "Get Public Key", 
     		   description = "Get Public Key, the Public Key can be used to validate token issued by the application.", 
-    		   tags = { "PKI" },
+    		   tags = { "Core-PKI" },
    			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
     
 	@PostMapping("/api/core/publickey")
@@ -67,7 +78,7 @@ public class PkiRestController extends BaseRestController {
 
     @Operation(summary = "Get Certificate", 
  		   description = "Get Certificate, the Certificate can be used to validate token issued by the application.", 
- 		   tags = { "PKI" },
+ 		   tags = { "Core-PKI" },
 			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
  
 	@PostMapping("/api/core/certificate")

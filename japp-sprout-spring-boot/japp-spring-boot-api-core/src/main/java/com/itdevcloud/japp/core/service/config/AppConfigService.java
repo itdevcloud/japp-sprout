@@ -16,7 +16,6 @@
  */
 package com.itdevcloud.japp.core.service.config;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -29,8 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import com.itdevcloud.japp.core.common.AppConfigKeys;
-import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;

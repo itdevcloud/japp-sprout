@@ -18,21 +18,16 @@ package com.itdevcloud.japp.core.service.customization;
 
 import java.security.Key;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
-import com.itdevcloud.japp.core.common.AppConstant;
-import com.itdevcloud.japp.core.common.AppException;
-import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
-import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.DateUtil;
-import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  *
@@ -77,13 +72,12 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 		if (iaaUser == null) {
 			return null;
 		}
-		Date now = new Date();
-		long nbf = DateUtil.dataToJsonNumericDate(now);
-		Date expireDate = new Date(now.getTime() + expireMinutes*1000);
-		long exp = DateUtil.dataToJsonNumericDate(expireDate);
-		LocalDateTime expLocalDateTime = DateUtil.convertToLocalDateTime(expireDate, null);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss Z");
-		String expLocal = expLocalDateTime.format(formatter);
+		LocalDateTime now = LocalDateTime.now().withNano(0);
+		long nbf = DateUtil.LocalDateTimeToEpochSecond(now);
+		LocalDateTime expireDateTime = now.plusMinutes(expireMinutes);
+		long exp = DateUtil.LocalDateTimeToEpochSecond(expireDateTime);
+		ZoneOffset zoneOffSet = ZonedDateTime.now().getOffset();
+		String expLocal = expireDateTime.format(DateTimeFormatter.ISO_DATE_TIME) + zoneOffSet.toString();
 
 		String iss = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_TOKEN_ISSUE_ISS);
 		

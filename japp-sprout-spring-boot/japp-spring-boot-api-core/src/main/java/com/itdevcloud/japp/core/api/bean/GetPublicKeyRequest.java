@@ -16,19 +16,13 @@
  */
 package com.itdevcloud.japp.core.api.bean;
 /**
-  *
+ *
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
 
 import org.springframework.stereotype.Component;
-/**
- * Class Definition
- *
- * @author Marvin Sun
- * @since 1.0.0
- */
 
 @Component
 public class GetPublicKeyRequest extends BaseRequest {

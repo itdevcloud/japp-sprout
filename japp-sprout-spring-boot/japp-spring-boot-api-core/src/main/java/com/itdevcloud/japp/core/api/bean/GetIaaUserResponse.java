@@ -30,8 +30,13 @@ import com.itdevcloud.japp.core.service.customization.IaaUserI;
 public class GetIaaUserResponse extends BaseResponse {
 
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private IaaUserI iaaUser;
 
+	
 	public IaaUserI getIaaUser() {
 		return iaaUser;
 	}

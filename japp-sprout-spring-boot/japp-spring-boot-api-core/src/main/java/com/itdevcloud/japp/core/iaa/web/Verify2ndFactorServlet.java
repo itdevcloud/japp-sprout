@@ -17,32 +17,12 @@
 package com.itdevcloud.japp.core.iaa.web;
 
 import java.io.IOException;
-import java.security.Key;
-
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jboss.aerogear.security.otp.Totp;
-
-import com.itdevcloud.japp.core.api.vo.ResponseStatus;
-import com.itdevcloud.japp.core.cahce.PkiKeyCache;
-import com.itdevcloud.japp.core.common.CommonService;
-import com.itdevcloud.japp.core.common.AppComponents;
-import com.itdevcloud.japp.core.common.AppConfigKeys;
-import com.itdevcloud.japp.core.common.AppConstant;
-import com.itdevcloud.japp.core.common.AppFactory;
-import com.itdevcloud.japp.core.common.AppUtil;
-import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.iaa.service.IaaService;
-import com.itdevcloud.japp.core.iaa.service.JwtService;
-import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
-import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
-import com.itdevcloud.japp.core.service.customization.IaaUserI;
-import com.itdevcloud.japp.se.common.security.Hasher;
-import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * The Verify2ndFactorServlet is used for supporting two-factor authentication service.

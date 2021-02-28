@@ -23,12 +23,6 @@ package com.itdevcloud.japp.core.api.bean;
  */
 
 import org.springframework.stereotype.Component;
-/**
- * Class Definition
- *
- * @author Marvin Sun
- * @since 1.0.0
- */
 
 @Component
 public class GetCertificateRequest extends BaseRequest {

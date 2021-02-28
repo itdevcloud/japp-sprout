@@ -28,6 +28,8 @@ public class GetPublicKeyResponse extends BaseResponse {
 
 
 
+	private static final long serialVersionUID = 1L;
+	
 	private String publicKey;
 	private String algorithm;
 	private String format;

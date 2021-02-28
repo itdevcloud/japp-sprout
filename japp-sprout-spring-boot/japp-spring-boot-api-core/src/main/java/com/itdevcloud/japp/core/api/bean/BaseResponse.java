@@ -36,9 +36,18 @@ public class BaseResponse implements Serializable, AppFactoryComponentI {
 
 	private ResponseStatus responseStatus = null;
 	private String command;
+	private String clientId;
 	private String clientTxId;
 	private String serverTxId;
 
+	public void populateReuqstInfo(BaseRequest request) {
+		if(request != null) {
+			this.command = request.getCommand();
+			this.clientId = request.getClientId();
+			this.clientTxId = request.getClientTxId();
+		}
+	}
+	
 	public BaseResponse() {
 		TransactionContext tcContext = AppThreadContext.getTransactionContext();
 		serverTxId = (tcContext==null?null:tcContext.getTransactionId());
@@ -76,6 +85,14 @@ public class BaseResponse implements Serializable, AppFactoryComponentI {
 
 	public void setServerTxId(String serverTxId) {
 		this.serverTxId = serverTxId;
+	}
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
 	}
 
 	public String getClientTxId() {

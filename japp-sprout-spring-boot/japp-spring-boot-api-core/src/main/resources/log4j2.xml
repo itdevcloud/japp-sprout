@@ -2,8 +2,8 @@
 
 <Configuration packages="com.microsoft.applicationinsights.log4j.v2">
 	<Properties>
-		<Property name="logPath">${env:jappcore.app.log.dir:-./logs/jappcore}</Property>
-		<Property name="logFileSimpleName">auditapi</Property>
+		<Property name="logPath">${env:jappcore.app.log.dir:-./logs/apicore}</Property>
+		<Property name="logFileSimpleName">apicore</Property>
 	</Properties>
 	<Appenders>
 		<RollingFile name="DailyRollingFile" fileName="${logPath}/${logFileSimpleName}.log"

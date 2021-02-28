@@ -14,32 +14,33 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.service.config;
+package com.itdevcloud.japp.core.api.bean;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.stereotype.Component;
-
-import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 /**
+ * BasicAuthResponse Class.
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
 
+import org.springframework.stereotype.Component;
+
+
 @Component
-public class DefaultConfigServiceHelper implements ConfigServiceHelperI {
+public class BasicAuthResponse extends BaseResponse {
 
-	//private static final Logger logger = LogManager.getLogger(DefaultConfigServiceHelper.class);
+	private static final long serialVersionUID = 1L;
 
+	private String jwt;
 
-	@Override
-	public Map<String, String> createConfigMapFromAppRepository() {
-		Map<String, String> configeMap = new HashMap<String, String>();
-		return configeMap;
+	public String getJwt() {
+		return jwt;
 	}
+
+	public void setJwt(String jwt) {
+		this.jwt = jwt;
+	}
+
+
 
 }

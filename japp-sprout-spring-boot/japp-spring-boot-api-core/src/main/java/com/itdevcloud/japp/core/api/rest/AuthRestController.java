@@ -25,8 +25,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
-import com.itdevcloud.japp.core.api.bean.EchoRequest;
-import com.itdevcloud.japp.core.api.bean.EchoResponse;
+import com.itdevcloud.japp.core.api.bean.BasicAuthRequest;
+import com.itdevcloud.japp.core.api.bean.BasicAuthResponse;
+import com.itdevcloud.japp.core.api.bean.ValidateTokenRequest;
+import com.itdevcloud.japp.core.api.bean.ValidateTokenResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -41,11 +43,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-public class DefaultRestController extends BaseRestController {
+public class AuthRestController extends BaseRestController {
 
 	//private static final Logger logger = LogManager.getLogger(DefaultRestController.class);
 	
-	@Value("${" + AppConfigKeys.JAPPCORE_APP_DEFAULT_CONTROLLER_ENABLED + ":false}")
+	@Value("${" + AppConfigKeys.JAPPCORE_APP_AUTH_CONTROLLER_ENABLED + ":false}")
 	private boolean defaultControllerEnabled;
 
 	private <T extends BaseResponse> T checkIsEnabled(Class<T> responseClass) {
@@ -58,19 +60,33 @@ public class DefaultRestController extends BaseRestController {
 		}
 	}
 
-    @Operation(summary = "Echo a request", 
-    		   description = "Echo back a request. This service could be used as health check porpuse", 
-    		   tags = { "Core-Default" },
-   			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
-    
-	@PostMapping("/api/core/echo")
-	EchoResponse echo(@RequestBody EchoRequest request) {
-    	EchoResponse response = null;
-		if( (response = checkIsEnabled(EchoResponse.class)) != null) {
-    		return response;
-    	}
-		response = processRequest(request, EchoResponse.class);
+	
+    @Operation(summary = "Basic Auth Service", 
+ 		   description = "Autheticate User by LoginId and Passwrod", 
+ 		   tags = { "Core-Auth" },
+			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
+ 
+	@PostMapping("/api/core/basicauth")
+	BasicAuthResponse basicAuth(@RequestBody BasicAuthRequest request) {
+    	BasicAuthResponse response = null;
+		if( (response = checkIsEnabled(BasicAuthResponse.class)) != null) {
+ 		return response;
+ 	}
+		response = processRequest(request, BasicAuthResponse.class);
 		return response;
 	}
-	
+    @Operation(summary = "Validate Token", 
+  		   description = "Validate JWT issued by this application", 
+  		   tags = { "Core-Auth" },
+ 			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
+  
+ 	@PostMapping("/api/core/validatetoken")
+    ValidateTokenResponse validateToken(@RequestBody ValidateTokenRequest request) {
+    	ValidateTokenResponse response = null;
+ 		if( (response = checkIsEnabled(ValidateTokenResponse.class)) != null) {
+  		return response;
+  	}
+ 		response = processRequest(request, ValidateTokenResponse.class);
+ 		return response;
+ 	}	
 }

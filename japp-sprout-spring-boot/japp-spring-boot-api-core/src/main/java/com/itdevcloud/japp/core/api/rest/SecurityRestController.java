@@ -25,8 +25,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
-import com.itdevcloud.japp.core.api.bean.EchoRequest;
-import com.itdevcloud.japp.core.api.bean.EchoResponse;
+import com.itdevcloud.japp.core.api.bean.DecryptTextRequest;
+import com.itdevcloud.japp.core.api.bean.DecryptTextResponse;
+import com.itdevcloud.japp.core.api.bean.EncryptTextRequest;
+import com.itdevcloud.japp.core.api.bean.EncryptTextResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -41,11 +43,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-public class DefaultRestController extends BaseRestController {
+public class SecurityRestController extends BaseRestController {
 
 	//private static final Logger logger = LogManager.getLogger(DefaultRestController.class);
 	
-	@Value("${" + AppConfigKeys.JAPPCORE_APP_DEFAULT_CONTROLLER_ENABLED + ":false}")
+	@Value("${" + AppConfigKeys.JAPPCORE_APP_SECURITY_CONTROLLER_ENABLED + ":false}")
 	private boolean defaultControllerEnabled;
 
 	private <T extends BaseResponse> T checkIsEnabled(Class<T> responseClass) {
@@ -58,18 +60,33 @@ public class DefaultRestController extends BaseRestController {
 		}
 	}
 
-    @Operation(summary = "Echo a request", 
-    		   description = "Echo back a request. This service could be used as health check porpuse", 
-    		   tags = { "Core-Default" },
+    @Operation(summary = "Encrypt Text Request", 
+    		   description = "Encrypt Text", 
+    		   tags = { "Core-Security" },
    			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
     
-	@PostMapping("/api/core/echo")
-	EchoResponse echo(@RequestBody EchoRequest request) {
-    	EchoResponse response = null;
-		if( (response = checkIsEnabled(EchoResponse.class)) != null) {
+	@PostMapping("/api/core/encryption")
+    EncryptTextResponse echo(@RequestBody EncryptTextRequest request) {
+    	EncryptTextResponse response = null;
+		if( (response = checkIsEnabled(EncryptTextResponse.class)) != null) {
     		return response;
     	}
-		response = processRequest(request, EchoResponse.class);
+		response = processRequest(request, EncryptTextResponse.class);
+		return response;
+	}
+	
+    @Operation(summary = "Decrypt Text Request", 
+ 		   description = "Decrypt Text", 
+ 		   tags = { "Core-Security" },
+			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
+ 
+	@PostMapping("/api/core/decryption")
+    DecryptTextResponse basicAuth(@RequestBody DecryptTextRequest request) {
+    	DecryptTextResponse response = null;
+		if( (response = checkIsEnabled(DecryptTextResponse.class)) != null) {
+ 		return response;
+ 	}
+		response = processRequest(request, DecryptTextResponse.class);
 		return response;
 	}
 	

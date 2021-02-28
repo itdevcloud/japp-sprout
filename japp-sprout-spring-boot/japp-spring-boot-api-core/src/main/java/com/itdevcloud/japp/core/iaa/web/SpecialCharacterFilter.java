@@ -31,11 +31,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
-import com.itdevcloud.japp.core.common.AppFactory;
+import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 
 /**
  * The SpecialCharacterFilter provides the support for checking if a incoming request contains some special characters
@@ -64,6 +62,7 @@ public class SpecialCharacterFilter implements Filter {
 		logger.debug("SpecialCharacterFilter.doFilter() - start......");
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
+		AppUtil.initTransactionContext(httpRequest);
 
 		String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
 				

@@ -25,18 +25,12 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.util.StringUtils;
-
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
-import com.itdevcloud.japp.core.cahce.AadJwksCache;
-import com.itdevcloud.japp.core.common.CommonService;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
-import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**

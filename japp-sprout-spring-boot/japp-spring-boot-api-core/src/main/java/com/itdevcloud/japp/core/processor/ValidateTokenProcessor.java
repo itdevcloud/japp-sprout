@@ -1,6 +1,9 @@
 package com.itdevcloud.japp.core.processor;
 
 import java.security.PublicKey;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -19,9 +22,6 @@ import com.itdevcloud.japp.core.common.TransactionContext;
 @Component
 public class ValidateTokenProcessor extends RequestProcessor {
 
-	private static final long serialVersionUID = 1L;
-
-
 	private static final Logger logger = LogManager.getLogger(ValidateTokenProcessor.class);
 
 	@Override
@@ -35,14 +35,16 @@ public class ValidateTokenProcessor extends RequestProcessor {
 		
 		
 		// ====== business logic starts ======
-		PublicKey publicKey = AppComponents.pkiKeyCache.getAppPublicKey();
-		if(publicKey == null) {
-			response = AppUtil.createResponse(ValidateTokenResponse.class, "N/A",
-					ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "Can't get publickey for token validation, check code or configuration!");
-			return response;
-		}
+//		PublicKey publicKey = AppComponents.pkiKeyCache.getAppPublicKey();
+//		if(publicKey == null) {
+//			response = AppUtil.createResponse(ValidateTokenResponse.class, "N/A",
+//					ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "Can't get publickey for token validation, check code or configuration!");
+//			return response;
+//		}
 		String jwt = req.getJwt();
-		boolean isValid = AppComponents.jwtService.isValidTokenByPublicKey(jwt, publicKey);
+		Map<String, String> expectedClaims = new HashMap<String, String>();
+		String[] args = null;
+		boolean isValid = AppComponents.jwtService.isValidToken(jwt, expectedClaims, args);
 		if(isValid) {
 			response.setValidJwt(true);
 		}else {

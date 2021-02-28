@@ -31,9 +31,6 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
-import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 

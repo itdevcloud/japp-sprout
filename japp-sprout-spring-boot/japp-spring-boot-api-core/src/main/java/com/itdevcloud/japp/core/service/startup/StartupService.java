@@ -37,7 +37,10 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.StartupServiceHelperI;
+import com.itdevcloud.japp.core.service.notification.SystemNotification;
+import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  *
  * @author Marvin Sun
@@ -72,6 +75,11 @@ public class StartupService implements AppFactoryComponentI {
 	@Async
 	public void sendStartupNotification() {
 		int waitingSeconds =  ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_APP_STARTUP_NOTIFICATION_WAITING_SECONDS);
+		String itToAddr = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_EMAIL_IT_TOADDRESSES);
+		if (StringUtil.isEmptyOrNull(itToAddr)) {
+			logger.info("sendStartupNotification() - itToAddr is not defined, do nothing...");
+			return;
+		}
 		long nowTS = System.currentTimeMillis();
 		if(lastUpdatedTS  ==-1) {
 			lastUpdatedTS = nowTS;
@@ -92,7 +100,7 @@ public class StartupService implements AppFactoryComponentI {
 		try {
 			logger.info("sendStartupNotification() - email subject = \n" + subject);
 			logger.info("sendStartupNotification() - email content = \n" + info);
-			AppComponents.emailService.sendITNotification(subject, info);
+			AppComponents.emailService.sendEmail(subject, info, itToAddr);
 			logger.info("sendStartupNotification() - end....");
 		} catch (Throwable t) {
 			logger.error(CommonUtil.getStackTrace(t));

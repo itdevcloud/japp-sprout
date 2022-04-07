@@ -15,6 +15,8 @@ import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
+import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
@@ -28,6 +30,11 @@ public class BasicAuthProcessor extends RequestProcessor {
 	}
 
 	private static final Logger logger = LogManager.getLogger(BasicAuthProcessor.class);
+	
+	@Override
+	public String getTargetRole() {
+		return null;
+	}
 
 	@Override
 	protected BaseResponse processRequest(BaseRequest req) {
@@ -50,6 +57,8 @@ public class BasicAuthProcessor extends RequestProcessor {
 		// ====== business logic starts ======
 		String loginId = request.getLoginId();
 		String password = request.getPassword();
+		String tokenNonce = request.getTokenNonce();
+		String uip = txnCtx.getClientIP();
 		IaaUserI iaaUser = null;
 		try {
 			iaaUser = AppComponents.iaaService.login(loginId, password, null);
@@ -68,7 +77,16 @@ public class BasicAuthProcessor extends RequestProcessor {
 		}
 
 		// issue new JWT token;
-		String token = AppComponents.jwtService.issueAccessToken(iaaUser);
+		String hashedNonce = StringUtil.isEmptyOrNull(tokenNonce)?null:Hasher.hashPassword(tokenNonce);
+		String hashedUip = StringUtil.isEmptyOrNull(uip)?null:Hasher.hashPassword(uip);
+		
+		iaaUser.setHashedNonce(hashedNonce);
+		iaaUser.setHashedUserIp(hashedUip);
+		
+		logger.info("hashedUip = " + hashedUip + ", hashednonce = "+ hashedNonce);
+		
+		String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
+		
 		if (StringUtil.isEmptyOrNull(token)) {
 			logger.error("JWT Token can not be created for login Id '" + loginId);
 			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "JWT Token can not be created for login Id '" + iaaUser.getLoginId() + "', username = "

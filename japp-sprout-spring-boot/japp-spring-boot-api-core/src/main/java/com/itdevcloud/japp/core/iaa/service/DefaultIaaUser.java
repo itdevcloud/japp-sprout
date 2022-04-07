@@ -48,6 +48,8 @@ public class DefaultIaaUser implements IaaUserI, Serializable {
 	private Set<String> applicationRoles;
 	private Set<String> businessRoles;
 	private Set<String> authGroups;
+	private String hashedUserIp;
+	private String hashedNonce;
 	
 	@Override
 	public String getSystemUid() {
@@ -200,6 +202,24 @@ public class DefaultIaaUser implements IaaUserI, Serializable {
 		this.mfaStatus = mfaStatus;
 		
 	}
-	
+	public String getMfaType() {
+		return mfaType;
+	}
+	public void setMfaType(String mfaType) {
+		this.mfaType = mfaType;
+	}
+	public String getHashedNonce() {
+		return hashedNonce;
+	}
+	public void setHashedNonce(String hashedNonce) {
+		this.hashedNonce = hashedNonce;
+	}
+	public String getHashedUserIp() {
+		return hashedUserIp;
+	}
+	public void setHashedUserIp(String hashedUserIp) {
+		this.hashedUserIp = hashedUserIp;
+	}
+
 
 }

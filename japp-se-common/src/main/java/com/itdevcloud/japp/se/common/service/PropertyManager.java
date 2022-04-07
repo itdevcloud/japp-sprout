@@ -66,7 +66,7 @@ public class PropertyManager {
 			logger.info("PropertyManager load property begin...... file = " + fileName);
 			InputStream in = null;
 			try {
-				in = PropertyManager.class.getResourceAsStream("/" + fileName);
+				in = PropertyManager.class.getResourceAsStream(fileName);
 				properties.load(in);
 				in.close();
 				in = null;

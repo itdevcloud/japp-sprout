@@ -16,43 +16,27 @@
  */
 package com.itdevcloud.japp.core.api.bean;
 /**
-*
-* @author Marvin Sun
-* @since 1.0.0
-*/
+ *
+ * @author Marvin Sun
+ * @since 1.0.0
+ */
 
 import org.springframework.stereotype.Component;
 
-
 @Component
-public class  EncryptTextRequest extends BaseRequest {
+public class SignedBasicAuthResponse extends BaseResponse {
 
 	private static final long serialVersionUID = 1L;
-
-	private String clearText;
-	//private String encodedSymmetricKey;
-	private boolean symmetric;
 	
-	public String getClearText() {
-		return clearText;
-	}
-	public void setClearText(String clearText) {
-		this.clearText = clearText;
+	private String jwt ;
+
+	public String getJwt() {
+		return jwt;
 	}
 
-//	public String getEncodedSymmetricKey() {
-//		return encodedSymmetricKey;
-//	}
-//	public void setEncodedSymmetricKey(String encodedSymmetricKey) {
-//		this.encodedSymmetricKey = encodedSymmetricKey;
-//	}
-	public boolean isSymmetric() {
-		return symmetric;
+	public void setJwt(String jwt) {
+		this.jwt = jwt;
 	}
-	public void setSymmetric(boolean symmetric) {
-		this.symmetric = symmetric;
-	}
-
 
 
 

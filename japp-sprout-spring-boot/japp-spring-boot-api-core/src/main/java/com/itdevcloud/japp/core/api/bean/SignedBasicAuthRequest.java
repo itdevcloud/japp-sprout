@@ -15,9 +15,8 @@
  *
  */
 package com.itdevcloud.japp.core.api.bean;
-
 /**
- * BasicAuthRequest Class.
+  *
  *
  * @author Marvin Sun
  * @since 1.0.0
@@ -25,16 +24,17 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
-
 @Component
-public class  BasicAuthRequest extends BaseRequest {
+public class SignedBasicAuthRequest extends BaseRequest {
 
 	private static final long serialVersionUID = 1L;
 
 	private String loginId;
 	private String password;
 	private String tokenNonce;
-	
+	private String clientAppCode;
+	private String clientSiteCode;
+	private String signature;
 	
 	public String getLoginId() {
 		return loginId;
@@ -48,6 +48,12 @@ public class  BasicAuthRequest extends BaseRequest {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	public String getSignature() {
+		return signature;
+	}
+	public void setSignature(String signature) {
+		this.signature = signature;
+	}
 	public String getTokenNonce() {
 		return tokenNonce;
 	}
@@ -55,6 +61,21 @@ public class  BasicAuthRequest extends BaseRequest {
 		this.tokenNonce = tokenNonce;
 	}
 	
+	public String getClientAppCode() {
+		return clientAppCode;
+	}
+	public void setClientAppCode(String clientAppCode) {
+		this.clientAppCode = clientAppCode;
+	}
+	public String getClientSiteCode() {
+		return clientSiteCode;
+	}
+	public void setClientSiteCode(String clientSiteCode) {
+		this.clientSiteCode = clientSiteCode;
+	}
+
+
+
 
 
 }

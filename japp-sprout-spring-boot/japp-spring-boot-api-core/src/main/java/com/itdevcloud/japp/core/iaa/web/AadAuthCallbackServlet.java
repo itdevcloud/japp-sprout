@@ -76,7 +76,7 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 			// verify JWT from AAD;
 			logger.debug("AadAuthCallbackServlet.doPost() - verify idToken token=========");
 			TokenHandlerI aadIdTokenHandler = AppFactory.getTokenHandler(AadIdTokenHandler.class.getSimpleName());
-			if (!aadIdTokenHandler.isValidToken(idToken, null, null)) {
+			if (!aadIdTokenHandler.isValidToken(idToken, null, true, null)) {
 				logger.error(
 						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E502. id_token from AAD is not valid....");
 				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
@@ -117,7 +117,7 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			// issue new JAPP JWT token;
-			String token = AppComponents.jwtService.issueAccessToken(iaaUser);
+			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error(
 						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E507. JAPP Token can not be created for login Id '"

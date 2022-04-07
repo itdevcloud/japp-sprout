@@ -23,6 +23,9 @@ import javax.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+
+import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
+import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -52,7 +55,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		logger.info("getIaaUserFromRepositoryBySystemUid() begins ...");
 		long start = System.currentTimeMillis();
 
-		IaaUserI iaaUser = getDummyIaaUserByLoginId(uid);
+		IaaUserI iaaUser = getAnonymousIaaUserByLoginId(uid);
 
 		long end1 = System.currentTimeMillis();
 		logger.info("getIaaUserFromRepositoryBySystemUid() end........ took " + (end1 - start) + " ms. " + uid);
@@ -97,11 +100,11 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 //	}
 
 	@Override
-	public IaaUserI getDummyIaaUserByLoginId(String loginId, String... args) {
+	public IaaUserI getAnonymousIaaUserByLoginId(String loginId, String... args) {
 		IaaUserI iaaUser = new DefaultIaaUser();
 		if (StringUtil.isEmptyOrNull(loginId)) {
-			iaaUser.setSystemUid("uid-1");
-			iaaUser.setLoginId("loginId-1");
+			iaaUser.setSystemUid("Anonymous");
+			iaaUser.setLoginId("Anonymous");
 		} else {
 			iaaUser.setSystemUid(loginId);
 			iaaUser.setLoginId(loginId);
@@ -109,12 +112,17 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		//password is 12345
 		iaaUser.setHashedPassword(
 				"NieQminDE4Ggcewn98nKl3Jhgq7Smn3dLlQ1MyLPswq7njpt8qwsIP4jQ2MR1nhWTQyNMFkwV19g4tPQSBhNeQ==");
-		iaaUser.setName("John Smith");
-		iaaUser.setEmail("john.smith@dummy.ca");
-		iaaUser.setTotpSecret("E47CWVVTI7BAXDD3");
+		iaaUser.setName("Anonymous");
 		return iaaUser;
 	}
 
+	@Override
+	public List<ClientAppInfo> getClientAppInfoList() {
+		List<ClientAppInfo> appInfoList = new ArrayList<ClientAppInfo>();
+		ClientAppInfo appInfo = AppComponents.commonService.getAppInfo();
+		appInfoList.add(appInfo);
+		return appInfoList;
+	}
 
 	@Override
 	public IaaUserI getIaaUserFromRepositoryByLoginId(String loginId, String... args) {

@@ -37,9 +37,12 @@ import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.iaa.token.AppLocalTokenHandler;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -59,7 +62,8 @@ public class JwtService implements AppFactoryComponentI {
 	public void init() {
 	}
 
-	public TokenHandlerI getAccessTokenHandler() {
+	public TokenHandlerI getTokenHandler() {
+
 		String handlerName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME);
 		TokenHandlerI tokenHandler = AppFactory.getTokenHandler(handlerName);
 		if(tokenHandler == null) {
@@ -68,17 +72,31 @@ public class JwtService implements AppFactoryComponentI {
 		}
 		return tokenHandler;
 	}
-
-	public String issueAccessToken(IaaUserI iaaUser) {
-		TokenHandlerI tokenHandler = getAccessTokenHandler();
-		Key privateKey = AppComponents.pkiService.getAppPrivateKey();
-		return tokenHandler.issueAccessToken(iaaUser, privateKey, -1, null);
+	
+	public boolean isValidToken(String token, Map<String, String> claimEqualMatchMap, boolean ingoreNullInToken, String... args ) {
+		TokenHandlerI tokenHandler = getTokenHandler();
+		return tokenHandler.isValidToken(token, claimEqualMatchMap, ingoreNullInToken, args );
 	}
 	
-	public boolean isValidToken(String token, Map<String, String> claimMatchMap, String... args ) {
-		TokenHandlerI tokenHandler = getAccessTokenHandler();
-		return tokenHandler.isValidToken(token, claimMatchMap, args );
+	public IaaUserI getIaaUser(String token) {
+		TokenHandlerI tokenHandler = getTokenHandler();
+		return tokenHandler.getIaaUser(token);
 	}
+
+	public String issueToken(IaaUserI iaaUser, String tokenType) {
+		TokenHandlerI tokenHandler = getTokenHandler();
+		Key privateKey = AppComponents.pkiService.getAppPrivateKey();
+		//default is refresh token
+		if(StringUtil.isEmptyOrNull(tokenType)) {
+			tokenType = TokenHandlerI.TYPE_REFRESH_TOKEN;
+		}else if (!TokenHandlerI.TYPE_ACCESS_TOKEN.equalsIgnoreCase(tokenType) &&
+				  !TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(tokenType) &&
+				  !TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType)) {
+			tokenType = TokenHandlerI.TYPE_REFRESH_TOKEN;
+		}
+		return tokenHandler.issueToken(iaaUser, tokenType, privateKey, -1, null);
+	}
+	
 	
 	public boolean isValidTokenByPublicKey(String token, PublicKey publicKey) {
 		logger.debug("isValidTokenByPublicKey.............begin....");
@@ -142,37 +160,6 @@ public class JwtService implements AppFactoryComponentI {
 
 	}
 	
-	/**
-	 * Check if a JWT token is a valid.
-	 */
-	public boolean isValidToken(String token, PublicKey publicKey, InputStream certificate) {
-		if (token == null) {
-			logger.error("token is null, return false and check code!");
-			return false;
-		}
-		if (publicKey == null && certificate == null) {
-			logger.error("both publicKey and certificate are null, return false and check code!");
-			return false;
-		}
-		boolean isValid = false;
-		try {
-			if (publicKey != null) {
-				isValid = isValidTokenByPublicKey(token, publicKey);
-			} else {
-				isValid = isValidTokenByCertificate(token, certificate);
-			}
-			if (!isValid) {
-				logger.error("token is not valid by public key or certificate, return false.......");
-				return false;
-			}
-			return true;
-		} catch (Throwable t) {
-			logger.error(CommonUtil.getStackTrace(t));
-			return false;
-		}
-	}
-	
-
 
 
 }

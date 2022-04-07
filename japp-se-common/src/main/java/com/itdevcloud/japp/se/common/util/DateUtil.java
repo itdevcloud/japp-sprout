@@ -7,8 +7,11 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
@@ -30,7 +33,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 public class DateUtil {
 	public static final String DEFAULT_DATE_FORMAT = "yyyyMMddHHmmss";
-	public static final String DDEFAULT_DISPLAY_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss z";
+	public static final String DEFAULT_DISPLAY_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss z";
 
     private static DatatypeFactory datatypeFactory = null;
     static {
@@ -43,38 +46,76 @@ public class DateUtil {
     }  
     
 	public static String currentDate() {
-		Calendar cal = Calendar.getInstance();
-		SimpleDateFormat sdf = new SimpleDateFormat(DDEFAULT_DISPLAY_DATE_FORMAT);
-		return sdf.format(cal.getTime());
+        LocalDateTime now = LocalDateTime.now();
+		return now.format(DateTimeFormatter.ISO_LOCAL_DATE);
 	}
 	
-	public static Long LocalDateTimeToEpochSecond(LocalDateTime localDateTime) {
+	public static ZoneOffset getSystemDefaultOffset() {
+		return OffsetDateTime.now().getOffset();
+	}
+	public static ZoneId getSystemDefaultZoneId() {
+		return ZoneId.systemDefault();
+	}
+	
+	public static ZonedDateTime getZonedDateTime(LocalDateTime localDateTime, ZoneId zoneId) {
 		if(localDateTime == null) {
 			return null;
 		}
-		return localDateTime.toEpochSecond(ZoneOffset.UTC);
+		if(zoneId == null) {
+			zoneId = ZoneId.systemDefault();
+		}
+		ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, zoneId);
+		return zonedDateTime;
+	}
+	public static OffsetDateTime getOffsetDateTimee(LocalDateTime localDateTime, ZoneOffset offset) {
+		if(localDateTime == null) {
+			return null;
+		}
+		if(offset == null) {
+			offset = getSystemDefaultOffset();
+		}
+		return OffsetDateTime.of(localDateTime, offset);
+	}
+	
+	public static Long LocalDateTimeToEpochSecond(LocalDateTime localDateTime, ZoneOffset offset) {
+		if(localDateTime == null) {
+			return null;
+		}
+		if(offset == null) {
+			offset = getSystemDefaultOffset();
+		}
+		return localDateTime.toEpochSecond(offset);
 		
 	}
-	public static Long LocalDateTimeToEpochMilliSecond(LocalDateTime localDateTime) {
+	public static Long LocalDateTimeToEpochMilliSecond(LocalDateTime localDateTime, ZoneOffset offset) {
 		if(localDateTime == null) {
 			return null;
 		}
-		Instant instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant();	
+		if(offset == null) {
+			offset = getSystemDefaultOffset();
+		}
+		Instant instant = localDateTime.toInstant(offset);	
 		return instant.toEpochMilli(); 	
 	}
 	
-	public static LocalDateTime epochSecondToLocalDateTime(Long timeInSeconds) {
+	public static LocalDateTime epochSecondToLocalDateTime(Long timeInSeconds, ZoneOffset offset) {
 		if(timeInSeconds == null) {
 			return null;
 		}
-		return LocalDateTime.ofEpochSecond(timeInSeconds, 0, ZoneOffset.UTC);
+		if(offset == null) {
+			offset = getSystemDefaultOffset();
+		}
+		return LocalDateTime.ofEpochSecond(timeInSeconds, 0, offset);
 	}	
 	
-	public static LocalDateTime epochMilliSecondToLocalDateTime(Long timeInMilliSeconds) {
+	public static LocalDateTime epochMilliSecondToLocalDateTime(Long timeInMilliSeconds, ZoneId zoneId) {
 		if(timeInMilliSeconds == null) {
 			return null;
 		}
-		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMilliSeconds), ZoneId.systemDefault()); 
+		if(zoneId == null) {
+			zoneId = ZoneId.systemDefault();
+		}
+		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMilliSeconds), zoneId); 
 	}	
 	
 //	public static long dataToJsonNumericDate(Date date) {
@@ -95,7 +136,7 @@ public class DateUtil {
 	
 	public static LocalDate convertToLocalDate(Date dateToConvert, ZoneId zoneId) {
 		if(zoneId == null) {
-			zoneId = ZoneId.systemDefault();
+			zoneId = getSystemDefaultZoneId();
 		}
 	    return LocalDate.ofInstant(
 	      dateToConvert.toInstant(), zoneId);
@@ -103,14 +144,14 @@ public class DateUtil {
 
 	public static LocalDateTime convertToLocalDateTime(Date dateToConvert, ZoneId zoneId) {
 		if(zoneId == null) {
-			zoneId = ZoneId.systemDefault();
+			zoneId = getSystemDefaultZoneId();
 		}
 	    return LocalDateTime.ofInstant(
 	      dateToConvert.toInstant(), zoneId);
 	}
 	public static Date convertLocalDateToDate(LocalDate dateToConvert, ZoneId zoneId) {
 		if(zoneId == null) {
-			zoneId = ZoneId.systemDefault();
+			zoneId = getSystemDefaultZoneId();
 		}
 	    return java.util.Date.from(dateToConvert.atStartOfDay()
 	      .atZone(zoneId)
@@ -118,7 +159,7 @@ public class DateUtil {
 	}
 	public static Date convertLocalDateTimeToDate(LocalDateTime dateToConvert, ZoneId zoneId) {
 		if(zoneId == null) {
-			zoneId = ZoneId.systemDefault();
+			zoneId = getSystemDefaultZoneId();
 		}
 	    return java.util.Date
 	      .from(dateToConvert.atZone(zoneId)
@@ -159,7 +200,7 @@ public class DateUtil {
           .replace("Z", "+00:00");
     }	
 	public static String dateToString(Date date) {
-		return dateToString(date, DDEFAULT_DISPLAY_DATE_FORMAT);
+		return dateToString(date, DEFAULT_DISPLAY_DATE_FORMAT);
 	}
 
 	public static String dateToString(Date date, String pattern) {
@@ -171,7 +212,7 @@ public class DateUtil {
 	}
 
 	public static Date stringToDate(String strDate) throws ParseException {
-		return stringToDate(strDate, DDEFAULT_DISPLAY_DATE_FORMAT);
+		return stringToDate(strDate, DEFAULT_DISPLAY_DATE_FORMAT);
 	}
 
 	public static Date stringToDate(String strDate, String pattern) {

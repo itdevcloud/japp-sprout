@@ -53,7 +53,7 @@ public class AadIdTokenHandler implements TokenHandlerI {
 	}
 
 	@Override
-	public boolean isValidToken(String token, Map<String, String> claimMatchMap, String... args) {
+	public boolean isValidToken(String token, Map<String, String> claimEqualMatchMap, boolean ingoreNullInToken, String... args) {
 		try {
 			if (token == null || token.trim().isEmpty()) {
 				return false;
@@ -157,13 +157,17 @@ public class AadIdTokenHandler implements TokenHandlerI {
 		}
 	}
 
+
 	@Override
-	public String issueAccessToken(IaaUserI iaaUser, Key privateKey, int expireMinutes, Map<String, Object> customClaimMap) {
+	public String getAccessToken(String token) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
+
 	@Override
-	public String getAccessToken(String refreshToken) {
+	public String issueToken(IaaUserI iaaUser, String tokenType, Key privateKey, int expireMinutes,
+			Map<String, Object> customClaimMap) {
 		// TODO Auto-generated method stub
 		return null;
 	}

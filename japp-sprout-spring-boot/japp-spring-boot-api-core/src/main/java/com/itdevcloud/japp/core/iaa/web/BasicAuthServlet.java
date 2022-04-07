@@ -29,6 +29,7 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -99,7 +100,8 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			// issue new JAPP JWT token;
-			String token = AppComponents.jwtService.issueAccessToken(iaaUser);
+			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
+			
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error(
 						"BasicAuthServlet.doPost() - Authentication Failed. code E104. JAPP Token can not be created for login Id '"

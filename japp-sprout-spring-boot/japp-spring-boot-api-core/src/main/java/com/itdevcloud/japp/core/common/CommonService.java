@@ -23,6 +23,8 @@ package com.itdevcloud.japp.core.common;
 */
 import java.io.IOException;
 import java.net.InetAddress;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -37,10 +39,13 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.AppSiteInfo;
+import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
+import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -297,12 +302,29 @@ public class CommonService implements AppFactoryComponentI {
 		return;
 	}
 
-	public String retrieveAuthCallBackUrl(ConfigServiceHelperI jappConfigService, String appId) {
-		String propertyName = "tracs.application.callback.url." + appId.toLowerCase();
-		String url = ConfigFactory.appConfigService.getPropertyAsString(propertyName);
 
-		return url;
-
+	public ClientAppInfo getAppInfo(){
+		
+		String appId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
+		String appAuthCallbackUrl = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTH_APP_CALLBACK_URL);
+		Certificate appCertificate = AppComponents.pkiService.getAppCertificate();
+		PublicKey appPublicKey = AppComponents.pkiService.getAppPublicKey();
+		
+		logger.info("appPublicKey======================" + appPublicKey);
+		
+		ClientAppInfo appInfo = new ClientAppInfo();
+		AppSiteInfo siteInfo = new AppSiteInfo();
+		appInfo.setAppId(123L);
+		appInfo.setAppCode(appId);
+		
+		siteInfo.setSiteCode(appId);
+		siteInfo.setAuthCallbackUrl(appAuthCallbackUrl);
+		siteInfo.setCertificate(appCertificate);
+		siteInfo.setPublicKey(appPublicKey);
+		
+		appInfo.addAppSite(siteInfo);
+		
+		return appInfo;
 	}
 
 }

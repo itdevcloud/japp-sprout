@@ -54,7 +54,7 @@ public class SpringEmailProvider implements EmailServiceProvider {
 
 		logger.debug("OnRelayEmailService.createAndSendEmail() start.......");
 		if (toAddrList == null || toAddrList.isEmpty()) {
-			throw new EmailException(601, "toAddrList is null, no email will be sent.......!");
+			throw new EmailException("601", "toAddrList is null, no email will be sent.......!");
 		}
 		try {
 			MimeMessage message = sender.createMimeMessage();
@@ -86,7 +86,7 @@ public class SpringEmailProvider implements EmailServiceProvider {
 			} else if (contentType.equalsIgnoreCase("text/html")) {
 				helper.setText(content, true);
 			} else {
-				throw new EmailException(602, "currently only support text/plain and text/html content type......!");
+				throw new EmailException("602", "currently only support text/plain and text/html content type......!");
 
 			}
 			helper.setSubject(subject);
@@ -95,19 +95,19 @@ public class SpringEmailProvider implements EmailServiceProvider {
 			if (attachments != null && !attachments.isEmpty()) {
 				for (EmailAttachment a : attachments) {
 					if (a.getSpringInputStreamSource() != null) {
-						helper.addAttachment(a.getFilename(), a.getSpringInputStreamSource(), a.getType());
+						helper.addAttachment(a.getFilename(), a.getSpringInputStreamSource(), a.getContentType());
 					} else if (a.getContent() != null) {
 						InputStream in = new ByteArrayInputStream(a.getContent().getBytes(StandardCharsets.UTF_8));
-						helper.addAttachment(a.getFilename(), new InputStreamResource(in), a.getType());
+						helper.addAttachment(a.getFilename(), new InputStreamResource(in), a.getContentType());
 					} else {
-						throw new EmailException(603, "un supported attachment type, no email will be sent.......!");
+						throw new EmailException("603", "un supported attachment type, no email will be sent.......!");
 					}
 				}
 			}
 
 			sender.send(message);
 		} catch (Exception e) {
-			throw new EmailException(604, CommonUtil.getStackTrace(e));
+			throw new EmailException("604", CommonUtil.getStackTrace(e));
 		}
 
 	}

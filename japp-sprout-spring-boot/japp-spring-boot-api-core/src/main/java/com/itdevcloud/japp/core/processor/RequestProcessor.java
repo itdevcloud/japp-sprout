@@ -16,6 +16,8 @@
  */
 package com.itdevcloud.japp.core.processor;
 
+import java.util.Date;
+
 /**
  *
  * @author Marvin Sun
@@ -32,10 +34,12 @@ import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
 
 public abstract class RequestProcessor implements AppFactoryComponentI {
 
@@ -43,17 +47,39 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 
 
 	protected abstract BaseResponse processRequest(BaseRequest request);
+	protected abstract String getTargetRole() ;
+	
+	protected String getLoginId() {
+		return getIaaUser().getLoginId();
+	}
+	protected IaaUserI getIaaUser() {
+		IaaUserI iaaUser = 	AppThreadContext.getIaaUser();
+		if (iaaUser == null) {
+			throw new RuntimeException("IaaUser is not set in the AppThreadContext, check code!");
+		}
+		return iaaUser;
+	}
 
 	public <T extends BaseResponse> T process(BaseRequest request, Class<T> responseClass) {
+		long startTS = System.currentTimeMillis();
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		T response = null;
 		try {
-			logger.info("RequestProcessor before process request,  TransactionContext = " + txnCtx + "......");
+			logger.info("RequestProcessor process begin,  LoginId = '" + getLoginId() + "', TransactionContext = " + txnCtx + "......");
 			if (request == null) {
 				response = AppUtil.createResponse(responseClass, "N/A",
 						ResponseStatus.STATUS_CODE_ERROR_VALIDATION, " request parameter is null!");
 				return response;
 			}
+			//check role
+			if(!AppComponents.iaaService.isAccessAllowed(getTargetRole())) {
+				String simpleName = this.getClass().getSimpleName();
+				T commandResponse = AppUtil
+						.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_ERROR_SECURITY_NOT_AUTHORIZED, getLoginId() + " not authorized: " + simpleName);
+				response = commandResponse;
+				return response;
+		    }
+
 			response = (T) processRequest(request);
 			if(response == null) {
 				String simpleName = this.getClass().getSimpleName();
@@ -62,6 +88,10 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 				response = commandResponse;
 			}
 			response.populateReuqstInfo(request);
+			
+			long endTS = System.currentTimeMillis();
+			logger.info("RequestProcessor process end - total time = " + (endTS - startTS) + " millis. LoginId = '" + getLoginId() + "', TransactionContext = " + txnCtx + "......");
+
 		} catch (Throwable t) {
 			t.printStackTrace();
 			logger.error(t.getMessage(), t);

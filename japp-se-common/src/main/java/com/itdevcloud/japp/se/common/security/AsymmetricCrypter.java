@@ -27,8 +27,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.Certificate;
+
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
+
+import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -51,9 +55,6 @@ public class AsymmetricCrypter {
 			}
 			this.algorithm = algorithm;
 			this.cipher = Cipher.getInstance(this.algorithm);
-			if(privateKey == null || publicKey == null) {
-				throw new RuntimeException("privateKey or publicKey is null, when init AsymmetricCrypter, check code!");
-			}
 			this.privateKey = privateKey;
 			this.publicKey = publicKey;
 			
@@ -74,6 +75,25 @@ public class AsymmetricCrypter {
 	}
 	
 
+	public PrivateKey getPrivateKey() {
+		return privateKey;
+	}
+
+
+	public void setPrivateKey(PrivateKey privateKey) {
+		this.privateKey = privateKey;
+	}
+
+
+	public PublicKey getPublicKey() {
+		return publicKey;
+	}
+
+
+	public void setPublicKey(PublicKey publicKey) {
+		this.publicKey = publicKey;
+	}
+
 
 	public String encryptText(String text) {
 		if (StringUtil.isEmptyOrNull(text)) {
@@ -83,8 +103,15 @@ public class AsymmetricCrypter {
 	}
 
 	public byte[] encrypt(byte[] bytes) {
+		if(this.privateKey == null && this.publicKey == null) {
+			throw new RuntimeException("private key and public key can not be both null, check code!");
+		}
 		try {
-			this.cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+			if(this.publicKey != null) {
+				this.cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+			}else {
+				this.cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+			}
 
 			byte[] encryptedBytes = cipher.doFinal(bytes);
 			
@@ -105,8 +132,15 @@ public class AsymmetricCrypter {
 
 	public byte[] decrypt(byte[] bytes) {
 
+		if(this.privateKey == null && this.publicKey == null) {
+			throw new RuntimeException("private key and public key can not be both null, check code!");
+		}
 		try {
-			cipher.init(Cipher.DECRYPT_MODE, privateKey);
+			if(this.privateKey != null) {
+				cipher.init(Cipher.DECRYPT_MODE, privateKey);
+			}else {
+				this.cipher.init(Cipher.DECRYPT_MODE, publicKey);
+			}
 			return  cipher.doFinal(bytes);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -119,11 +153,18 @@ public class AsymmetricCrypter {
         if(inputStream == null) {
         	throw new RuntimeException("inputStream is null, check code!");
         }
+		if(this.privateKey == null && this.publicKey == null) {
+			throw new RuntimeException("private key and public key can not be both null, check code!");
+		}
 		ByteArrayOutputStream outputStream = null;
 		try {
 			outputStream = new ByteArrayOutputStream();
 			
-			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+			if(this.publicKey != null) {
+				this.cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+			}else {
+				this.cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+			}
 			
 			byte[] bytes = new byte[64];
 			int bytesRead;
@@ -238,9 +279,16 @@ public class AsymmetricCrypter {
         if(inputStream == null || outputStream == null) {
         	throw new RuntimeException("inputStream or outputStream is null, check code!");
         }
+		if(this.privateKey == null && this.publicKey == null) {
+			throw new RuntimeException("private key and public key can not be both null, check code!");
+		}
 		try {
 	        
-			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+			if(this.publicKey != null) {
+				this.cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+			}else {
+				this.cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+			}
 			
 			byte[] bytes = new byte[64];
 			int bytesRead;
@@ -296,11 +344,18 @@ public class AsymmetricCrypter {
 		if (inputStream == null ) {
 			throw new RuntimeException("inputStream can not be null, check code!");
 		}
+		if(this.privateKey == null && this.publicKey == null) {
+			throw new RuntimeException("private key and public key can not be both null, check code!");
+		}
 		FileOutputStream outputStream = null;
 		BufferedReader reader = null;
 		try {
 		
-			cipher.init(Cipher.DECRYPT_MODE, privateKey);
+			if(this.privateKey != null) {
+				cipher.init(Cipher.DECRYPT_MODE, privateKey);
+			}else {
+				this.cipher.init(Cipher.DECRYPT_MODE, publicKey);
+			}
 
             CipherInputStream cipherIn = new CipherInputStream(inputStream, cipher);
             InputStreamReader inputReader = new InputStreamReader(cipherIn);
@@ -385,8 +440,15 @@ public class AsymmetricCrypter {
         if(inputStream == null || outputStream == null) {
         	throw new RuntimeException("inputStream or outputStream is null, check code!");
         }
+		if(this.privateKey == null && this.publicKey == null) {
+			throw new RuntimeException("private key and public key can not be both null, check code!");
+		}
 		try {
-			cipher.init(Cipher.DECRYPT_MODE, privateKey);
+			if(this.privateKey != null) {
+				cipher.init(Cipher.DECRYPT_MODE, privateKey);
+			}else {
+				this.cipher.init(Cipher.DECRYPT_MODE, publicKey);
+			}
 
 			byte[] bytes = new byte[64];
 			int bytesRead;
@@ -405,6 +467,32 @@ public class AsymmetricCrypter {
 			throw new RuntimeException(e);
 		} finally {
 		}
+	}
+
+	public static void main(String[] args) {
+		SecurityUtil securityService = new SecurityUtil();
+//		String clearText = "abcdefg";
+//		EncryptionResult encryptionResult = securityService.encrypt(clearText);
+//		logger.info("encryptionResult........" + encryptionResult);
+//		
+//		System.out.println("...............1.............");
+//		String totpSecret = Base32.random();
+//		System.out.println("..............totpSecret............" + totpSecret);
+//		logger.info("totpSecret........" + totpSecret);
+
+		String certStr = "MIIDTzCCAjegAwIBAgIEdf3ggjANBgkqhkiG9w0BAQsFADBYMQswCQYDVQQGEwJjYTELMAkGA1UECBMCb24xEDAOBgNVBAcTB3Rvcm9udG8xDDAKBgNVBAoTA210bzEMMAoGA1UECxMDbXRvMQ4wDAYDVQQDEwV0ZXN0IDAeFw0xODAzMjkxNTI2MjVaFw0yODAzMjYxNTI2MjVaMFgxCzAJBgNVBAYTAmNhMQswCQYDVQQIEwJvbjEQMA4GA1UEBxMHdG9yb250bzEMMAoGA1UEChMDbXRvMQwwCgYDVQQLEwNtdG8xDjAMBgNVBAMTBXRlc3QgMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt1drXlapnJpjgolASeSyEHy6uouEIvHDatI7T7jTHZ29KGVI4jQ0o8EoebuhtOzN1cv7WT+tiWASo2t9CuwQ5er6cXCNCk6FyX7QhcUquHAHSLBA54OffXhWI2wj1xTvSpZlJ9t24Sd9HUI2dDyWH4XFfBN2hL43vFraeF8WjCccpDcmwykaLa6cSRPExlQ3JVUN06S3HfIHvXNsDTfijAypCBQ2fI3COuVOcgJLbi6Rj1mHe3v5PK8jxvIlg8hrcW5B3F28ZfBps/mLNisjHjEt+Bm7GniY5u2erjJ/6NZYLGuQh7w1CrlJUiD9/sPNj99kkEozhZUYdjnGyjxVWQIDAQABoyEwHzAdBgNVHQ4EFgQULEYwcCzZhXHDAWeRcM7jMRsTEsUwDQYJKoZIhvcNAQELBQADggEBAKz/+lf4spxZdUONnFNMyFKp4a//u4h6N6cF4vX4f9/kevm4ZeeQC9l0coYfuuIjiD3JQrzHWAxF9ki04SDPWdz9eYztmJJ8ogGJUJ3ZXpqQvKvr0iKuoEhTBXbeOv6HFfQ/gX1JpecLpI6Cv1rgdliV/b0tfGFmOlK82Py//Z7mO9y4n6pdmeXqvDQdTzuObxG3BuVaolBOQ1JZlItjzzJltY49dGYyUOb/UgxyLdNfvt2q+ezq9n2FgMGP7SgriKZf1mFn7pI0WrIu8hclVlwszeNmikW+F5jr7QwaLW4W7jOhQk1DSoXzkEmoe0NF2Aw09HM8oqTqLnIeDnZr8o8=";
+		String publicKeyStr = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt1drXlapnJpjgolASeSyEHy6uouEIvHDatI7T7jTHZ29KGVI4jQ0o8EoebuhtOzN1cv7WT+tiWASo2t9CuwQ5er6cXCNCk6FyX7QhcUquHAHSLBA54OffXhWI2wj1xTvSpZlJ9t24Sd9HUI2dDyWH4XFfBN2hL43vFraeF8WjCccpDcmwykaLa6cSRPExlQ3JVUN06S3HfIHvXNsDTfijAypCBQ2fI3COuVOcgJLbi6Rj1mHe3v5PK8jxvIlg8hrcW5B3F28ZfBps/mLNisjHjEt+Bm7GniY5u2erjJ/6NZYLGuQh7w1CrlJUiD9/sPNj99kkEozhZUYdjnGyjxVWQIDAQAB";
+		PublicKey publicKey = SecurityUtil.getPublicKeyFromString(publicKeyStr, null);
+		Certificate certificate = SecurityUtil.getCertificateFromString(certStr);
+		
+		String message = "hello world!";
+		String signatureStr = "azKo7ikSRsvGDf6T40d5tA+pyfyFbxf/vbL18woU+aGd9vF9qGzytWp870cmeuDqriTQX8PDC6zacob8uB+LGMhvPoBaoevlzl1/ixUFNnv26pxh4OJrawCMeEr70C/9VRJeHVmfygGHyGn6wRHdm3ZKiuxR8V+rpvCUSwbnuaGlkR57miTxsswlULBQAFsPEch33Y4RE9/kxXxlCqwXGGA2t7zEFYwG0kJKlSNWNjQ3We9tuxpBqNDH48JpNs1K2NI9HFjHkW1z0OzJtg0QEdEZrJASMkA5TgoY8oYWeoO+hWXpgLGCcv5IRDip6XxVXhk34JJxaDjT/6r7lR/ybQ==";
+		String encryptedMessage = "j2qbX5JdxPiFzoUIl1jHWa1G/Luea9iR5JjgQlo6onZ71MxKWk7rCMc99G7G+UB6ZJKHxjjTZ8EmYBwp84nkKnNHMtk9jeaRHMPDmrdWpCt1eVV/OBm0mt/TTT2YvSR8rFgyvfuVfknSXjbGR85XRDLF/3IO4bQUGYWJJMfFvM0r1AT0mNK5wx7IsDS7WZyW/njaRUKfw1eQNR0wZG5LA1HpJPdhx41zBH+yXXYNkXNYA+IAuwzM+TycUCC9WcvlProgDKLnFqbA23IcrSCgx2oQNW3e2oVOE5HuqP+x0QBYs5S+1uAW0jYs/z/N+F75jIvJmFnEebvwIlYkxb0Fhw==";
+		boolean isVerified = SecurityUtil.verifySignature(publicKey, signatureStr, message);
+		System.out.printf("is verified = " + isVerified);
+		System.out.printf("\ndecrypted message = " + SecurityUtil.decryptAsym(encryptedMessage, null, publicKey));
+		
+		String encrypted12345 = "U7RHSPJXqZHmEqwi7a4upIEtAZTA1bxhwomVnWi2gsIpsSO5HQr5IfScWwCKR/5jjMiMLHZirAb0ooZ4rGc86qmDmrHVBIc/sc+b5Lcv1LCaVIfYiBCYLKU4Vw1AGa/evNXcWAL/laL7wz1KycdvDAaVFKaH2RMcTqYC5IRcJEl2h2dFQUmaCCvkanPsj0mJ0KVsP1q+pJ4YpqZaFfI9L+3O5cnHgd+7WqWq2txZ5KPukO1izfxuw+nzLTYKQUT0NiKOIPwGhC+aXKrlkNhI/8SlFUnF8Og+w0cSgM0+a9u2/8kK2cCullR+mvqF7MttoaMun6557c8Mh+CAG0Kqyg==";
 	}
 
 }

@@ -26,6 +26,11 @@ public class DecryptTextProcessor extends RequestProcessor {
 	private static final Logger logger = LogManager.getLogger(DecryptTextProcessor.class);
 
 	@Override
+	public String getTargetRole() {
+		return null;
+	}
+
+	@Override
 	public BaseResponse processRequest(BaseRequest req) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
@@ -44,9 +49,9 @@ public class DecryptTextProcessor extends RequestProcessor {
 		if(AsymmetricCrypter.CIPHER_DEFAULT_ALGORITHM.equalsIgnoreCase(encryptedInfo.getAlgorithm())) {
 			PublicKey publicKey = AppComponents.pkiKeyCache.getAppPublicKey();
 			PrivateKey privateKey = AppComponents.pkiService.getAppPrivateKey();
-			if(publicKey == null || privateKey == null) {
+			if(publicKey == null && privateKey == null) {
 				response = AppUtil.createResponse(DecryptTextResponse.class, "N/A",
-						ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "publickey or privatekey can't be null, check code or configuration!");
+						ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "publickey and privatekey can't be both null, check code or configuration!");
 				return response;
 			}	
 			decryptedText = SecurityUtil.decryptAsym(encryptedInfo.getEncryptedText(), privateKey, publicKey);

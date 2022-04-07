@@ -17,7 +17,12 @@
 package com.itdevcloud.japp.core.iaa.web;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -41,8 +46,11 @@ import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.core.service.notification.SystemNotification;
 import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
+import com.itdevcloud.japp.se.common.security.Hasher;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * This Servlet Filter provides the support for verifying that each incoming
@@ -71,10 +79,11 @@ import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
 //NOTE:
 //if update urlPattern, also need to update web.xml
 //
-@WebFilter(filterName = "JappApiAuthenticationFilter", urlPatterns = "/api/*")
+@WebFilter(filterName = "JappApiAuthenticationFilter", urlPatterns = "/*")
 public class AuthenticationFilter implements Filter {
 
 	private static final Logger logger = LogManager.getLogger(AuthenticationFilter.class);
+	private List<String> excludePathList = null;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
@@ -87,20 +96,19 @@ public class AuthenticationFilter implements Filter {
 
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
-		
-		//move to SpecialCharacterFilter
-		//AppUtil.initTransactionContext(httpRequest);
-		
+
+		// move to SpecialCharacterFilter
+		AppUtil.initTransactionContext(httpRequest);
+
 		try {
 			logger.debug("AuthenticationFilter.doFilter() start ========>");
-
+			String errMessage = null;
 			// App CIDR white list check begin
 			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
-				logger.error(
-						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = "
-								+ AppUtil.getClientIp(httpRequest) + ".....");
-				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E209");
+				errMessage = "Authorization Failed. Request IP is not on the APP's IP white list, user IP = "
+						+ AppUtil.getClientIp(httpRequest) + ".....";
+				logger.error(errMessage);
+				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
 				return;
 			}
 			long startTS = System.currentTimeMillis();
@@ -108,7 +116,7 @@ public class AuthenticationFilter implements Filter {
 			String requestURI = httpRequest.getRequestURI();
 			String queryStr = httpRequest.getQueryString();
 
-			logger.info("AuthenticationFilter.doFilter====method=" + httpRequest.getMethod());
+			logger.info("AuthenticationFilter.doFilter () ====> method=" + httpRequest.getMethod());
 			String origin = ConfigFactory.appConfigService
 					.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
 
@@ -117,7 +125,7 @@ public class AuthenticationFilter implements Filter {
 				httpResponse.addHeader("Access-Control-Allow-Origin", origin);
 				httpResponse.addHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
 				httpResponse.addHeader("Access-Control-Allow-Headers",
-						"Origin, X-Requested-With, Content-Type, Accept, Authorization");
+						"Origin, X-Requested-With, Content-Type, Accept, Authorization, Token, Token-Nonce");
 				httpResponse.setStatus(200);
 				return;
 			}
@@ -133,33 +141,64 @@ public class AuthenticationFilter implements Filter {
 			// check skip auth
 			boolean enableAuth = ConfigFactory.appConfigService
 					.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_API_AUTH_ENABLED);
-			if (enableAuth || AppConstant.JAPPCORE_SPRING_ACTIVE_PROFILE_PROD.equalsIgnoreCase(activeProfile)) {
+			boolean isExcluded = isExcluded(httpRequest);
+
+			if (!(isExcluded || (!enableAuth
+					&& !AppConstant.JAPPCORE_SPRING_ACTIVE_PROFILE_PROD.equalsIgnoreCase(activeProfile)))) {
 				// verify JWT from a header,
 				String token = AppUtil.getJwtTokenFromRequest(httpRequest);
 				try {
-					iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token);
-					if (iaaUser == null) {
-						String errStr = "Authorization Failed. code E207 - Can not retrieve iaaUser";
-						logger.error(errStr);
-						httpResponse.setStatus(403);
-						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errStr);
+					if (StringUtil.isEmptyOrNull(token)) {
+						errMessage = "Authorization Failed. Token is null.....";
+						logger.error(errMessage);
+						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
 						return;
 					}
+					
+					String nonce = httpRequest.getHeader(AppConstant.HTTP_TOKEN_NONCE_HEADER_NAME);
+					String userIp = AppUtil.getClientIp(httpRequest);
+					
+					Map<String, String> claimEqualMatchMap = new HashMap<String,String>();
+					//must be access token
+					claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_TOKEN_TYPE, TokenHandlerI.TYPE_ACCESS_TOKEN);
+					
+					//Force to check nonce and ip if token has them as claims
+					if (!StringUtil.isEmptyOrNull(userIp)) {
+						claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, Hasher.hashPassword(userIp));
+					}else {
+						claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, null);
+					}
+					if (!StringUtil.isEmptyOrNull(nonce)) {
+						claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_NONCE, Hasher.hashPassword(nonce));
+					}else {
+						claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_NONCE, null);
+					}
+					//if token doesn't has nonce or IP, ignore them
+					iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token, claimEqualMatchMap, true);
+					if (iaaUser == null) {
+						errMessage = "Authorization Failed. Can not retrieve iaaUser";
+						logger.error(errMessage);
+						httpResponse.setStatus(403);
+						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
+						return;
+					}
+					
+
 					// Application role list check
 					if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
-						logger.error(
-								"Authorization Failed. code E508 - requestor's is not on the APP's role list" + ".....");
-						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-								"Authorization Failed. code E508");
+						errMessage = "Authorization Failed. Requestor's role does not match APP role list";
+						logger.error(errMessage);
+						httpResponse.setStatus(403);
+						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
 						return;
 					}
 					// CIDR white list check begin
 					if (!AppComponents.commonService.matchUserIpWhiteList(httpRequest, iaaUser)) {
-						logger.error(
-								"Authorization Failed. code E210 - request IP is not on the user's IP white list, user loginId: '"
-										+ iaaUser.getLoginId() + "', IP = " + AppUtil.getClientIp(httpRequest) + ".....");
-						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-								"Authorization Failed. code E210");
+						errMessage = "Authorization Failed. Requestor's IP does not on user's IP white list. user loginId: '" 
+									+ iaaUser.getLoginId() + "', IP = " + AppUtil.getClientIp(httpRequest);
+						logger.error(errMessage);
+						httpResponse.setStatus(403);
+						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
 						return;
 					}
 					// handle maintenance mode
@@ -169,32 +208,36 @@ public class AuthenticationFilter implements Filter {
 				} catch (AppException e) {
 					String errStr = e.getMessage();
 					logger.error(errStr);
-					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errStr);
+					AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errStr);
 					return;
 				}
-				//SecondFactorInfo secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
-				//String newToken = AppComponents.iaaService.issueToken(iaaUser, secondFactorInfo);
-				//httpResponse.addHeader("Token", newToken);
+				// SecondFactorInfo secondFactorInfo =
+				// AppUtil.getSecondFactorInfoFromToken(token);
+				// String newToken = AppComponents.iaaService.issueToken(iaaUser,
+				// secondFactorInfo);
+				// httpResponse.addHeader("Token", newToken);
 //				 httpResponse.addHeader("Access-Control-Allow-Origin",
 //				 authParameters.getAngularOrigin());
-				 httpResponse.addHeader("Access-Control-Allow-Headers",
-				 "X-Requested-With,Origin,Content-Type, Accept, Token");
+				httpResponse.addHeader("Access-Control-Allow-Headers",
+						"X-Requested-With,Origin,Content-Type, Accept, Token");
 				httpResponse.addHeader("Access-Control-Expose-Headers", "Token");
 
 				logger.info("AuthenticationFilter - Issue new token........");
-				
+				String newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
+				httpResponse.addHeader("Token", newToken);
+
 			} else {
 
-				// japp auth
+				// skip auth
 				String loginId = request.getParameter("loginId");
 
-				iaaUser = AppComponents.iaaService.getDummyIaaUserByLoginId(loginId);
+				iaaUser = AppComponents.iaaService.getAnonymousIaaUserByLoginId(loginId);
 
 				// handle maintenance mode
 				if (AppComponents.commonService.inMaintenanceMode(httpResponse, loginId)) {
 					return;
 				}
-				logger.warn("AuthenticationFilter - back-end skip auth.......!!!!!!!, get dummy user with loginId = "
+				logger.warn("AuthenticationFilter - back-end skip auth.......!!!!!!!, get Anonymous user with loginId = "
 						+ loginId);
 
 			}
@@ -230,12 +273,34 @@ public class AuthenticationFilter implements Filter {
 				AppComponents.systemNotifyService.addNotification(sn);
 			}
 			logger.info(infoStr);
-		}finally
+		} finally{
+			AppUtil.clearTransactionContext();
+		}
+	}
+	private boolean isExcluded(HttpServletRequest request) {
+		if(excludePathList == null) {
+			String authExcludePaths = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTH_EXCLUDE_PATHS);
+            logger.info("authExcludePaths------"+authExcludePaths);
+			if(StringUtil.isEmptyOrNull(authExcludePaths)) {
+				excludePathList = new ArrayList<String>();
+				return false;
+			}
+			excludePathList = Arrays.asList(authExcludePaths.split(";"));
+		}
+		if(excludePathList.isEmpty()) {
+			return false;
+		}
+		for(String str: excludePathList) {
+			String path = request.getRequestURI();
+            int idx = path.indexOf(str);
+            logger.debug("isExcluded() - request URI: "+  path + ", exclude string: "+str);
+            if(idx >= 0) {
+            	return true;
+            }
+		}
+        return false;
+    }
 
-	{
-		AppUtil.clearTransactionContext();
-	}
-	}
 
 	@Override
 	public void destroy() {

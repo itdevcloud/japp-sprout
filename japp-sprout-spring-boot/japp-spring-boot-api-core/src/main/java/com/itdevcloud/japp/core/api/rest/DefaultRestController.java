@@ -45,25 +45,25 @@ public class DefaultRestController extends BaseRestController {
 
 	//private static final Logger logger = LogManager.getLogger(DefaultRestController.class);
 	
-	@Value("${" + AppConfigKeys.JAPPCORE_APP_DEFAULT_CONTROLLER_ENABLED + ":false}")
-	private boolean defaultControllerEnabled;
-
-	private <T extends BaseResponse> T checkIsEnabled(Class<T> responseClass) {
-    	if(!defaultControllerEnabled) {
-			T response = AppUtil.createResponse(responseClass, "N/A",
-					ResponseStatus.STATUS_CODE_WARN_NOACTION, "PKI controller is not enabled!");
-			return response;
-		}else {
-			return null;
-		}
-	}
+//	@Value("${" + AppConfigKeys.JAPPCORE_APP_DEFAULT_CONTROLLER_ENABLED + ":false}")
+//	private boolean defaultControllerEnabled;
+//
+//	private <T extends BaseResponse> T checkIsEnabled(Class<T> responseClass) {
+//    	if(!defaultControllerEnabled) {
+//			T response = AppUtil.createResponse(responseClass, "N/A",
+//					ResponseStatus.STATUS_CODE_WARN_NOACTION, "PKI controller is not enabled!");
+//			return response;
+//		}else {
+//			return null;
+//		}
+//	}
 
     @Operation(summary = "Echo a request", 
     		   description = "Echo back a request. This service could be used as health check porpuse", 
     		   tags = { "Core-Default" },
    			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
     
-	@PostMapping("/api/core/echo")
+	@PostMapping("/open/core/echo")
 	EchoResponse echo(@RequestBody EchoRequest request) {
     	EchoResponse response = null;
 		if( (response = checkIsEnabled(EchoResponse.class)) != null) {

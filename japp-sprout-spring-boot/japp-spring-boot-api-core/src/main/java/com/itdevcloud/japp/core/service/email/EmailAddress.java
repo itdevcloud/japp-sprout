@@ -16,41 +16,78 @@
  */
 package com.itdevcloud.japp.core.service.email;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.validator.routines.EmailValidator;
+
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
 public class EmailAddress {
-	private String name;
+	private String displayName;
 	private String address;
 
-
-	public EmailAddress(String name, String address) {
+	/*
+	 * format: DisplayName<email address>
+	 */
+	public EmailAddress(String address) {
 		super();
-		this.name = name;
-		this.address = address;
+		if(StringUtil.isEmptyOrNull(address) ) {
+			throw new RuntimeException("email address is empty or null, check code!");
+		}
+	    String pattern = "(.*)<(.*)>";
+	    Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(address);
+        if (m.find( )) {
+        	this.displayName = m.group(1);
+        	this.address = m.group(2);
+         } else {
+         	this.displayName = null;
+         	this.address = address;
+         }
+        EmailValidator validator = EmailValidator.getInstance();
+		if(this.address == null || !validator.isValid(this.address)) {
+			throw new RuntimeException("email address '" + this.address + "' is invalid, check code! original address string = " + address);
+		}
+     	this.displayName = (this.displayName==null?null:this.displayName.trim());
+     	this.address = (this.address==null?null:this.address.trim());
 	}
 
-	public String getName() {
-		return this.name;
+	public String getDisplayName() {
+		return this.displayName;
 	}
 
 	public String getAddress() {
 		return this.address;
 	}
 
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	@Override
 	public String toString() {
-		return "EmailAddress [name=" + name + ", address=" + address + "]";
+		return "EmailAddress [name=" + displayName + ", address=" + address + "]";
+	}
+	
+	public static void main(String[] args)  {
+		String address = "sun@a.com";
+		EmailAddress emailAddress = new EmailAddress(address);
+		System.out.println("address = " + address + ", email address = " + emailAddress);
+		
+		address = "<sun@a.com>";
+		emailAddress = new EmailAddress(address);
+		System.out.println("address = " + address + ", email address = " + emailAddress);
+		
+		address = "M Sun. <sun@a.com>";
+		emailAddress = new EmailAddress(address);
+		System.out.println("address = " + address + ", email address = " + emailAddress);
+
+		address = " M Sun. <sun@a.com> abc";
+		emailAddress = new EmailAddress(address);
+		System.out.println("address = " + address + ", email address = " + emailAddress);
+
 	}
 
 }

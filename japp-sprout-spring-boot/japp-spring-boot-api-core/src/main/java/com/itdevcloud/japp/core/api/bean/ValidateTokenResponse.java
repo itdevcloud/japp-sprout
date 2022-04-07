@@ -30,15 +30,24 @@ public class ValidateTokenResponse extends BaseResponse {
 
 	private static final long serialVersionUID = 1L;
 
-	private boolean isValidJwt;
-	private String jwt;
+	private boolean isValidToken;
+	private String newToken;
 
-	public boolean isValidJwt() {
-		return isValidJwt;
+
+	public boolean getIsValidToken() {
+		return isValidToken;
 	}
 
-	public void setValidJwt(boolean isValidJwt) {
-		this.isValidJwt = isValidJwt;
+	public void setIsValidToken(boolean isValidToken) {
+		this.isValidToken = isValidToken;
+	}
+
+	public String getNewToken() {
+		return newToken;
+	}
+
+	public void setNewToken(String newToken) {
+		this.newToken = newToken;
 	}
 
 

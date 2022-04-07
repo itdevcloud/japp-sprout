@@ -16,7 +16,9 @@
  */
 package com.itdevcloud.japp.core.iaa.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -25,11 +27,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppThreadContext;
+import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
@@ -51,6 +56,15 @@ public class IaaService implements AppFactoryComponentI {
 	public void init() {
 	}
 	
+	public List<ClientAppInfo> getClientAppInfoList(){
+		Set<ClientAppInfo> clientAppInfoSet = AppComponents.clientAppInfoCache.getAllClientAppInfo();
+		List<ClientAppInfo> clientAppInfoList = new ArrayList<ClientAppInfo>(clientAppInfoSet);
+		return clientAppInfoList;
+	}
+	public ClientAppInfo getClientAppInfo(String appCode){
+		return AppComponents.clientAppInfoCache.getClientAppInfo(appCode);
+	}
+
 	public IaaUserI login(String loginId, String password, String authProvider) {
 		if (StringUtil.isEmptyOrNull(loginId) || StringUtil.isEmptyOrNull(password)) {
 			String err = "loginByLoginIdPassword() - The login and/or password is null or empty. check code!";
@@ -77,13 +91,13 @@ public class IaaService implements AppFactoryComponentI {
 		}
 	}
 	
-	public IaaUserI loginByToken(String token) {
+	public IaaUserI loginByToken(String token, Map<String, String> claimEqualMatchMap, boolean ignoreNullInToken, String... args) {
 		if (StringUtil.isEmptyOrNull(token)) {
 			String err = "loginByToken() - The token is null or empty. check code!";
 			logger.error(err);
 			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, err);
 		}
-		IaaUserI iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token);;
+		IaaUserI iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token, claimEqualMatchMap, ignoreNullInToken, args);
 		return iaaUser;
 	}
 
@@ -125,63 +139,32 @@ public class IaaService implements AppFactoryComponentI {
 		
 	}
 
-	public IaaUserI validateTokenAndRetrieveIaaUser(String token) {
-		
+	public IaaUserI validateTokenAndRetrieveIaaUser(String token, Map<String, String> claimEqualMatchMap, boolean ignoreNullInToken, String... args) {
 		
 		if (StringUtil.isEmptyOrNull(token)) {
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "E204: invlad token!");
+			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "token is null!");
 		}
-		TokenHandlerI tokenHandler = AppComponents.jwtService.getAccessTokenHandler();
 		IaaUserI iaaUser = null;
-		boolean isValidToken = tokenHandler.isValidToken(token, null);
+		boolean isValidToken = AppComponents.jwtService.isValidToken(token, claimEqualMatchMap, ignoreNullInToken, args);
 		if(!isValidToken) {
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "E204: invlad token!");
+			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "Invalid Token!");
 		}
-		iaaUser = tokenHandler.getIaaUser(token);
+		iaaUser = AppComponents.jwtService.getIaaUser(token);
+		
+		AppComponents.iaaUserCache.addIaaUser(iaaUser);
+		AppThreadContext.setIaaUser(iaaUser);
 		
 		return iaaUser;
 	}
 
-//	public String issueToken(IaaUserI iaaUser, SecondFactorInfo secondFactorInfo) {
-//
-//		String token = null;
-//		int expireMins = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
-//		try {
-//			String secondFactorType = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_2NDFACTOR_TYPE);
-//			SecondFactorInfo secondFactorInfo = new SecondFactorInfo();
-//			String user2ndFactorType = iaaUser.getMfaType();
-//			
-//			if (user2ndFactorType.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)){
-//				if ((secondFactorType.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE))){
-//					secondFactorInfo.setType(secondFactorType);
-//					secondFactorInfo.setVerified(false);
-//					secondFactorInfo.setValue(null);
-//					expireMins = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
-//				}else {
-//					secondFactorInfo.setType(secondFactorType);
-//					secondFactorInfo.setVerified(false);
-//					String tmpV = AppComponents.iaaService.getAndSend2factorValue(iaaUser, secondFactorType);
-//					secondFactorInfo.setValue(Hasher.hashPassword(tmpV));
-//				}
-//			} else {
-//				secondFactorInfo.setType(user2ndFactorType);
-//				secondFactorInfo.setVerified(false);
-//				String tmpV = AppComponents.iaaService.getAndSend2factorValue(iaaUser, user2ndFactorType);
-//				secondFactorInfo.setValue(Hasher.hashPassword(tmpV));
-//			}
-//			Key key = AppComponents.pkiKeyCache.getJappPrivateKey();
-//			TokenHandlerI tokenHandler = AppComponents.jwtService.getAccessTokenHandler();
-//			token = tokenHandler.issueToken(iaaUser, key, expireMins, secondFactorInfo);
-//			return token;
-//		} catch (Throwable t) {
-//			logger.error(CommonUtil.getStackTrace(t));
-//			return null;
-//		}
-//	}
-	
+
 	//target role could be business role or application role
 	public boolean isAccessAllowed(String targetRole) {
 		IaaUserI user = AppThreadContext.getIaaUser();
+		if (StringUtil.isEmptyOrNull(targetRole)) {
+			logger.debug("isAccessAllowed() - The target role is empty or null, return true.");
+			return true;
+		}
 		if (user == null) {
 			logger.info("isAccessAllowed() - The user can't be retrieved from ThreadContext, return false.");
 			return false;
@@ -216,19 +199,10 @@ public class IaaService implements AppFactoryComponentI {
 		return helper.getUpdatedIaaUsers(lastCheckTimestamp);
 	}
 	
-//	public String getAndSend2factorValue(IaaUserI iaaUser, String SecondFactorType) {
-//		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-//		return helper.getAndSend2factorValue(iaaUser, SecondFactorType);
-//	}
-//	
-//	public String getHashed2FactorVerificationCodeFromRepositoryByUid(String uid) {
-//		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-//		return helper.getHashed2FactorVerificationCodeFromRepositoryByUid(uid);
-//	}
 	
-	public IaaUserI getDummyIaaUserByLoginId(String loginId, String... args) {
+	public IaaUserI getAnonymousIaaUserByLoginId(String loginId, String... args) {
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		IaaUserI user =  helper.getDummyIaaUserByLoginId(loginId, args);
+		IaaUserI user =  helper.getAnonymousIaaUserByLoginId(loginId, args);
 		AppThreadContext.setIaaUser(user);
 		return user;
 

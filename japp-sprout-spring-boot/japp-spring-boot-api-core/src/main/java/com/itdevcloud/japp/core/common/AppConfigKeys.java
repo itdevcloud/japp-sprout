@@ -60,11 +60,11 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_APP_LOG_CURRENT_LOG_FILENAME = "jappcore.app.log.current.log.filename";
 	public static final String JAPPCORE_APP_STARTUP_NOTIFICATION_WAITING_SECONDS = "jappcore.app.startup.notification.waiting.seconds";
 	public static final String JAPPCORE_APP_COMMAND_CONTROLLER_ENABLED = "jappcore.app.command.controller.enabled";
-	public static final String JAPPCORE_APP_PKI_CONTROLLER_ENABLED = "jappcore.app.pki.controller.enabled";
-	public static final String JAPPCORE_APP_DEFAULT_CONTROLLER_ENABLED = "jappcore.app.default.controller.enabled";
-	public static final String JAPPCORE_APP_SECURITY_CONTROLLER_ENABLED = "jappcore.app.security.controller.enabled";
-	public static final String JAPPCORE_APP_AUTH_CONTROLLER_ENABLED = "jappcore.app.auth.controller.enabled";
-
+//	public static final String JAPPCORE_APP_PKI_CONTROLLER_ENABLED = "jappcore.app.pki.controller.enabled";
+//	public static final String JAPPCORE_APP_DEFAULT_CONTROLLER_ENABLED = "jappcore.app.default.controller.enabled";
+//	public static final String JAPPCORE_APP_SECURITY_CONTROLLER_ENABLED = "jappcore.app.security.controller.enabled";
+//	public static final String JAPPCORE_APP_AUTH_CONTROLLER_ENABLED = "jappcore.app.auth.controller.enabled";
+	public static final String JAPPCORE_APP_CORE_CONTROLLER_ENABLED_COMMANDS = "jappcore.app.core.controller.enabled.commands";
 	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_IP_ENABLED = "jappcore.iaa.token.validate.ip.enabled";
 	public static final String JAPPCORE_IAA_2NDFACTOR_TYPE = "jappcore.iaa.2ndfactor.type";
 	public static final String JAPPCORE_IAA_CIDR_USER_WHITELIST_ENABLED = "jappcore.iaa.cidr.user.whitelist.enabled";
@@ -72,7 +72,9 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST = "jappcore.iaa.cidr.application.whitelist";
 	public static final String JAPPCORE_IAA_CIDR_SYSTEMUSER_WHITELIST = "jappcore.iaa.cidr.whitelist.systemuser";
 	public static final String JAPPCORE_IAA_API_AUTH_ENABLED = "jappcore.iaa.japp.api.auth.enabled";
-	public static final String JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH = "jappcore.iaa.token.expiration.length";
+	public static final String JAPPCORE_IAA_TOKEN_ACCESS_EXPIRATION_LENGTH = "jappcore.iaa.token.access.expiration.length.mins";
+	public static final String JAPPCORE_IAA_TOKEN_REFRESH_EXPIRATION_LENGTH = "jappcore.iaa.token.refresh.expiration.length.mins";
+	public static final String JAPPCORE_IAA_TOKEN_IDTOKEN_EXPIRATION_LENGTH = "jappcore.iaa.token.idtoken.expiration.length.mins";
 	public static final String JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH = "jappcore.iaa.token.verify.expiration.length";
 	public static final String JAPPCORE_IAA_TOKEN_ISSUE_ISS = "jappcore.iaa.token.issue.iss";
 	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_AUD = "jappcore.iaa.token.validate.aud";
@@ -82,6 +84,7 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_AUTH_APP_CALLBACK_URL = "jappcore.iaa.auth.app.callback.url";
 	//public static final String JAPPCORE_IAA_USE_THIRDPARTY_TOKEN = "jappcore.iaa.use.thirdparty.token";
 	public static final String JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME = "jappcore.iaa.accessstoken.handler.name";
+	public static final String JAPPCORE_IAA_AUTH_EXCLUDE_PATHS = "jappcore.iaa.auth.exclude.paths";
 
 	public static final String JAPPCORE_FRONTEND_UI_FRAMEWORK = "jappcore.frontend.ui.framework";
 	public static final String JAPPCORE_FRONTEND_UI_ORIGIN = "jappcore.frontend.ui.origin";
@@ -104,7 +107,8 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_EMAIL_SYSTEM_REPLYTOADDRESS = "jappcore.email.system.replytoaddress";
 	public static final String JAPPCORE_EMAIL_SENDGRID_API_KEY = "jappcore.email.sendgrid.api.key";
 	public static final String JAPPCORE_EMAIL_SENDASGROUP = "jappcore.email.sendasgroup";
-	
+	public static final String JAPPCORE_EMAIL_MAX_ATTACHMENT_FILE_SIZE_BYTES = "jappcore.email.max.attachment.file.size.bytes";
+
 	public static final String JAPPCORE_ASYNC_EXECUTOR_CORE_POOL_SIZE = "jappcore.async.executor.core.pool.size";
 	public static final String JAPPCORE_ASYNC_EXECUTOR_QUEUE_CAPACITY = "jappcore.async.executor.queue.capacity";
 	public static final String JAPPCORE_ASYNC_EXECUTOR_MAX_POOL_SIZE = "jappcore.async.executor.max.pool.size";

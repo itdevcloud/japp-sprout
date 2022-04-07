@@ -20,6 +20,7 @@ package com.itdevcloud.japp.core.common;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.cahce.AadJwksCache;
+import com.itdevcloud.japp.core.cahce.ClientAppInfoCache;
 import com.itdevcloud.japp.core.cahce.IaaUserCache;
 import com.itdevcloud.japp.core.cahce.PkiKeyCache;
 import com.itdevcloud.japp.core.cahce.ReferenceCodeCache;
@@ -65,6 +66,7 @@ public class AppComponents {
 	public static PkiKeyCache pkiKeyCache;
 	public static AadJwksCache aadJwksCache;
 	public static ReferenceCodeCache referenceCodeCache;
+	public static ClientAppInfoCache clientAppInfoCache;
 
 
 }

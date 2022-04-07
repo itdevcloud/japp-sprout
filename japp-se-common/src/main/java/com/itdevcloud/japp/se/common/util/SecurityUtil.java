@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
@@ -46,6 +47,13 @@ import com.itdevcloud.japp.se.common.security.EncryptedInfo;
  * @since 1.0.0
  */
 public class SecurityUtil {
+
+	private static final String SIGNING_ALGORITHM = "SHA256withRSA";
+	
+	public static final String certPrefix = "-----BEGIN CERTIFICATE-----";
+	public static final String certSuffix = "-----END CERTIFICATE-----";
+	public static final String publicKeyPrefix = "-----BEGIN PUBLIC KEY-----";
+	public static final String publicKeySuffix = "-----END PUBLIC KEY-----";
 
 	public static EncryptedInfo encrypt(String clearText, String encodedKey) {
 		if (StringUtil.isEmptyOrNull(clearText)) {
@@ -265,9 +273,9 @@ public class SecurityUtil {
 		ByteArrayInputStream in = null;
 		BufferedInputStream bis = null;
 		try {
-			if(certStr.indexOf("-----BEGIN CERTIFICATE-----") < 0 ) {
+			if(certStr.indexOf(certPrefix) < 0 ) {
 				//change to pem string
-				certStr = "-----BEGIN CERTIFICATE-----" + System.lineSeparator() + certStr + System.lineSeparator() + "-----END CERTIFICATE-----";
+				certStr = certPrefix + System.lineSeparator() + certStr + System.lineSeparator() + certSuffix;
 			}
 			// logger.debug(".........certStr=" + certStr);
 			in = new ByteArrayInputStream(certStr.getBytes(StandardCharsets.UTF_8));
@@ -313,7 +321,7 @@ public class SecurityUtil {
 		}
 	}
 
-	public static String getCertificatePemString(Certificate certificate) {
+	public static String getCertificatePemString(Certificate certificate, boolean insertLineSeparator) {
 		if (certificate == null) {
 			return null;
 		}
@@ -323,10 +331,12 @@ public class SecurityUtil {
 			String encodedKey = null;
 			if (bytes != null) {
 				encodedKey = new String(Base64.getEncoder().encodeToString(bytes));
-//				encodedKey = "-----BEGIN CERTIFICATE-----" + System.lineSeparator() + encodedKey
-//						+ System.lineSeparator() + "-----END CERTIFICATE-----";
-				encodedKey = "-----BEGIN CERTIFICATE-----" + encodedKey
-						+ "-----END CERTIFICATE-----";
+				if(insertLineSeparator) {
+					encodedKey = certPrefix + System.lineSeparator() + encodedKey
+							+ System.lineSeparator() + certSuffix;
+				}else {
+					encodedKey = certPrefix + encodedKey + certSuffix;
+				}
 			}
 			return encodedKey;
 		} catch (CertificateEncodingException e) {
@@ -336,7 +346,7 @@ public class SecurityUtil {
 
 	}
 
-	public static String getPublicKeyPemString(PublicKey key) {
+	public static String getPublicKeyPemString(PublicKey key, boolean insertLineSeparator) {
 		if (key == null) {
 			return null;
 		}
@@ -344,9 +354,12 @@ public class SecurityUtil {
 		String encodedKey = null;
 		if (bytes != null) {
 			encodedKey = new String(Base64.getEncoder().encodeToString(bytes));
-//			encodedKey = "-----BEGIN PUBLIC KEY-----" + System.lineSeparator() + encodedKey + System.lineSeparator()
-//					+ "-----END PUBLIC KEY-----";
-			encodedKey = "-----BEGIN PUBLIC KEY-----" +  encodedKey + "-----END PUBLIC KEY-----";
+			if(insertLineSeparator) {
+				encodedKey = publicKeyPrefix + System.lineSeparator() + encodedKey + System.lineSeparator()
+						+ publicKeySuffix;
+			}else {
+				encodedKey = publicKeyPrefix +  encodedKey + publicKeySuffix;
+			}
 		}
 		return encodedKey;
 
@@ -356,13 +369,17 @@ public class SecurityUtil {
 	 * parse a String to a X.509 PublicKey object.
 	 * 
 	 */
-	public static PublicKey getPublicKeyeFromString(String keyStr, String algorithm) {
+	public static PublicKey getPublicKeyFromString(String keyStr, String algorithm) {
 		if (StringUtil.isEmptyOrNull(keyStr)) {
 			return null;
 		}
+		if(StringUtil.isEmptyOrNull(algorithm)) {
+			algorithm = AsymmetricCrypter.CIPHER_DEFAULT_ALGORITHM;
+		}
 		try {
-			keyStr = keyStr.replace("-----BEGIN PUBLIC KEY-----", "");
-			keyStr = keyStr.replace("-----END PUBLIC KEY-----", "");
+			keyStr = keyStr.replaceAll("(\\r|\\n)", "");
+			keyStr = keyStr.replace(publicKeyPrefix, "");
+			keyStr = keyStr.replace(publicKeySuffix, "");
 			byte[] decodedStr = Base64.getDecoder().decode(keyStr);
 			X509EncodedKeySpec spec = new X509EncodedKeySpec(decodedStr);
 			KeyFactory kf = KeyFactory.getInstance(algorithm);
@@ -385,6 +402,47 @@ public class SecurityUtil {
 		return certificate.getPublicKey();
 	}
 
+	public static String sign(PrivateKey privateKey, String text) {
+		if (privateKey == null || StringUtil.isEmptyOrNull(text)) {
+			return null;
+		}
+
+		try {
+			Signature signature = Signature.getInstance(SIGNING_ALGORITHM);
+			signature.initSign(privateKey);
+			byte[] textBytes = StringUtil.getBytes(text);
+			signature.update(textBytes);
+			byte[] signatureBytes = signature.sign();
+
+			return StringUtil.getString(Base64.getEncoder().encode(signatureBytes));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Sign message failed.", e);
+		}
+	}
+
+	public static boolean verifySignature(PublicKey publicKey, String signatureStr, String text) {
+		if (publicKey == null || StringUtil.isEmptyOrNull(signatureStr) ||  StringUtil.isEmptyOrNull(text)) {
+			return false;
+		}
+
+		try {
+			Signature signature = Signature.getInstance(SIGNING_ALGORITHM);
+			signature.initVerify(publicKey);
+			byte[] textBytes = StringUtil.getBytes(text);
+
+			signature.update(textBytes);
+			byte[] signatureBytes = Base64.getDecoder().decode(signatureStr);
+
+			boolean isCorrect = signature.verify(signatureBytes);
+
+			return isCorrect;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Signature verification failed.", e);
+		}
+	}
 	
 
 }

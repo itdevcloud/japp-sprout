@@ -21,6 +21,7 @@ import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
@@ -68,7 +69,7 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 				return;
 
 			}
-			if (!AppComponents.jwtService.isValidToken(token, AppComponents.pkiKeyCache.getAppPublicKey(), null)) {
+			if (!AppComponents.jwtService.isValidToken(token, null, true)) {
 				// jwt token is not valid, return 401
 				logger.error("Authentication Failed. code E805 - token is not validated, throw 401 error====");
 				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
@@ -100,7 +101,7 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			// issue new JAPP JWT token;
-			String newToken = AppComponents.jwtService.issueAccessToken(iaaUser);
+			String newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
 
 			if (StringUtil.isEmptyOrNull(newToken)) {
 				logger.error(

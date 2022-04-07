@@ -42,6 +42,7 @@ public class AppConstant {
 
 	public static final String HTTP_AUTHORIZATION_HEADER_NAME = "Authorization";
 	public static final String HTTP_AUTHORIZATION_COOKIE_NAME = "Japp_Token_Cookie";
+	public static final String HTTP_TOKEN_NONCE_HEADER_NAME = "token-nonce";
 
 
 	public static final String JAPPCORE_SPRING_ACTIVE_PROFILE_PROD = "PROD";
@@ -55,5 +56,6 @@ public class AppConstant {
 	public static final String STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE = "AadJwksCache";
 	public static final String STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE = "PkiKeyCache";
 	public static final String STARTUP_NOTIFY_KEY_REFERENCE_CODE_CACHE = "ReferenceCodeCache";
+	public static final String STARTUP_NOTIFY_KEY_CLIENT_APPINFO_CACHE = "ClientAppInfoCache";
 
 }

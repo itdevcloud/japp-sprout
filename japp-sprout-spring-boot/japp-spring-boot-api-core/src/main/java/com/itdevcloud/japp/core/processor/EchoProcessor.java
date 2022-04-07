@@ -38,6 +38,11 @@ import com.itdevcloud.japp.core.common.AppUtil;
 public class EchoProcessor extends RequestProcessor {
 
 	private static final Logger logger = LogManager.getLogger(EchoProcessor.class);
+	
+	@Override
+	public String getTargetRole() {
+		return null;
+	}
 
 	@Override
 	protected BaseResponse processRequest(BaseRequest request) {

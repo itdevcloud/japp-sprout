@@ -29,6 +29,10 @@ import com.itdevcloud.japp.core.api.bean.DecryptTextRequest;
 import com.itdevcloud.japp.core.api.bean.DecryptTextResponse;
 import com.itdevcloud.japp.core.api.bean.EncryptTextRequest;
 import com.itdevcloud.japp.core.api.bean.EncryptTextResponse;
+import com.itdevcloud.japp.core.api.bean.SignTextRequest;
+import com.itdevcloud.japp.core.api.bean.SignTextResponse;
+import com.itdevcloud.japp.core.api.bean.VerifySignatureRequest;
+import com.itdevcloud.japp.core.api.bean.VerifySignatureResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -42,52 +46,76 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
  */
 
 @RestController
-@RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT
+		+ "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class SecurityRestController extends BaseRestController {
 
-	//private static final Logger logger = LogManager.getLogger(DefaultRestController.class);
-	
-	@Value("${" + AppConfigKeys.JAPPCORE_APP_SECURITY_CONTROLLER_ENABLED + ":false}")
-	private boolean defaultControllerEnabled;
+	// private static final Logger logger =
+	// LogManager.getLogger(DefaultRestController.class);
 
-	private <T extends BaseResponse> T checkIsEnabled(Class<T> responseClass) {
-    	if(!defaultControllerEnabled) {
-			T response = AppUtil.createResponse(responseClass, "N/A",
-					ResponseStatus.STATUS_CODE_WARN_NOACTION, "PKI controller is not enabled!");
-			return response;
-		}else {
-			return null;
-		}
-	}
+//	@Value("${" + AppConfigKeys.JAPPCORE_APP_SECURITY_CONTROLLER_ENABLED + ":false}")
+//	private boolean defaultControllerEnabled;
+//
+//	private <T extends BaseResponse> T checkIsEnabled(Class<T> responseClass) {
+//		if (!defaultControllerEnabled) {
+//			T response = AppUtil.createResponse(responseClass, "N/A", ResponseStatus.STATUS_CODE_WARN_NOACTION,
+//					"PKI controller is not enabled!");
+//			return response;
+//		} else {
+//			return null;
+//		}
+//	}
 
-    @Operation(summary = "Encrypt Text Request", 
-    		   description = "Encrypt Text", 
-    		   tags = { "Core-Security" },
-   			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
-    
+	@Operation(summary = "Encrypt Text Request", description = "Encrypt Text", tags = { "Core-Security" }, security = {
+			@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+
 	@PostMapping("/api/core/encryption")
-    EncryptTextResponse echo(@RequestBody EncryptTextRequest request) {
-    	EncryptTextResponse response = null;
-		if( (response = checkIsEnabled(EncryptTextResponse.class)) != null) {
-    		return response;
-    	}
+	EncryptTextResponse encryptText(@RequestBody EncryptTextRequest request) {
+		EncryptTextResponse response = null;
+		if ((response = checkIsEnabled(EncryptTextResponse.class)) != null) {
+			return response;
+		}
 		response = processRequest(request, EncryptTextResponse.class);
 		return response;
 	}
-	
-    @Operation(summary = "Decrypt Text Request", 
- 		   description = "Decrypt Text", 
- 		   tags = { "Core-Security" },
-			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
- 
+
+	@Operation(summary = "Decrypt Text Request", description = "Decrypt Text", tags = { "Core-Security" }, security = {
+			@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+
 	@PostMapping("/api/core/decryption")
-    DecryptTextResponse basicAuth(@RequestBody DecryptTextRequest request) {
-    	DecryptTextResponse response = null;
-		if( (response = checkIsEnabled(DecryptTextResponse.class)) != null) {
- 		return response;
- 	}
+	DecryptTextResponse decryptText(@RequestBody DecryptTextRequest request) {
+		DecryptTextResponse response = null;
+		if ((response = checkIsEnabled(DecryptTextResponse.class)) != null) {
+			return response;
+		}
 		response = processRequest(request, DecryptTextResponse.class);
 		return response;
 	}
-	
+
+	@Operation(summary = "Sign Text Request", description = "Sign Text", tags = { "Core-Security" }, security = {
+			@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+
+	@PostMapping("/api/core/sign")
+	SignTextResponse signText(@RequestBody SignTextRequest request) {
+		SignTextResponse response = null;
+		if ((response = checkIsEnabled(SignTextResponse.class)) != null) {
+			return response;
+		}
+		response = processRequest(request, SignTextResponse.class);
+		return response;
+	}
+
+	@Operation(summary = "Verify Signature Request", description = "Verify Signature Text", tags = { "Core-Security" }, security = {
+			@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+
+	@PostMapping("/api/core/signatureVerification")
+	VerifySignatureResponse signatureVerification(@RequestBody VerifySignatureRequest request) {
+		VerifySignatureResponse response = null;
+		if ((response = checkIsEnabled(VerifySignatureResponse.class)) != null) {
+			return response;
+		}
+		response = processRequest(request, VerifySignatureResponse.class);
+		return response;
+	}
+
 }

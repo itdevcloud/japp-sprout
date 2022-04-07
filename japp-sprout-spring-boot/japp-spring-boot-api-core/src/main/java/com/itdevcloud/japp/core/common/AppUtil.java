@@ -352,10 +352,10 @@ public class AppUtil {
 			logger.debug("getJwtTokenFromRequest - httpRequest is null.........");
 			return null;
 		}
-		String authoHeader = httpRequest.getHeader(AppConstant.HTTP_AUTHORIZATION_HEADER_NAME);
+		String authHeader = httpRequest.getHeader(AppConstant.HTTP_AUTHORIZATION_HEADER_NAME);
 		String token = null;
-		if ((authoHeader != null) && (authoHeader.startsWith("Bearer "))) {
-			token = authoHeader.substring(7);
+		if ((authHeader != null) && (authHeader.startsWith("Bearer "))) {
+			token = authHeader.substring(7);
 			logger.debug("getJwtTokenFromRequest - found token in request header.........");
 			return token;
 		} else {

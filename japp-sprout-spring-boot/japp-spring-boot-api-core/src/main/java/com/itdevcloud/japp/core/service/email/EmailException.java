@@ -23,21 +23,21 @@ package com.itdevcloud.japp.core.service.email;
  */
 public class EmailException extends Exception {
 	private static final long serialVersionUID = 1L;
-	private int code;
+	private String code;
 
-	public EmailException(int code) {
+	public EmailException(String code) {
 		super();
 		this.code = code;
 
 	}
 
-	public EmailException(int code, String message) {
+	public EmailException(String code, String message) {
 		super(message);
 		this.code = code;
 
 	}
 
-	public int getCode() {
+	public String getCode() {
 		return code;
 	}
 

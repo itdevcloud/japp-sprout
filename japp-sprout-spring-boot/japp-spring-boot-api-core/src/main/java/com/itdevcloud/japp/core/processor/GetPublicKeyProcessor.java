@@ -44,6 +44,10 @@ public class GetPublicKeyProcessor extends RequestProcessor {
 	private static final Logger logger = LogManager.getLogger(GetPublicKeyProcessor.class);
 
 	@Override
+	public String getTargetRole() {
+		return null;
+	}
+	@Override
 	public BaseResponse processRequest(BaseRequest request) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
@@ -55,7 +59,7 @@ public class GetPublicKeyProcessor extends RequestProcessor {
 		if(publicKey == null) {
 			return null;
 		}
-		response.setPublicKey(SecurityUtil.getPublicKeyPemString(publicKey));
+		response.setPublicKey(SecurityUtil.getPublicKeyPemString(publicKey, req.getInsertLineSeparator()));
 		response.setAlgorithm(publicKey.getAlgorithm());
 		response.setFormat(publicKey.getFormat());
 		

@@ -59,10 +59,13 @@ public class SpecialCharacterFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
+		
 		logger.debug("SpecialCharacterFilter.doFilter() - start......");
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
-		AppUtil.initTransactionContext(httpRequest);
+		
+		// in authenticationFilter
+		//AppUtil.initTransactionContext(httpRequest);
 
 		String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
 				

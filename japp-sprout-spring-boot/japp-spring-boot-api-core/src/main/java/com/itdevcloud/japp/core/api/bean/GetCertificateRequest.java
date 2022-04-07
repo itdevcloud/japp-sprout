@@ -28,6 +28,15 @@ import org.springframework.stereotype.Component;
 public class GetCertificateRequest extends BaseRequest {
 
 	private static final long serialVersionUID = 1L;
+	private boolean insertLineSeparator;
+
+	public boolean getInsertLineSeparator() {
+		return insertLineSeparator;
+	}
+
+	public void setInsertLineSeparator(boolean insertLineSeparator) {
+		this.insertLineSeparator = insertLineSeparator;
+	}
 
 
 }

@@ -1,6 +1,5 @@
 package com.itdevcloud.japp.core.processor;
 
-import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,12 +16,19 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.TransactionContext;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
+import com.itdevcloud.japp.se.common.security.Hasher;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
 @Component
 public class ValidateTokenProcessor extends RequestProcessor {
 
 	private static final Logger logger = LogManager.getLogger(ValidateTokenProcessor.class);
+	@Override
+	public String getTargetRole() {
+		return null;
+	}
 
 	@Override
 	public BaseResponse processRequest(BaseRequest request) {
@@ -35,20 +41,30 @@ public class ValidateTokenProcessor extends RequestProcessor {
 		
 		
 		// ====== business logic starts ======
-//		PublicKey publicKey = AppComponents.pkiKeyCache.getAppPublicKey();
-//		if(publicKey == null) {
-//			response = AppUtil.createResponse(ValidateTokenResponse.class, "N/A",
-//					ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "Can't get publickey for token validation, check code or configuration!");
-//			return response;
-//		}
 		String jwt = req.getJwt();
+		String nonce = req.getTokenNonce();
+		String userIp = txnCtx.getClientIP();
+		
 		Map<String, String> expectedClaims = new HashMap<String, String>();
-		String[] args = null;
-		boolean isValid = AppComponents.jwtService.isValidToken(jwt, expectedClaims, args);
-		if(isValid) {
-			response.setValidJwt(true);
+		if (!StringUtil.isEmptyOrNull(userIp)) {
+			expectedClaims.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, Hasher.hashPassword(userIp));
 		}else {
-			response.setValidJwt(false);
+			expectedClaims.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, null);
+		}
+		if (!StringUtil.isEmptyOrNull(nonce)) {
+			expectedClaims.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_NONCE, Hasher.hashPassword(nonce));
+		}else {
+			expectedClaims.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_NONCE, null);
+		}
+
+		String[] args = null;
+		
+		boolean isValid = AppComponents.jwtService.isValidToken(jwt, expectedClaims, true, args);
+		
+		if(isValid) {
+			response.setIsValidToken(true);
+		}else {
+			response.setIsValidToken(false);
 		}
 
 	

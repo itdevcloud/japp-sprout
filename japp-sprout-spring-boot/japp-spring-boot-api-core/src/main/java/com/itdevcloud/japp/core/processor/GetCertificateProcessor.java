@@ -44,6 +44,10 @@ public class GetCertificateProcessor extends RequestProcessor {
 	private static final Logger logger = LogManager.getLogger(GetCertificateProcessor.class);
 
 	@Override
+	public String getTargetRole() {
+		return null;
+	}
+	@Override
 	protected BaseResponse processRequest(BaseRequest request) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
@@ -55,7 +59,7 @@ public class GetCertificateProcessor extends RequestProcessor {
 		if(certificate == null) {
 			return null;
 		}
-		response.setCertificate(SecurityUtil.getCertificatePemString(certificate));
+		response.setCertificate(SecurityUtil.getCertificatePemString(certificate, req.getInsertLineSeparator()));
 		response.setType(certificate.getType());
 		
 		response.setResponseStatus(

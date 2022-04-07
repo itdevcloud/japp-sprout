@@ -26,6 +26,11 @@ public class EncryptTextProcessor extends RequestProcessor {
 	private static final Logger logger = LogManager.getLogger(EncryptTextProcessor.class);
 
 	@Override
+	public String getTargetRole() {
+		return null;
+	}
+
+	@Override
 	public BaseResponse processRequest(BaseRequest req) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
@@ -38,17 +43,18 @@ public class EncryptTextProcessor extends RequestProcessor {
 		
 		if(request.isSymmetric()) {
 			logger.debug("Symmetric Encryption...... ");
-			encryptedInfo = SecurityUtil.encrypt(request.getClearText(), request.getEncodedSymmetricKey());
+			encryptedInfo = SecurityUtil.encrypt(request.getClearText(), null);
 		}else {
 			logger.debug("Asymmetric Encryption...... ");
 			PublicKey publicKey = AppComponents.pkiService.getAppPublicKey();
 			PrivateKey privateKey = AppComponents.pkiService.getAppPrivateKey();
-			if(publicKey == null || privateKey == null) {
+			if(publicKey == null && privateKey == null) {
 				response = AppUtil.createResponse(EncryptTextResponse.class, "N/A",
-						ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "publickey or privatekey can't be null, check code or configuration!");
+						ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "publickey and privatekey can't be both null, check code or configuration!");
 				return response;
 			}	
-			encryptedText = SecurityUtil.encryptAsym(request.getClearText(), privateKey, publicKey);
+			//encrypt by public key
+			encryptedText = SecurityUtil.encryptAsym(request.getClearText(), null, publicKey);
 			
 			encryptedInfo = new EncryptedInfo();
 			encryptedInfo.setAlgorithm(AsymmetricCrypter.CIPHER_DEFAULT_ALGORITHM);

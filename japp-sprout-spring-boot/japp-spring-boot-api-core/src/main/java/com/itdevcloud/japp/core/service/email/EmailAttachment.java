@@ -23,20 +23,21 @@ import org.springframework.core.io.InputStreamSource;
  * @since 1.0.0
  */
 public class EmailAttachment {
-	private String type;
+	private String contentType;
 	private String filename;
 	private String disposition;
 	private String contentId;
 	private String content;
 	private InputStreamSource springInputStreamSource;
 
-	public String getType() {
-		return type;
+	
+	public String getContentType() {
+		return contentType;
 	}
 
 
-	public void setType(String type) {
-		this.type = type;
+	public void setContentType(String type) {
+		this.contentType = type;
 	}
 
 
@@ -82,7 +83,7 @@ public class EmailAttachment {
 
 	@Override
 	public String toString() {
-		return "EmailAttachment [type=" + type + ", filename=" + filename + ", disposition=" + disposition
+		return "EmailAttachment [type=" + contentType + ", filename=" + filename + ", disposition=" + disposition
 				+ ", contentId=" + contentId + ", content size=" + content.length() + "]";
 	}
 

@@ -17,7 +17,7 @@
 package com.itdevcloud.japp.core.service.customization;
 
 import java.util.List;
-import java.util.Map;
+import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 
 /**
  *
@@ -42,9 +42,10 @@ public interface IaaServiceHelperI extends CustomizableComponentI {
 	
 	public boolean isAccessAllowed(String userId, String targetNodeId, String targetRoles);
 	
-	public IaaUserI getDummyIaaUserByLoginId(String loginId, String... args);
+	public IaaUserI getAnonymousIaaUserByLoginId(String loginId, String... args);
 	
 	//public boolean validateJwtToken(String token);
 
+	public List<ClientAppInfo> getClientAppInfoList();
 
 }

@@ -53,7 +53,7 @@ public class SystemNotifyService implements AppFactoryComponentI{
 	public static final String CATEGORY_NONE = "Category (n/a)";
 	public static final String CATEGORY_PERFORMANCE_WARNING = "PERFORMANCE WARNING";
 	public static final String CATEGORY_PERFORMANCE_ALERT = "PERFORMANCE ALERT";
-
+	//key = category
 	private static Map<String, List<SystemNotification>> notificationMap = null;
 
 	
@@ -61,22 +61,32 @@ public class SystemNotifyService implements AppFactoryComponentI{
 	public void init() {
 	}
 
+	public void addNotifications(List<SystemNotification> notificationList) {
+		if (notificationList == null || notificationList.isEmpty()) {
+			logger.warn("addNotifications()...notificationList parameter is null, do nothing......");
+			return;
+		}
+		for (SystemNotification notification : notificationList) {
+			addNotification(notification);
+		}
+		return;
+	}
 	/**
 	 * Add a SystemNotification object into the map notificationMap property.
 	 * @param notification SystemNotification
 	 * @return true if a notification is added into the notificationMap successfully
 	 */
-	public boolean addNotification(SystemNotification notification) {
+	public void addNotification(SystemNotification notification) {
 		if (notification == null) {
 			logger.warn("addNotification()...notification parameter is null, do nothing......");
-			return false;
+			return ;
 		}
 		String category = notification.getCategory();
 		String content = notification.getContent();
 		Date dateTime = notification.getNotifyDateTime();
 		if (StringUtil.isEmptyOrNull(content)) {
 			logger.warn("addNotification()...notification content is null or empty, do nothing......");
-			return false;
+			return ;
 		}
 		
 		if (notificationMap == null) {
@@ -88,7 +98,7 @@ public class SystemNotifyService implements AppFactoryComponentI{
 		}
 		list.add(notification);
 		notificationMap.put(category, list);
-		return true;
+		return ;
 	}
 
 	public void sendNotification(boolean isScheduled) {
@@ -107,18 +117,28 @@ public class SystemNotifyService implements AppFactoryComponentI{
 		}else {
 			subject = appName + " - Adhoc System Notification - " + env + " - " + today;
 		}
+		String itToAddr = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_EMAIL_IT_TOADDRESSES);
+		if (StringUtil.isEmptyOrNull(itToAddr)) {
+			logger.info("sendNotification() - itToAddr is not defined, do nothing...");
+			return;
+		}
 		boolean emailEnabled = ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_APP_SYSTEM_NOTIFICATION_EMAIL_ENABLED);
+		if (!emailEnabled) {
+			logger.info("sendNotification() - emailEnabled is false, do nothing...");
+			return;
+		}
 		StringBuffer notificationSb = new StringBuffer(subject + ": \r\n");
 
 		boolean foundContent = false;
 
+		List<SystemNotification> tmpSendList = new ArrayList<SystemNotification>();
 		for (String key : keySet) {
 			List<SystemNotification> list = notificationMap.get(key);
 			if (list == null || list.isEmpty()) {
 				continue;
 			}
 			notificationSb.append("\r\n" + key + " - total = " + list.size() + "\r\n");
-			List<SystemNotification> tmpList = new ArrayList<SystemNotification>();
+			List<SystemNotification> tmpSaveList = new ArrayList<SystemNotification>();
 
 			for (SystemNotification notification : list) {
 				String category = notification.getCategory();
@@ -130,19 +150,22 @@ public class SystemNotifyService implements AppFactoryComponentI{
 				if(isScheduled && notifyDateTime == null) {
 					notificationSb.append(content + "\r\n");
 					foundContent = true;
+					tmpSendList.add(notification);
 					continue;
 				}else if(!isScheduled && notifyDateTime != null && !now.before(notifyDateTime)) {
 					notificationSb.append(content + "\r\n");
 					foundContent = true;
+					tmpSendList.add(notification);
 					continue;
 				}else {
 					//wait for next run
-					tmpList.add(notification);
+					tmpSaveList.add(notification);
 					continue;
 				}
 			}
-			if(!tmpList.isEmpty()) {
-				notificationMap.put(key, tmpList);
+			notificationMap.remove(key);
+			if(!tmpSaveList.isEmpty()) {
+				notificationMap.put(key, tmpSaveList);
 			}
 		}
 		if(!foundContent) {
@@ -150,11 +173,9 @@ public class SystemNotifyService implements AppFactoryComponentI{
 		}
 		logger.info("System notification - content = " + notificationSb.toString());
 		try {
-			if (emailEnabled) {
-				AppComponents.emailService.sendITNotification(subject, notificationSb.toString());
-				notificationMap = null;
-			}
+			AppComponents.emailService.sendEmail(subject, notificationSb.toString(), itToAddr);
 		} catch (Exception e) {
+			addNotifications(tmpSendList);
 			e.printStackTrace();
 			logger.error(CommonUtil.getStackTrace(e));
 		}

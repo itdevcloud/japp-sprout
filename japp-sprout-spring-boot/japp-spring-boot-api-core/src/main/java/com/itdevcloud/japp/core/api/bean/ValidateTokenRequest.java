@@ -30,6 +30,7 @@ public class  ValidateTokenRequest extends BaseRequest {
 	private static final long serialVersionUID = 1L;
 
 	private String jwt;
+	private String tokenNonce;
 	private String tokenIssuer;
 	private boolean issueNewtoken;
 
@@ -46,6 +47,18 @@ public class  ValidateTokenRequest extends BaseRequest {
 	}
 	public void setTokenIssuer(String tokenIssuer) {
 		this.tokenIssuer = tokenIssuer;
+	}
+	public String getTokenNonce() {
+		return tokenNonce;
+	}
+	public void setTokenNonce(String tokenNonce) {
+		this.tokenNonce = tokenNonce;
+	}
+	public boolean getIssueNewtoken() {
+		return issueNewtoken;
+	}
+	public void setIssueNewtoken(boolean issueNewtoken) {
+		this.issueNewtoken = issueNewtoken;
 	}
 
 

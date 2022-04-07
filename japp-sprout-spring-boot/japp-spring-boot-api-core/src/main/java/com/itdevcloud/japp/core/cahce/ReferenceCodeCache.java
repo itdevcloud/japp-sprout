@@ -31,9 +31,11 @@ import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.api.vo.ReferenceCode;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.ReferenceCodeServiceHelperI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -77,7 +79,7 @@ public class ReferenceCodeCache extends RefreshableCache{
 		ReferenceCodeServiceHelperI helper = AppFactory.getComponent(ReferenceCodeServiceHelperI.class);	
 		try {
 			long startTS = System.currentTimeMillis();
-			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= 1000 * 60 * 5)) {
+			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL))) {
 				logger.debug("ReferenceCodeCache.init()......begin...........");
 
 				Map<String, List<ReferenceCode>> codeMap = helper.getReferenceCodeMapFromRepository();

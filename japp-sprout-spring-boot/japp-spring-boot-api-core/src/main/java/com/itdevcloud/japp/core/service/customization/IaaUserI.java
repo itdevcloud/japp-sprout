@@ -76,5 +76,10 @@ public interface IaaUserI  extends CustomizableComponentI {
 	public Set<String> getAuthGroups() ;
 	public void setAuthGroups(Set<String> authGroups) ;
 	
+	public String getHashedUserIp();
+	public void setHashedUserIp(String hashedUip);
+
+	public String getHashedNonce();
+	public void setHashedNonce(String hashedNonce);
 
 }

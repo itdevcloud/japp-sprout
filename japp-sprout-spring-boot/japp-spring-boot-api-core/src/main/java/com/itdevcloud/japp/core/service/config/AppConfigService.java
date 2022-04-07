@@ -142,6 +142,25 @@ public class AppConfigService {
 			return defaultValue;
 		}
 	}
+	
+	public Long getPropertyAsLong(String key) {
+		return getPropertyAsLong(key, 0L);
+	}
+	
+	public Long getPropertyAsLong(String key, Long defaultValue) {
+		String valueStr = getProperty(key);
+		if (valueStr == null) {
+			return defaultValue;
+		}
+		try {
+			Long value = Long.valueOf(valueStr);
+			return value;
+		} catch (Exception e) {
+			logger.error("get property '" + key + "' failed with exception: " + CommonUtil.getStackTrace(e));
+			return defaultValue;
+		}
+	}
+
 	public Boolean getPropertyAsBoolean(String key) {
 		return getPropertyAsBoolean(key, false);
 	}

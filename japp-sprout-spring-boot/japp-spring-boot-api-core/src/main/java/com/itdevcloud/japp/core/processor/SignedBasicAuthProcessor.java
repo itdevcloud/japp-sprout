@@ -14,6 +14,7 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
+import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -46,7 +47,8 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 
 		// ====== validate request ======
 		if (StringUtil.isEmptyOrNull(request.getLoginId()) || StringUtil.isEmptyOrNull(request.getPassword())) {
-			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "Authentication Failed. LoginId and/or password is null.");
+			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
+					"Authentication Failed. LoginId and/or password is null.");
 			response.setResponseStatus(responseStatus);
 			return response;
 		}
@@ -59,46 +61,56 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			String appCode = request.getClientAppCode();
 			String siteCode = request.getClientSiteCode();
 			String tokenNonce = request.getTokenNonce();
+			String uip = txnCtx.getClientIP();
 			String signature = request.getSignature();
-			
-			String signedMessage = appCode+siteCode+loginId+password+tokenNonce;
-			logger.info("signatureText=" + signedMessage + ", signature="+signature);
+
+			String signedMessage = appCode + siteCode + loginId + password + tokenNonce;
+			logger.info("signatureText=" + signedMessage + ", signature=" + signature);
 			ClientAppInfo clientAppInfo = AppComponents.iaaService.getClientAppInfo(appCode);
-			AppSiteInfo siteInfo =  (clientAppInfo == null? null:clientAppInfo.getAppSiteInfo(siteCode));
+			AppSiteInfo siteInfo = (clientAppInfo == null ? null : clientAppInfo.getAppSiteInfo(siteCode));
 			if (clientAppInfo == null || siteInfo == null) {
-				String errMsg = "Application/Site was not found: appCode = '" + appCode + "', siteCode='" + siteCode +"'.....";
+				String errMsg = "Application/Site was not found: appCode = '" + appCode + "', siteCode='" + siteCode
+						+ "'.....";
 				logger.error(errMsg);
 				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, errMsg);
 				response.setResponseStatus(responseStatus);
 				return response;
 			}
-			logger.info("AppComponents.pkiService.getAppPublicKey()=" + AppComponents.pkiService.getAppPublicKey());
-			logger.info("siteInfo.getPublicKey()=" + siteInfo.getPublicKey());
-			if	(!SecurityUtil.verifySignature(siteInfo.getPublicKey(), signature, signedMessage)) {
-				String errMsg = "Authentication Failed. Signature verification failed: loginId = '" + loginId + "'.....";
+			if (!SecurityUtil.verifySignature(siteInfo.getPublicKey(), signature, signedMessage)) {
+				String errMsg = "Authentication Failed. Signature verification failed: loginId = '" + loginId
+						+ "'.....";
 				logger.error(errMsg);
 				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, errMsg);
 				response.setResponseStatus(responseStatus);
 				return response;
 			}
-			
+
 			// ====== login starts ======
 			IaaUserI iaaUser = null;
-				iaaUser = AppComponents.iaaService.login(loginId, password, null);
-				if (iaaUser == null) {
-					logger.error(
-							"Authentication Failed. Can not retrive user by loginId '" + loginId + "' and/or password.....");
-					responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SECURITY, "Authentication Failed. Can not retrive user by loginId '" + loginId + "' and/or password.....");
-					response.setResponseStatus(responseStatus);
-					return response;
-				}
+			iaaUser = AppComponents.iaaService.login(loginId, password, null);
+			if (iaaUser == null) {
+				logger.error("Authentication Failed. Can not retrive user by loginId '" + loginId
+						+ "' and/or password.....");
+				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+						"Authentication Failed. Can not retrive user by loginId '" + loginId
+								+ "' and/or password.....");
+				response.setResponseStatus(responseStatus);
+				return response;
+			}
 
 			// issue new JWT token;
+			String hashedNonce = StringUtil.isEmptyOrNull(tokenNonce) ? null : Hasher.hashPassword(tokenNonce);
+			String hashedUip = StringUtil.isEmptyOrNull(uip) ? null : Hasher.hashPassword(uip);
+
+			iaaUser.setHashedNonce(hashedNonce);
+			iaaUser.setHashedUserIp(hashedUip);
+			
 			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error("JWT Token can not be created for login Id '" + loginId);
-				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "JWT Token can not be created for login Id '" + iaaUser.getLoginId() + "', username = "
-						+ loginId);
+				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR,
+						"JWT Token can not be created for login Id '" + iaaUser.getLoginId() + "', username = "
+								+ loginId);
 				response.setResponseStatus(responseStatus);
 				return response;
 			}
@@ -107,12 +119,13 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			response.setResponseStatus(responseStatus);
 			response.setJwt(token);
 
-			logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = " + txnCtx.getTransactionId()
-			+ ">...... ");
+			logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = "
+					+ txnCtx.getTransactionId() + ">...... ");
 			return response;
 		} catch (Exception e) {
 			logger.error(CommonUtil.getStackTrace(e));
-			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, e.getMessage());
+			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR,
+					e.getMessage());
 			response.setResponseStatus(responseStatus);
 			return response;
 		}

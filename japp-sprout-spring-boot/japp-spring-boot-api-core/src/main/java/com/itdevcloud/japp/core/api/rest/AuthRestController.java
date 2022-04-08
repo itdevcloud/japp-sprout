@@ -48,21 +48,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 		+ "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuthRestController extends BaseRestController {
 
-	// private static final Logger logger =
-	// LogManager.getLogger(DefaultRestController.class);
-
-//	@Value("${" + AppConfigKeys.JAPPCORE_APP_AUTH_CONTROLLER_ENABLED + ":false}")
-//	private boolean authControllerEnabled;
-
-//	private <T extends BaseResponse> T checkIsEnabled(Class<T> responseClass) {
-//		if (!authControllerEnabled) {
-//			T response = AppUtil.createResponse(responseClass, "N/A", ResponseStatus.STATUS_CODE_WARN_NOACTION,
-//					"PKI controller is not enabled!");
-//			return response;
-//		} else {
-//			return null;
-//		}
-//	}
 
 	@Operation(summary = "Basic Auth Service", description = "Autheticate User by LoginId and Passwrod", tags = {
 			"Core-Auth" }, security = { @SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
@@ -77,8 +62,9 @@ public class AuthRestController extends BaseRestController {
 		return response;
 	}
 
-	@Operation(summary = "Signed Basic Auth Service", description = "2-factor (Basic and Certificate) Authentication - Basic + Signature ", tags = {
-			"Core-Auth" })
+	@Operation(summary = "Signed Basic Auth Service", description = "2-factor authentication: basic + certificate", tags = {
+	"Core-Auth" }, security = { @SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+	
 	@PostMapping("/open/core/signedauth")
 	SignedBasicAuthResponse signedBasicAuth(@RequestBody SignedBasicAuthRequest request) {
 

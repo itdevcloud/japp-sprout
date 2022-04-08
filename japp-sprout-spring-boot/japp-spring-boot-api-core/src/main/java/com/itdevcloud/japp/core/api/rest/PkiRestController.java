@@ -17,7 +17,6 @@
  */
 package com.itdevcloud.japp.core.api.rest;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,15 +24,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.GetCertificateRequest;
 import com.itdevcloud.japp.core.api.bean.GetCertificateResponse;
 import com.itdevcloud.japp.core.api.bean.GetPublicKeyRequest;
 import com.itdevcloud.japp.core.api.bean.GetPublicKeyResponse;
-import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
-import com.itdevcloud.japp.core.common.AppUtil;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -64,7 +59,7 @@ public class PkiRestController extends BaseRestController {
 	
     @Operation(summary = "Get Public Key", 
     		   description = "Get Public Key, the Public Key can be used to validate token issued by the application.", 
-    		   tags = { "Core-PKI" },
+    		   tags = { "Core-Security" },
    			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
     
 	@PostMapping("/api/core/publickey")
@@ -79,7 +74,7 @@ public class PkiRestController extends BaseRestController {
 
     @Operation(summary = "Get Certificate", 
  		   description = "Get Certificate, the Certificate can be used to validate token issued by the application.", 
- 		   tags = { "Core-PKI" },
+ 		   tags = { "Core-Security" },
 			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
  
 	@PostMapping("/api/core/certificate")

@@ -114,7 +114,7 @@ public abstract class BaseCommandController {
 			if (request == null) {
 				BaseResponse response = AppUtil.createResponse(BaseResponse.class, command,
 						ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
-						"can't initialize request instance for command: '" + command + "', check command  or json request string. ");
+						"can not initialize request instance for command: '" + command + "', check command  or json request string. ");
 
 				return toJsonResponse(response);
 			}
@@ -164,9 +164,9 @@ public abstract class BaseCommandController {
 			return response;
 		}
 		String requestSimpleName = request.getClass().getSimpleName();
-
+		String command = AppUtil.getCorrespondingCommand(requestSimpleName);
 		BaseResponse response = null;
-		CommandInfo commandInfo = AppFactory.getCommandInfo(requestSimpleName);
+		CommandInfo commandInfo = AppFactory.getCommandInfo(command);
 		if (commandInfo == null) {
 			response = AppUtil.createResponse(BaseResponse.class, request.getCommand(),
 					ResponseStatus.STATUS_CODE_ERROR_VALIDATION,

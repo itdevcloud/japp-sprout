@@ -57,6 +57,11 @@ public class ClientAppInfoCache extends RefreshableCache {
 	}
 
 	@Override
+	public String getInitOrder() {
+		return "05";
+	}
+
+	@Override
 	public void refreshCache() {
 		if (lastUpdatedTS == -1) {
 			initCache();

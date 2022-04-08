@@ -91,7 +91,8 @@ public class CacheRefreshTimerTask {
 			for (RefreshableCache cache : cacheList) {
 				// force to refresh anyway by set lastUpdatedTS = -1
 				cache.setLastUpdatedTS(-1);
-				logger.debug(cache.getCacheSimpleName() + ".init()......begin......");
+				
+				logger.debug(cache.getCacheSimpleName() + ".init()......begin......order="+ cache.getInitOrder()+"......");
 
 				cache.initCache();
 

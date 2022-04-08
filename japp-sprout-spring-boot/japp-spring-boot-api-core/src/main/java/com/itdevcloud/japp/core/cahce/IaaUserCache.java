@@ -49,6 +49,10 @@ public class IaaUserCache extends RefreshableCache {
 	}
 
 	@Override
+	public String getInitOrder() {
+		return "03";
+	}
+	@Override
 	public synchronized void initCache() {
 		try {
 			long startTS = System.currentTimeMillis();

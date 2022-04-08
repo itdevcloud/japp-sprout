@@ -220,6 +220,31 @@ public class AppUtil {
 		return deploymentRootDir;
 	}
 
+	public static String getCorrespondingCommand(String classSimpleName) {
+		if(StringUtil.isEmptyOrNull(classSimpleName)) {
+			return null;
+		}
+		int idx = classSimpleName.indexOf(REQUEST_POSTFIX);
+		if (idx <= 0) {
+			idx = classSimpleName.indexOf(RESPONSE_POSTFIX);
+			if (idx <= 0) {
+				idx = classSimpleName.indexOf(PROCESSOR_POSTFIX);
+			}
+		}
+		if (idx <= 0) {
+			return null;
+		}
+		String command = classSimpleName.substring(0, idx);
+		if (StringUtil.isEmptyOrNull(command)) {
+			return null;
+		}
+		if (command.equalsIgnoreCase("Base")) {
+			return null;
+		}
+		return command;
+
+	}
+
 	public static String getCorrespondingCommand(Object object) {
 		String classSimpleName = object.getClass().getSimpleName();
 		int idx = classSimpleName.indexOf(REQUEST_POSTFIX);

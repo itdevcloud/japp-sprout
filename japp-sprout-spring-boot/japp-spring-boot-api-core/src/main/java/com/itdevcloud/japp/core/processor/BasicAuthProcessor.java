@@ -83,8 +83,6 @@ public class BasicAuthProcessor extends RequestProcessor {
 		iaaUser.setHashedNonce(hashedNonce);
 		iaaUser.setHashedUserIp(hashedUip);
 		
-		logger.info("hashedUip = " + hashedUip + ", hashednonce = "+ hashedNonce);
-		
 		String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
 		
 		if (StringUtil.isEmptyOrNull(token)) {

@@ -16,7 +16,6 @@
  */
 package com.itdevcloud.japp.core.api.rest;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,13 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.EchoRequest;
 import com.itdevcloud.japp.core.api.bean.EchoResponse;
-import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
-import com.itdevcloud.japp.core.common.AppUtil;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -41,6 +36,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+@SecurityRequirement(name = "jappcore-bearer-jwt")
 public class DefaultRestController extends BaseRestController {
 
 	//private static final Logger logger = LogManager.getLogger(DefaultRestController.class);
@@ -60,8 +56,7 @@ public class DefaultRestController extends BaseRestController {
 
     @Operation(summary = "Echo a request", 
     		   description = "Echo back a request. This service could be used as health check porpuse", 
-    		   tags = { "Core-Default" },
-   			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
+    		   tags = { "Core-Default" })
     
 	@PostMapping("/open/core/echo")
 	EchoResponse echo(@RequestBody EchoRequest request) {

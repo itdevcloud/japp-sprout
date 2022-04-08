@@ -59,6 +59,10 @@ public class ReferenceCodeCache extends RefreshableCache{
 	}
 
 	@Override
+	public String getInitOrder() {
+		return "04";
+	}
+	@Override
 	public void refreshCache() {
 		ReferenceCodeServiceHelperI helper = AppFactory.getComponent(ReferenceCodeServiceHelperI.class);	
 		if (lastUpdatedTS == -1

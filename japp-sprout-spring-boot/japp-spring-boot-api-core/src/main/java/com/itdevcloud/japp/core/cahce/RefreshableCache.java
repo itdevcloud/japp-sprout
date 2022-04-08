@@ -34,7 +34,7 @@ public abstract class RefreshableCache implements AppFactoryComponentI{
 
 	protected  boolean initInProcess = false;
 	protected  long lastUpdatedTS = -1;
-
+	
 	public  long getLastUpdatedTS() {
 		return lastUpdatedTS;
 	}
@@ -44,12 +44,12 @@ public abstract class RefreshableCache implements AppFactoryComponentI{
 	}
 
 	public String getCacheSimpleName() {
-		return this.getClass().getSimpleName();
+		return this.getClass().getSimpleName() + ", init order: " + getInitOrder();
 	}
 
 	public abstract void initCache();
-
 	public abstract void refreshCache();
+	public abstract String getInitOrder();
 
 	protected void waitForInit() {
 		if (initInProcess) {

@@ -54,6 +54,11 @@ public class AadJwksCache extends RefreshableCache {
 	@PostConstruct
 	public void initService() {
 	}
+	
+	@Override
+	public String getInitOrder() {
+		return "02";
+	}
 
 	@Override
 	public void refreshCache() {

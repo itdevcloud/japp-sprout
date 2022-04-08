@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -293,18 +294,28 @@ public class AppFactory {
 		return (T) classComponentMap.get(componentClass);
 	}
 
-	public static CommandInfo getCommandInfo(String requestSimpleName) {
-		if (StringUtil.isEmptyOrNull(requestSimpleName)) {
-			throw new RuntimeException("requestSimpleName is null, please check code!!!");
+//	public static CommandInfo getCommandInfo(String requestSimpleName) {
+//		if (StringUtil.isEmptyOrNull(requestSimpleName)) {
+//			throw new RuntimeException("requestSimpleName is null, please check code!!!");
+//		}
+//		int idx = requestSimpleName.indexOf(AppUtil.REQUEST_POSTFIX);
+//		if (idx <= 0) {
+//			logger.error("AppFactory.getCommandInfo() - requestSimpleName parameter is not correct - <"
+//					+ requestSimpleName + ">, ignored!");
+//			return null;
+//		}
+//		String command = requestSimpleName.substring(0, idx);
+//
+//		CommandInfo commandInfo = commandInfoMap.get(command.toLowerCase());
+//		if (commandInfo == null) {
+//			logger.error("Command - '" + command + "' is not supported, no commandInfo is found, check code!!!");
+//		}
+//		return commandInfo;
+//	}
+	public static CommandInfo getCommandInfo(String command) {
+		if (StringUtil.isEmptyOrNull(command)) {
+			throw new RuntimeException("command is null, please check code!!!");
 		}
-		int idx = requestSimpleName.indexOf(AppUtil.REQUEST_POSTFIX);
-		if (idx <= 0) {
-			logger.error("AppFactory.getCommandInfo() - requestSimpleName parameter is not correct - <"
-					+ requestSimpleName + ">, ignored!");
-			return null;
-		}
-		String command = requestSimpleName.substring(0, idx);
-
 		CommandInfo commandInfo = commandInfoMap.get(command.toLowerCase());
 		if (commandInfo == null) {
 			logger.error("Command - '" + command + "' is not supported, no commandInfo is found, check code!!!");
@@ -369,7 +380,11 @@ public class AppFactory {
 			return null;
 		}
 		
-		return new ArrayList<RefreshableCache>(cacheList);
+		List<RefreshableCache> cacheTempList =  new ArrayList<RefreshableCache>(cacheList);
+		Collections.sort(cacheTempList, (cache1,cache2) -> cache1.getInitOrder().compareTo(cache2.getInitOrder()));
+		return cacheTempList;
+		
+		
 	}
 
 	@SuppressWarnings("unchecked")

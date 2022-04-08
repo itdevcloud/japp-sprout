@@ -70,6 +70,10 @@ public class PkiKeyCache extends RefreshableCache{
 	@PostConstruct
 	private void initService() {
 	}
+	@Override
+	public String getInitOrder() {
+		return "01";
+	}
 
 	@Override
 	public void refreshCache() {

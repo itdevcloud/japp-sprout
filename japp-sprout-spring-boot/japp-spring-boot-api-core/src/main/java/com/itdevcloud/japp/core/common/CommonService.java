@@ -310,8 +310,6 @@ public class CommonService implements AppFactoryComponentI {
 		Certificate appCertificate = AppComponents.pkiService.getAppCertificate();
 		PublicKey appPublicKey = AppComponents.pkiService.getAppPublicKey();
 		
-		logger.info("appPublicKey======================" + appPublicKey);
-		
 		ClientAppInfo appInfo = new ClientAppInfo();
 		AppSiteInfo siteInfo = new AppSiteInfo();
 		appInfo.setAppId(123L);

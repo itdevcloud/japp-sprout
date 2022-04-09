@@ -83,7 +83,7 @@ public class ReferenceCodeCache extends RefreshableCache{
 		ReferenceCodeServiceHelperI helper = AppFactory.getComponent(ReferenceCodeServiceHelperI.class);	
 		try {
 			long startTS = System.currentTimeMillis();
-			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL))) {
+			if (lastUpdatedTS == -1 ) {
 				logger.debug("ReferenceCodeCache.init()......begin...........");
 
 				Map<String, List<ReferenceCode>> codeMap = helper.getReferenceCodeMapFromRepository();

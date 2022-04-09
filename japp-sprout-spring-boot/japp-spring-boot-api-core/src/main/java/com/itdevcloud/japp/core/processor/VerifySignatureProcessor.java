@@ -1,6 +1,5 @@
 package com.itdevcloud.japp.core.processor;
 
-import java.security.PrivateKey;
 import java.security.PublicKey;
 
 import org.apache.logging.log4j.LogManager;
@@ -9,8 +8,6 @@ import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
-import com.itdevcloud.japp.core.api.bean.SignTextRequest;
-import com.itdevcloud.japp.core.api.bean.SignTextResponse;
 import com.itdevcloud.japp.core.api.bean.VerifySignatureRequest;
 import com.itdevcloud.japp.core.api.bean.VerifySignatureResponse;
 import com.itdevcloud.japp.core.common.AppComponents;
@@ -25,11 +22,6 @@ public class VerifySignatureProcessor extends RequestProcessor {
 	private static final long serialVersionUID = 1L;
 
 	private static final Logger logger = LogManager.getLogger(VerifySignatureProcessor.class);
-
-	@Override
-	public String getTargetRole() {
-		return null;
-	}
 
 	@Override
 	protected BaseResponse processRequest(BaseRequest req) {

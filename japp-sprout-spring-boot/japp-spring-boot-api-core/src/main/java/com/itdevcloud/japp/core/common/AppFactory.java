@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -169,6 +170,8 @@ public class AppFactory {
 		}
 		logger.info("commandInfoMap - size = " + commandInfoMap.size());
 
+		Set<String> tmpProcessorNameSet = new HashSet<String>();
+		
 		Set<String> keySet = commandInfoMap.keySet();
 		logger.info("AppFactory.init() - supported command set = " + keySet + "\n");
 		String jsonTemplate = "AppFactory.init() - supported command Json Request Template: \n";
@@ -177,9 +180,32 @@ public class AppFactory {
 			CommandInfo commandInfo = commandInfoMap.get(keyStr);
 			jsonTemplate = jsonTemplate + "\ncommand = <" + keyStr + "> request template: "
 					+ gson.toJson(commandInfo.getRequest());
+			tmpProcessorNameSet.add(commandInfo.getProcessor().getClass().getSimpleName().trim().toUpperCase());
 		}
 		logger.info(jsonTemplate + "\n");
-
+		
+		ProcessorTargetRoleUtil.init();
+		
+		Set<String> tagretRoleProcessorNameSet = ProcessorTargetRoleUtil.getProcessorNameSet();
+		
+		Set<String> tmpSet = new HashSet<String>();
+		tmpSet.addAll(tmpProcessorNameSet);
+		tmpSet.removeAll(tagretRoleProcessorNameSet);
+		boolean foundMisMatch = false;
+		if(!tmpSet.isEmpty()) {
+			foundMisMatch = true;
+			logger.error("Following processors (change to uppercase) are defined in the code, but not in the target-role property file: " + tmpSet );
+		}
+		tmpSet.addAll(tagretRoleProcessorNameSet);
+		tmpSet.removeAll(tmpProcessorNameSet);
+		if(!tmpSet.isEmpty()) {
+			foundMisMatch = true;
+			logger.error("Following processors (change to uppercase) are defined in the target-role property file, but not in the code: " + tmpSet );
+		}
+		if(!foundMisMatch) {
+			logger.info("processors defined in the target-role property file and in the code are matched......");
+		}
+		
 		logger.info("AppFactory.init().....end........");
 
 		return;

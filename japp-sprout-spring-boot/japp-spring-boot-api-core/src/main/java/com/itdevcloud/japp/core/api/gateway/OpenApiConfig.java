@@ -80,7 +80,9 @@ public class OpenApiConfig {
 		
 		OpenAPI openapi =  new OpenAPI()
 				.components(new Components().addSecuritySchemes(securityRequirementName,
-						new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")))
+						new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer"))
+						.addSecuritySchemes("core-bear-jwt",
+								new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")))
 				.info(new Info().title(infoTitle)
 						        .version(infoVersion)
 						        .description(infoDescription)

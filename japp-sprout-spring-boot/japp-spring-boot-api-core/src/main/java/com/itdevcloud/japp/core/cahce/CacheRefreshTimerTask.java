@@ -59,7 +59,7 @@ public class CacheRefreshTimerTask {
 	public void init() {
 	}
 
-	@Scheduled(fixedRateString = "${jappcore.cache.refresh.interval:600000}")
+	@Scheduled(fixedDelayString = "${jappcore.cache.refresh.interval.millis:600000}", initialDelay = 0)
 	public void run() {
 		
 		List<RefreshableCache> cacheList = AppFactory.getRefreshableCacheList();
@@ -112,7 +112,7 @@ public class CacheRefreshTimerTask {
 				long lastUpdatedTS = cache.getLastUpdatedTS();
 				if (((nowTS - lastUpdatedTS) >= (ConfigFactory.appConfigService
 						.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL)*1000*60))) {
-					logger.debug(cache.getCacheSimpleName() + ".refresh()......begin...........");
+					logger.debug(cache.getCacheSimpleName() + ".refresh()......begin......order="+ cache.getInitOrder()+".....");
 					cache.refreshCache();
 					Date end = new Date();
 					long endTS = end.getTime();

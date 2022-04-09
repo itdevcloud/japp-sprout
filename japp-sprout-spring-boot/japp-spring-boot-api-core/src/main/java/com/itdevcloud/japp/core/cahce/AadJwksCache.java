@@ -80,7 +80,7 @@ public class AadJwksCache extends RefreshableCache {
 		}
 		try {
 			long startTS = System.currentTimeMillis();
-			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL))) {
+			if (lastUpdatedTS == -1) {
 				logger.debug("AadJwksCache.init()...start......");
 
 				List<AzureJwksKey> tmpJwksKeys = AppComponents.azureJwksService.getJwksKeys();

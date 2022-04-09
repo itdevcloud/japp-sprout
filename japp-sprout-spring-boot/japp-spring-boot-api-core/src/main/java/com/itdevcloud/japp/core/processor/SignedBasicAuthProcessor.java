@@ -30,11 +30,6 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 	private static final Logger logger = LogManager.getLogger(SignedBasicAuthProcessor.class);
 
 	@Override
-	public String getTargetRole() {
-		return null;
-	}
-
-	@Override
 	protected BaseResponse processRequest(BaseRequest req) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "

@@ -46,7 +46,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 public class SecurityRestController extends BaseRestController {
 
 	@Operation(summary = "Encrypt Text Request", description = "Encrypt Text", tags = { "Core-Security" }, security = {
-			@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+			@SecurityRequirement(name = "core-bear-jwt") })
 
 	@PostMapping("/api/core/encryption")
 	EncryptTextResponse encryptText(@RequestBody EncryptTextRequest request) {
@@ -59,7 +59,7 @@ public class SecurityRestController extends BaseRestController {
 	}
 
 	@Operation(summary = "Decrypt Text Request", description = "Decrypt Text", tags = { "Core-Security" }, security = {
-			@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+			@SecurityRequirement(name = "core-bear-jwt") })
 
 	@PostMapping("/api/core/decryption")
 	DecryptTextResponse decryptText(@RequestBody DecryptTextRequest request) {
@@ -72,7 +72,7 @@ public class SecurityRestController extends BaseRestController {
 	}
 
 	@Operation(summary = "Sign Text Request", description = "Sign Text", tags = { "Core-Security" }, security = {
-			@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+			@SecurityRequirement(name = "core-bear-jwt") })
 
 	@PostMapping("/api/core/sign")
 	SignTextResponse signText(@RequestBody SignTextRequest request) {
@@ -85,7 +85,7 @@ public class SecurityRestController extends BaseRestController {
 	}
 
 	@Operation(summary = "Verify Signature Request", description = "Verify Signature Text", tags = { "Core-Security" }, security = {
-			@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+			@SecurityRequirement(name = "core-bear-jwt") })
 
 	@PostMapping("/api/core/signatureVerification")
 	VerifySignatureResponse signatureVerification(@RequestBody VerifySignatureRequest request) {

@@ -16,7 +16,6 @@
  */
 package com.itdevcloud.japp.core.cahce;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -26,15 +25,12 @@ import javax.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.common.AppComponents;
-import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppFactory;
-import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 
@@ -74,7 +70,7 @@ public class ClientAppInfoCache extends RefreshableCache {
 	public synchronized void initCache() {
 		try {
 			long startTS = System.currentTimeMillis();
-			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL))) {
+			if (lastUpdatedTS == -1 ) {
 				logger.debug("ClientAppInfoCache.init()...start......");
 				
 				IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);

@@ -36,7 +36,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-@SecurityRequirement(name = "jappcore-bearer-jwt")
 public class DefaultRestController extends BaseRestController {
 
 	//private static final Logger logger = LogManager.getLogger(DefaultRestController.class);
@@ -56,7 +55,8 @@ public class DefaultRestController extends BaseRestController {
 
     @Operation(summary = "Echo a request", 
     		   description = "Echo back a request. This service could be used as health check porpuse", 
-    		   tags = { "Core-Default" })
+    		   tags = { "Core-Default" },
+   			   security = {@SecurityRequirement(name = "core-bear-jwt")})
     
 	@PostMapping("/open/core/echo")
 	EchoResponse echo(@RequestBody EchoRequest request) {

@@ -85,6 +85,7 @@ public class AppConfigKeys {
 	//public static final String JAPPCORE_IAA_USE_THIRDPARTY_TOKEN = "jappcore.iaa.use.thirdparty.token";
 	public static final String JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME = "jappcore.iaa.accessstoken.handler.name";
 	public static final String JAPPCORE_IAA_AUTH_EXCLUDE_PATHS = "jappcore.iaa.auth.exclude.paths";
+	public static final String JAPPCORE_IAA_PROCESSOR_EMPTY_TARGET_ROLE_ALLOWED = "jappcore.iaa.processor.empty.target.role.allowed";
 
 	public static final String JAPPCORE_FRONTEND_UI_FRAMEWORK = "jappcore.frontend.ui.framework";
 	public static final String JAPPCORE_FRONTEND_UI_ORIGIN = "jappcore.frontend.ui.origin";
@@ -93,8 +94,8 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_FRONTEND_UI_MAINTENANCE_PAGE = "jappcore.frontend.ui.maintenance.page";
 	public static final String JAPPCORE_FRONTEND_UI_SECURE_COOKIE_ENABLED = "jappcore.frontend.ui.secure.cookie.enabled";
 
-	public static final String JAPPCORE_CACHE_REFRESH_INTERVAL = "jappcore.cache.refresh.interval";
-	public static final String JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL = "jappcore.cache.refresh.least.interval";
+	public static final String JAPPCORE_CACHE_REFRESH_INTERVAL = "jappcore.cache.refresh.interval.millis";
+	public static final String JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL = "jappcore.cache.refresh.least.interval.mins";
 	public static final String JAPPCORE_CACHE_DAILY_REFRESH_ENABLED = "jappcore.cache.daily.refresh.enabled";
 	public static final String JAPPCORE_CACHE_USER_CACHE_MAX_SIZE = "jappcore.cache.user.cache.max.size";
 

@@ -25,11 +25,6 @@ public class SignTextProcessor extends RequestProcessor {
 	private static final Logger logger = LogManager.getLogger(SignTextProcessor.class);
 
 	@Override
-	public String getTargetRole() {
-		return null;
-	}
-
-	@Override
 	protected BaseResponse processRequest(BaseRequest req) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		String loginId = getLoginId();

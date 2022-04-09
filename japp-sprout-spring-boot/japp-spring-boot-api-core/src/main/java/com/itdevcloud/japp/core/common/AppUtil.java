@@ -242,7 +242,6 @@ public class AppUtil {
 			return null;
 		}
 		return command;
-
 	}
 
 	public static String getCorrespondingCommand(Object object) {

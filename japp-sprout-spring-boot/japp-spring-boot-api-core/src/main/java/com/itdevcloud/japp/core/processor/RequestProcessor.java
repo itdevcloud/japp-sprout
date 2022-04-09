@@ -16,8 +16,6 @@
  */
 package com.itdevcloud.japp.core.processor;
 
-import java.util.Date;
-
 /**
  *
  * @author Marvin Sun
@@ -38,6 +36,7 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.core.common.ProcessorTargetRoleUtil;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 
@@ -47,7 +46,6 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 
 
 	protected abstract BaseResponse processRequest(BaseRequest request);
-	protected abstract String getTargetRole() ;
 	
 	protected String getLoginId() {
 		return getIaaUser().getLoginId();
@@ -58,6 +56,15 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 			throw new RuntimeException("IaaUser is not set in the AppThreadContext, check code!");
 		}
 		return iaaUser;
+	}
+	
+	public <T extends BaseResponse> String getTargetRole(Class<T> responseClass) {
+		if(responseClass == null) {
+			return null;
+		}
+		String command = AppUtil.getCorrespondingCommand(responseClass.getSimpleName());
+		String processorName = command + AppUtil.PROCESSOR_POSTFIX;
+		return ProcessorTargetRoleUtil.getTargetRole(processorName);
 	}
 
 	public <T extends BaseResponse> T process(BaseRequest request, Class<T> responseClass) {
@@ -72,7 +79,7 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 				return response;
 			}
 			//check role
-			if(!AppComponents.iaaService.isAccessAllowed(getTargetRole())) {
+			if(!AppComponents.iaaService.isAccessAllowed(getTargetRole(responseClass))) {
 				String simpleName = this.getClass().getSimpleName();
 				T commandResponse = AppUtil
 						.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_ERROR_SECURITY_NOT_AUTHORIZED, getLoginId() + " not authorized: " + simpleName);

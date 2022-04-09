@@ -25,10 +25,6 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 public class ValidateTokenProcessor extends RequestProcessor {
 
 	private static final Logger logger = LogManager.getLogger(ValidateTokenProcessor.class);
-	@Override
-	public String getTargetRole() {
-		return null;
-	}
 
 	@Override
 	public BaseResponse processRequest(BaseRequest request) {

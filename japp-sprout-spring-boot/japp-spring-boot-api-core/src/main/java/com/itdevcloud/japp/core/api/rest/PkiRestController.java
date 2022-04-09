@@ -42,25 +42,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
 public class PkiRestController extends BaseRestController {
 
-	//private static final Logger logger = LogManager.getLogger(PkiRestController.class);
-	
-//	@Value("${" + AppConfigKeys.JAPPCORE_APP_PKI_CONTROLLER_ENABLED + ":false}")
-//	private boolean pkiControllerEnabled;
-//
-//	private <T extends BaseResponse> T checkIsEnabled(Class<T> responseClass) {
-//    	if(!pkiControllerEnabled) {
-//			T response = AppUtil.createResponse(responseClass, "N/A",
-//					ResponseStatus.STATUS_CODE_WARN_NOACTION, "PKI controller is not enabled!");
-//			return response;
-//		}else {
-//			return null;
-//		}
-//	}
 	
     @Operation(summary = "Get Public Key", 
     		   description = "Get Public Key, the Public Key can be used to validate token issued by the application.", 
     		   tags = { "Core-Security" },
-   			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
+   			   security = {@SecurityRequirement(name = "core-bear-jwt")})
     
 	@PostMapping("/api/core/publickey")
 	GetPublicKeyResponse getPublicKey(@RequestBody GetPublicKeyRequest request) {
@@ -75,7 +61,7 @@ public class PkiRestController extends BaseRestController {
     @Operation(summary = "Get Certificate", 
  		   description = "Get Certificate, the Certificate can be used to validate token issued by the application.", 
  		   tags = { "Core-Security" },
-			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
+			   security = {@SecurityRequirement(name = "core-bear-jwt")})
  
 	@PostMapping("/api/core/certificate")
     GetCertificateResponse getCertificate(@RequestBody GetCertificateRequest request) {

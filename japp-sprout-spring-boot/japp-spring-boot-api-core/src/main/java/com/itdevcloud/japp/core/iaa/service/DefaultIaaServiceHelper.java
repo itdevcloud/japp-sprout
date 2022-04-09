@@ -17,7 +17,10 @@
 package com.itdevcloud.japp.core.iaa.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
@@ -113,6 +116,22 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		iaaUser.setHashedPassword(
 				"NieQminDE4Ggcewn98nKl3Jhgq7Smn3dLlQ1MyLPswq7njpt8qwsIP4jQ2MR1nhWTQyNMFkwV19g4tPQSBhNeQ==");
 		iaaUser.setName("Anonymous");
+		
+		Set<String> agSet = new HashSet<String>();
+		agSet.add("ag.group1");
+		agSet.add("ag.group2");
+		iaaUser.setAuthGroups(agSet);
+
+		Set<String> brSet = new HashSet<String>();
+		brSet.add("br.role1");
+		brSet.add("br.role2");
+		iaaUser.setBusinessRoles(brSet);
+
+		Set<String> arSet = new HashSet<String>();
+		arSet.add("ar.role1");
+		arSet.add("ar.role2");
+		iaaUser.setApplicationRoles(arSet);
+
 		return iaaUser;
 	}
 

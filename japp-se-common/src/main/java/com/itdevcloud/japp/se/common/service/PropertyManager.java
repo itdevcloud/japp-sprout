@@ -95,6 +95,10 @@ public class PropertyManager {
 			String key = (String) keys.nextElement();
 			if (key.startsWith(prefix)) {
 				String cnxKey = key.substring(prefix.length());
+				if(StringUtil.isEmptyOrNull(cnxKey)) {
+					continue;
+				}
+				cnxKey = cnxKey.trim();
 				String value = properties.getProperty(key);
 				props.put(cnxKey, value);
 			}

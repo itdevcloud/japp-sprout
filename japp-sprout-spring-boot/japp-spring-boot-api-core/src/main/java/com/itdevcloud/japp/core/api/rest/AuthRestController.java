@@ -50,7 +50,7 @@ public class AuthRestController extends BaseRestController {
 
 
 	@Operation(summary = "Basic Auth Service", description = "Autheticate User by LoginId and Passwrod", tags = {
-			"Core-Auth" }, security = { @SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+			"Core-Auth" })
 
 	@PostMapping("/open/core/basicauth")
 	BasicAuthResponse basicAuth(@RequestBody BasicAuthRequest request) {
@@ -63,7 +63,7 @@ public class AuthRestController extends BaseRestController {
 	}
 
 	@Operation(summary = "Signed Basic Auth Service", description = "2-factor authentication: basic + certificate", tags = {
-	"Core-Auth" }, security = { @SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+	"Core-Auth" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
 	
 	@PostMapping("/open/core/signedauth")
 	SignedBasicAuthResponse signedBasicAuth(@RequestBody SignedBasicAuthRequest request) {
@@ -78,7 +78,7 @@ public class AuthRestController extends BaseRestController {
 	}
 
 	@Operation(summary = "Validate Token", description = "Validate JWT issued by this application or partners", tags = {
-			"Core-Auth" }, security = { @SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}") })
+			"Core-Auth" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
 
 	@PostMapping("/api/core/tokenvalidation")
 	ValidateTokenResponse validateToken(@RequestBody ValidateTokenRequest request) {

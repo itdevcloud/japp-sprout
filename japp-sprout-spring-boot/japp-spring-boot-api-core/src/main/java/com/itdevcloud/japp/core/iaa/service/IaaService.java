@@ -35,6 +35,7 @@ import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.ConfigFactory;
+import com.itdevcloud.japp.core.common.ProcessorTargetRoleUtil;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
@@ -52,8 +53,14 @@ public class IaaService implements AppFactoryComponentI {
 
 	private static final Logger logger = LogManager.getLogger(IaaService.class);
 
+	private static Boolean allowEmptyTargetRole = null;
+	
 	@PostConstruct
 	public void init() {
+		if(allowEmptyTargetRole == null) {
+			allowEmptyTargetRole = ConfigFactory.appConfigService
+				.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_PROCESSOR_EMPTY_TARGET_ROLE_ALLOWED, false);
+		}
 	}
 	
 	public List<ClientAppInfo> getClientAppInfoList(){
@@ -161,30 +168,41 @@ public class IaaService implements AppFactoryComponentI {
 	//target role could be business role or application role
 	public boolean isAccessAllowed(String targetRole) {
 		IaaUserI user = AppThreadContext.getIaaUser();
-		if (StringUtil.isEmptyOrNull(targetRole)) {
-			logger.debug("isAccessAllowed() - The target role is empty or null, return true.");
-			return true;
-		}
 		if (user == null) {
 			logger.info("isAccessAllowed() - The user can't be retrieved from ThreadContext, return false.");
 			return false;
 		}
-		Set<String> brSet = user.getBusinessRoles();
-		if (brSet == null || brSet.isEmpty()) {
-			logger.info("isAccessAllowed() -  The user is not assigned to any business role........" + user);
-			return false;
+		if (StringUtil.isEmptyOrNull(targetRole)) {
+			if(allowEmptyTargetRole) {
+				logger.debug("isAccessAllowed() - allowEmptyTargetRole is set to 'true', The target role is empty or null, return true.");
+				return true;
+			}else {
+				logger.debug("isAccessAllowed() - allowEmptyTargetRole is set to 'false', The target role is empty or null, return false.");
+				return false;
+			}
 		}
-		if (brSet.contains(targetRole)) {
+		if (targetRole.equalsIgnoreCase(ProcessorTargetRoleUtil.ROLE_ANY)) {
 			return true;
+		}
+		Set<String> brSet = user.getBusinessRoles();
+		if (! (brSet == null) && ! brSet.isEmpty()) {
+			if (brSet.contains(targetRole)) {
+				return true;
+			}
 		}
 		Set<String> arSet = user.getApplicationRoles();
-		if (arSet == null || arSet.isEmpty()) {
-			logger.info("isAccessAllowed() -  The user is not assigned to any application role........" + user);
-			return false;
+		if (! (arSet == null) && ! arSet.isEmpty()) {
+			if (arSet.contains(targetRole)) {
+				return true;
+			}
 		}
-		if (arSet.contains(targetRole)) {
-			return true;
+		Set<String> agSet = user.getAuthGroups();
+		if (! (agSet == null) && ! agSet.isEmpty()) {
+			if (agSet.contains(targetRole)) {
+				return true;
+			}
 		}
+		logger.info("isAccessAllowed() -  The user is not assigned to required Auth Group, Business Role or Application Role: " + targetRole + ", User = " + user.getLoginId());
 		return false;
 	}
 	

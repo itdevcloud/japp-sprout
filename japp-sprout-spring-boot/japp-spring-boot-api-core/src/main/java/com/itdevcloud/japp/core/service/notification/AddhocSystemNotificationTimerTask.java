@@ -37,14 +37,14 @@ public class AddhocSystemNotificationTimerTask {
 	/**
 	 * It is a predefined task to send out SystemNotification information, and the default value to run this task is every 10 minutes.
 	 */
-	@Scheduled(fixedRateString = "${jappcore.cache.refresh.interval:600000}")
+	@Scheduled(fixedDelayString = "${jappcore.cache.refresh.interval.millis:600000}", initialDelay = 0)
 	public void run() {
 		logger.info("AddhocSystemNotificationTimerTask - run started .........");
 
 		long start = System.currentTimeMillis();
 		AppComponents.systemNotifyService.sendNotification(false);
 		long end1 = System.currentTimeMillis();
-		logger.info("CacheRefreshTimerTask run End...... took " + (end1 - start) + " ms.");
+		logger.info("AddhocSystemNotificationTimerTask run End...... took " + (end1 - start) + " ms.");
 
 	}
 }

@@ -88,14 +88,10 @@ public class PkiKeyCache extends RefreshableCache{
 	public synchronized void initCache() {
 		try {
 			long startTS = System.currentTimeMillis();
-			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL))) {
+			if (lastUpdatedTS == -1 ) {
 				logger.debug("PkiKeyCache.init() - begin...........");
 
 				retrieveJappKeyPair();
-//				Key tmpAppPrivateKey = AppComponents.pkiService.getJappPrivateKey();
-//				PublicKey tempJappPublicKey = AppComponents.pkiService.getJappPublicKey();
-//				Certificate tempJappCertificate = AppComponents.pkiService.getJappCertificate();
-//				boolean comeFromKeyVault = AppComponents.pkiService.isComeFromKeyVault();
 				if (tempAppPrivateKey == null || tempAppPublicKey == null || tempAppCertificate == null) {
 					String info = "JappKeyCache.init() - cannot retrieve JappPrivateKey, JappsPublicKey, tempAppCertificate, does not change current App Key Cache.......!!!";
 					logger.error(info);
@@ -113,7 +109,7 @@ public class PkiKeyCache extends RefreshableCache{
 				long endTS = end.getTime();
 				lastUpdatedTS = endTS;
 
-				String str = "JappKeyCache.init() - end. total time = " + (endTS - startTS) + " millis. Result:"
+				String str = "PkiKeyCache.init() - end. total time = " + (endTS - startTS) + " millis. Result:"
 						+ "\nJappPublicKey = " + (appPublicKey==null?null:"...");
 				String info = "JappKeyCache.init() - JAPP Key come from Azure Key Vault = " + comeFromKeyVault + ", total time = " + (endTS - startTS) + " millis. \n";
 

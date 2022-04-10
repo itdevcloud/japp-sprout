@@ -15,6 +15,7 @@
  *
  */
 package com.itdevcloud.japp.core.api.bean;
+
 /**
 *
 * @author Marvin Sun
@@ -25,40 +26,28 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class  ValidateTokenRequest extends BaseRequest {
+public class ValidateOrIssueNewTokenResponse extends BaseResponse {
 
 	private static final long serialVersionUID = 1L;
 
-	private String jwt;
-	private String tokenNonce;
-	private String tokenIssuer;
-	private boolean issueNewtoken;
+	private boolean isValidToken;
+	private String newToken;
 
 
-	public String getJwt() {
-		return jwt;
+	public boolean getIsValidToken() {
+		return isValidToken;
 	}
-	public void setJwt(String jwt) {
-		this.jwt = jwt;
+
+	public void setIsValidToken(boolean isValidToken) {
+		this.isValidToken = isValidToken;
 	}
-	
-	public String getTokenIssuer() {
-		return tokenIssuer;
+
+	public String getNewToken() {
+		return newToken;
 	}
-	public void setTokenIssuer(String tokenIssuer) {
-		this.tokenIssuer = tokenIssuer;
-	}
-	public String getTokenNonce() {
-		return tokenNonce;
-	}
-	public void setTokenNonce(String tokenNonce) {
-		this.tokenNonce = tokenNonce;
-	}
-	public boolean getIssueNewtoken() {
-		return issueNewtoken;
-	}
-	public void setIssueNewtoken(boolean issueNewtoken) {
-		this.issueNewtoken = issueNewtoken;
+
+	public void setNewToken(String newToken) {
+		this.newToken = newToken;
 	}
 
 

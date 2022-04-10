@@ -26,10 +26,12 @@ import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
+import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -50,13 +52,14 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 		AppUtil.initTransactionContext(httpRequest);
 		try {
 			logger.debug("BasicAuthServlet.doPost()...start.......");
+			String userIp = AppUtil.getClientIp(httpRequest);
 			// App CIDR white list check begin
 			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
 				logger.error(
-						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = "
-								+ AppUtil.getClientIp(httpRequest) + ".....");
+						"Authorization Failed. Request IP is not on the APP's IP white list, user IP = "
+								+ userIp + ".....");
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E209");
+						"Authorization Failed. ");
 				return;
 			}
 
@@ -64,11 +67,11 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 
 			String[] basicInfo = AppUtil.parseHttpBasicAuthString(httpRequest);
 			if (basicInfo == null || basicInfo.length != 2) {
-				String errorMsg = "Authentication Failed. code E101 - can not parse basic authentication string from request....";
+				String errorMsg = "Authentication Failed. Can not parse basic authentication string from request....";
 				logger.error(errorMsg);
 				httpResponse.setStatus(401);
 				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authentication Failed. code E101");
+						"Authentication Failed. ");
 				return;
 			}
 			String loginId = basicInfo[0];
@@ -98,17 +101,31 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 			if (AppComponents.commonService.inMaintenanceMode(httpResponse, loginId)) {
 				return;
 			}
-
+			
+			String nonce = httpRequest.getHeader(AppConstant.HTTP_TOKEN_NONCE_HEADER_NAME);
+			
+			
+			//Force to check nonce and ip if token has them as claims
+			if (!StringUtil.isEmptyOrNull(userIp)) {
+				iaaUser.setHashedUserIp(Hasher.hashPassword(userIp));
+			}else {
+				iaaUser.setHashedUserIp(null);
+			}
+			if (!StringUtil.isEmptyOrNull(nonce)) {
+				iaaUser.setHashedNonce(Hasher.hashPassword(nonce));
+			}else {
+				iaaUser.setHashedNonce(null);
+			}
 			// issue new JAPP JWT token;
 			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
 			
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error(
-						"BasicAuthServlet.doPost() - Authentication Failed. code E104. JAPP Token can not be created for login Id '"
+						"BasicAuthServlet.doPost() - Authentication Failed. Token can not be created for login Id '"
 								+ loginId);
 				httpResponse.setStatus(403);
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authentication Failed. code E104");
+						"Authentication Failed. ");
 				return;
 			}
 
@@ -116,7 +133,7 @@ public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 
 			httpResponse.addHeader("Content-Security-Policy", "default-src 'self';");
 			httpResponse.addHeader("X-XSS-Protection", "1; mode=block");
-			httpResponse.addHeader("Access-Control-Expose-Headers", "Token,MaintenanceMode");
+			httpResponse.addHeader("Access-Control-Expose-Headers", "Token, MaintenanceMode");
 			httpResponse.setStatus(200);
 			AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_SUCCESS, "succeed");
 			return;

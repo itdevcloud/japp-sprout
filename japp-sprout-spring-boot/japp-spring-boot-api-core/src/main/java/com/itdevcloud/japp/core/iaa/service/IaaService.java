@@ -68,8 +68,8 @@ public class IaaService implements AppFactoryComponentI {
 		List<ClientAppInfo> clientAppInfoList = new ArrayList<ClientAppInfo>(clientAppInfoSet);
 		return clientAppInfoList;
 	}
-	public ClientAppInfo getClientAppInfo(String appCode){
-		return AppComponents.clientAppInfoCache.getClientAppInfo(appCode);
+	public ClientAppInfo getClientAppInfo(String clientId){
+		return AppComponents.clientAppInfoCache.getClientAppInfo(clientId);
 	}
 
 	public IaaUserI login(String loginId, String password, String authProvider) {

@@ -29,8 +29,8 @@ import com.itdevcloud.japp.core.api.bean.BasicAuthRequest;
 import com.itdevcloud.japp.core.api.bean.BasicAuthResponse;
 import com.itdevcloud.japp.core.api.bean.SignedBasicAuthRequest;
 import com.itdevcloud.japp.core.api.bean.SignedBasicAuthResponse;
-import com.itdevcloud.japp.core.api.bean.ValidateTokenRequest;
-import com.itdevcloud.japp.core.api.bean.ValidateTokenResponse;
+import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenRequest;
+import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -77,16 +77,16 @@ public class AuthRestController extends BaseRestController {
 		return response;
 	}
 
-	@Operation(summary = "Validate Token", description = "Validate JWT issued by this application or partners", tags = {
+	@Operation(summary = "Validate or Issue New Token", description = "Validate Token issued by this application or partners, Generate new Token if newToken Tyoe is not null", tags = {
 			"Core-Auth" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
 
 	@PostMapping("/api/core/tokenvalidation")
-	ValidateTokenResponse validateToken(@RequestBody ValidateTokenRequest request) {
-		ValidateTokenResponse response = null;
-		if ((response = checkIsEnabled(ValidateTokenResponse.class)) != null) {
+	ValidateOrIssueNewTokenResponse validateorIssueNewToken(@RequestBody ValidateOrIssueNewTokenRequest request) {
+		ValidateOrIssueNewTokenResponse response = null;
+		if ((response = checkIsEnabled(ValidateOrIssueNewTokenResponse.class)) != null) {
 			return response;
 		}
-		response = processRequest(request, ValidateTokenResponse.class);
+		response = processRequest(request, ValidateOrIssueNewTokenResponse.class);
 		return response;
 	}
 }

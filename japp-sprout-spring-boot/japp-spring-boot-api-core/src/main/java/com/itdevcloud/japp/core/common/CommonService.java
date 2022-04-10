@@ -39,7 +39,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.stereotype.Component;
 
-import com.itdevcloud.japp.core.api.vo.AppSiteInfo;
+import com.itdevcloud.japp.core.api.vo.ClientPkiInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
@@ -303,26 +303,30 @@ public class CommonService implements AppFactoryComponentI {
 	}
 
 
-	public ClientAppInfo getAppInfo(){
+	public ClientAppInfo getCoreAppInfo(){
 		
-		String appId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
-		String appAuthCallbackUrl = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTH_APP_CALLBACK_URL);
+		String clientId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
+		String authenticationProvider = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTH_APP_CALLBACK_URL);
+		String authenticationCallbackUrl = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTH_APP_CALLBACK_URL);
 		Certificate appCertificate = AppComponents.pkiService.getAppCertificate();
 		PublicKey appPublicKey = AppComponents.pkiService.getAppPublicKey();
 		
-		ClientAppInfo appInfo = new ClientAppInfo();
-		AppSiteInfo siteInfo = new AppSiteInfo();
-		appInfo.setAppId(123L);
-		appInfo.setAppCode(appId);
+		ClientAppInfo clientAppInfo = new ClientAppInfo();
+		ClientPkiInfo clientPkiInfo = new ClientPkiInfo();
 		
-		siteInfo.setSiteCode(appId);
-		siteInfo.setAuthCallbackUrl(appAuthCallbackUrl);
-		siteInfo.setCertificate(appCertificate);
-		siteInfo.setPublicKey(appPublicKey);
+		clientAppInfo.setClientId(clientId);
+		clientAppInfo.setAuthenticationProvider(authenticationProvider);
+		clientAppInfo.setAuthenticationCallbackUrl(authenticationCallbackUrl);
 		
-		appInfo.addAppSite(siteInfo);
+		clientPkiInfo.setClientId(clientId);
+		clientPkiInfo.setPkiCode("corePki");
+		clientPkiInfo.setCertificate(appCertificate);
+		clientPkiInfo.setPublicKey(appPublicKey);
+		clientPkiInfo.setIsDefault(true);
 		
-		return appInfo;
+		clientAppInfo.addClientPkiInfo(clientPkiInfo);
+		
+		return clientAppInfo;
 	}
 
 }

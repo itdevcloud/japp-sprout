@@ -206,7 +206,7 @@ public class AuthenticationFilter implements Filter {
 						return;
 					}
 				} catch (AppException e) {
-					String errStr = e.getMessage();
+					String errStr = "AuthenticationFilter process request failed: " + e.getMessage();
 					logger.error(errStr);
 					AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errStr);
 					return;

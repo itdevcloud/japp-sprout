@@ -339,7 +339,7 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 				iaaUser.setIdentityProvider(idp);
 				iaaUser.setLoginId(loginId);
 				iaaUser.setSystemUid(uid);
-				iaaUser.setUserType(authGroups);
+				//iaaUser.setUserType(authGroups);
 				iaaUser.setMfaStatus(mfaStatus);
 			}
 			

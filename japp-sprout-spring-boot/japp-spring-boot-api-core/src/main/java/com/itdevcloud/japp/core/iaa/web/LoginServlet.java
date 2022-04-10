@@ -35,15 +35,6 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
- * The LoginServlet redirects client's login requests to the predefined login endpoint.
- * <p>
- * We support three authentication types.
- * <ul>
- * 		<li>Azure Active Directory(AAD) - using Azure AD as the authentication provider.
- * 		<li>SdcSTS - using SdcSTS as the authentication provider. SdcSTS is an implementation of STS provided by .NET SDC.
- * 		<li>Basic authentication - check the username and password in an application's repository.
- * </ul>
- * @author Ling Yang
  * @author Marvin Sun
  * @since 1.0.0
  */
@@ -66,9 +57,9 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 		// App CIDR white list check begin
 		if (!AppComponents.commonService.matchAppIpWhiteList(request)) {
 			logger.error(
-					"Authorization Failed. code E209 - request IP is not on the App's IP white list, user IP = " + AppUtil.getClientIp(request) + ".....");
+					"Authorization Failed. Request IP is not on the App's IP white list, user IP = " + AppUtil.getClientIp(request) + ".....");
 			AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-					"Authorization Failed. code E209");
+					"Authorization Failed.");
 			return;
 		}
 		String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
@@ -103,7 +94,6 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 		}
 		UUID uuid = UUID.randomUUID();
 		if (AppConstant.IDENTITY_PROVIDER_AAD_OIDC.equals(provider)) {
-			//String bitsUserEmail = getCookieValue(request, "BITS_USER_EMAIL");
 			String jappUserEmail = request.getParameter("JAPPCORE_USER_EMAIL");
 			String clientId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.AAD_CLIENT_ID);
 			String appId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);

@@ -18,7 +18,7 @@ import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-import com.itdevcloud.japp.core.api.vo.AppSiteInfo;
+import com.itdevcloud.japp.core.api.vo.ClientPkiInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 
@@ -53,25 +53,25 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			// ====== business logic starts ======
 			loginId = request.getLoginId();
 			String password = request.getPassword();
-			String appCode = request.getClientAppCode();
-			String siteCode = request.getClientSiteCode();
+			String clientId = request.getClientId();
+			String clientPkiCode = request.getClientPkiCode();
 			String tokenNonce = request.getTokenNonce();
 			String uip = txnCtx.getClientIP();
 			String signature = request.getSignature();
 
-			String signedMessage = appCode + siteCode + loginId + password + tokenNonce;
-			logger.info("signatureText=" + signedMessage + ", signature=" + signature);
-			ClientAppInfo clientAppInfo = AppComponents.iaaService.getClientAppInfo(appCode);
-			AppSiteInfo siteInfo = (clientAppInfo == null ? null : clientAppInfo.getAppSiteInfo(siteCode));
-			if (clientAppInfo == null || siteInfo == null) {
-				String errMsg = "Application/Site was not found: appCode = '" + appCode + "', siteCode='" + siteCode
+			String signedMessage = clientId + loginId + password + (StringUtil.isEmptyOrNull(tokenNonce)?"":tokenNonce);
+			logger.info("signatureText=" + clientPkiCode + signedMessage + ", signature=" + signature);
+			ClientAppInfo clientAppInfo = AppComponents.iaaService.getClientAppInfo(clientId);
+			ClientPkiInfo clientPkiInfo = (clientAppInfo == null ? null : clientAppInfo.getClientPkiInfo(clientPkiCode));
+			if (clientAppInfo == null || clientPkiInfo == null) {
+				String errMsg = "Application/Site was not found: clientId = '" + clientId + "', clientPkiCode='" + clientPkiCode
 						+ "'.....";
 				logger.error(errMsg);
 				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, errMsg);
 				response.setResponseStatus(responseStatus);
 				return response;
 			}
-			if (!SecurityUtil.verifySignature(siteInfo.getPublicKey(), signature, signedMessage)) {
+			if (!SecurityUtil.verifySignature(clientPkiInfo.getPublicKey(), signature, signedMessage)) {
 				String errMsg = "Authentication Failed. Signature verification failed: loginId = '" + loginId
 						+ "'.....";
 				logger.error(errMsg);

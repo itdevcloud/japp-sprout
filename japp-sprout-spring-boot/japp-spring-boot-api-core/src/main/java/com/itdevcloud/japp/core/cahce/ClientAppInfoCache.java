@@ -107,13 +107,13 @@ public class ClientAppInfoCache extends RefreshableCache {
 		}
 	}
 
-	public ClientAppInfo getClientAppInfo(String appCode) {
-		if(appCode == null || this.clientAppInfoSet == null || this.clientAppInfoSet.isEmpty()) {
+	public ClientAppInfo getClientAppInfo(String clientId) {
+		if(clientId == null || this.clientAppInfoSet == null || this.clientAppInfoSet.isEmpty()) {
 			return null;
 		}
 		waitForInit();
 		for(ClientAppInfo info: this.clientAppInfoSet) {
-			if(appCode.equalsIgnoreCase(info.getAppCode()) ) {
+			if(clientId.equalsIgnoreCase(info.getClientId()) ) {
 				return info;
 			}
 		}

@@ -18,6 +18,7 @@ package com.itdevcloud.japp.core.api.vo;
 
 import java.io.Serializable;
 
+
 /**
  *
  * @author Marvin Sun
@@ -27,35 +28,31 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.itdevcloud.japp.se.common.util.StringUtil;
+import io.netty.util.internal.StringUtil;
 
 public class ClientAppInfo implements Serializable{
 
-	@Override
-	public String toString() {
-		return "ClientAppInfo [appId=" + appId + ", appCode=" + appCode + ", name=" + name + ", appSiteInfoList="
-				+ appSiteInfoList + "]";
-	}
-
 	private static final long serialVersionUID = 1L;
 	
-	private Long appId;
-	private String appCode;
-	
+	private Long id;
+	private String clientId;
 	private String name;
-	private List<AppSiteInfo> appSiteInfoList;
-	
-	public Long getAppId() {
-		return appId;
+	private String organizationId;
+	private String organizationName;
+	private String authenticationProvider;
+	private String authenticationCallbackUrl;
+	private List<ClientPkiInfo> clientPkiInfoList;
+	public Long getId() {
+		return id;
 	}
-	public void setAppId(Long appId) {
-		this.appId = (appId==null?null:appId);
+	public void setId(Long id) {
+		this.id = id;
 	}
-	public String getAppCode() {
-		return appCode;
+	public String getClientId() {
+		return clientId;
 	}
-	public void setAppCode(String code) {
-		this.appCode = code;
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
 	}
 	public String getName() {
 		return name;
@@ -63,42 +60,80 @@ public class ClientAppInfo implements Serializable{
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	public void addAppSite(AppSiteInfo appSiteInfo) {
-		if(this.appSiteInfoList == null) {
-			this.appSiteInfoList = new ArrayList<AppSiteInfo>();
-		}
-		this.appSiteInfoList.add(appSiteInfo);
+	public String getOrganizationId() {
+		return organizationId;
 	}
-	public AppSiteInfo getAppSiteInfo(String siteCode) {
-		if(this.appSiteInfoList == null || StringUtil.isEmptyOrNull(siteCode)) {
+	public void setOrganizationId(String organizationId) {
+		this.organizationId = organizationId;
+	}
+	public String getOrganizationName() {
+		return organizationName;
+	}
+	public void setOrganizationName(String organizationName) {
+		this.organizationName = organizationName;
+	}
+	public String getAuthenticationProvider() {
+		return authenticationProvider;
+	}
+	public void setAuthenticationProvider(String authenticationProvider) {
+		this.authenticationProvider = authenticationProvider;
+	}
+	public String getAuthenticationCallbackUrl() {
+		return authenticationCallbackUrl;
+	}
+	public void setAuthenticationCallbackUrl(String authenticationCallbackUrl) {
+		this.authenticationCallbackUrl = authenticationCallbackUrl;
+	}
+	
+	public void addClientPkiInfo(ClientPkiInfo clientPkiInfo) {
+		if(this.clientPkiInfoList == null) {
+			this.clientPkiInfoList = new ArrayList<ClientPkiInfo>();
+		}
+		if(clientPkiInfo != null) {
+			this.clientPkiInfoList.add(clientPkiInfo);
+		}
+		return;
+	}
+	
+	public List<ClientPkiInfo> getClientPkiInfoList() {
+		if(this.clientPkiInfoList == null) {
+			this.clientPkiInfoList = new ArrayList<ClientPkiInfo>();
+		}
+		return this.clientPkiInfoList;
+	}
+	public void resetClientPkiInfoList() {
+		this.clientPkiInfoList = new ArrayList<ClientPkiInfo>();
+	}	
+	
+	public ClientPkiInfo getClientPkiInfo(String pkiCode) {
+		if(this.clientPkiInfoList == null) {
 			return null;
 		}
-		for(AppSiteInfo info: this.appSiteInfoList) {
-			if(siteCode.equalsIgnoreCase(info.getSiteCode()) ) {
-				return info;
+		if(StringUtil.isNullOrEmpty(pkiCode)) {
+			for (ClientPkiInfo clientPkiInfo: this.clientPkiInfoList) {
+				if(clientPkiInfo != null && clientPkiInfo.getIsDefault() != null && clientPkiInfo.getIsDefault() == true ) {
+					return clientPkiInfo;
+				}
+			}
+		}else {
+			for (ClientPkiInfo clientPkiInfo: this.clientPkiInfoList) {
+				if(clientPkiInfo != null && pkiCode.equalsIgnoreCase(clientPkiInfo.getPkiCode()) ) {
+					return clientPkiInfo;
+				}
 			}
 		}
 		return null;
-	}
 
-	public List<AppSiteInfo> getAppSiteInfoList() {
-		if(this.appSiteInfoList == null) {
-			this.appSiteInfoList = new ArrayList<AppSiteInfo>();
-		}
-		return appSiteInfoList;
 	}
-	public void setAppSiteList(List<AppSiteInfo> appSiteList) {
-		this.appSiteInfoList = appSiteList;
-	}
+	
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((appCode == null) ? 0 : appCode.hashCode());
+		result = prime * result + ((clientId == null) ? 0 : clientId.hashCode());
 		return result;
 	}
-	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -108,17 +143,21 @@ public class ClientAppInfo implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		ClientAppInfo other = (ClientAppInfo) obj;
-		if (appCode == null) {
-			if (other.appCode != null)
+		if (clientId == null) {
+			if (other.clientId != null)
 				return false;
-		} else if (!appCode.equalsIgnoreCase(other.appCode)) {
+		} else if (!clientId.equals(other.clientId))
 			return false;
-		}
 		return true;
 	}
 	
-
-
+	@Override
+	public String toString() {
+		return "ClientAppInfo [id=" + id + ", clientId=" + clientId + ", name=" + name + ", organizationId="
+				+ organizationId + ", organizationName=" + organizationName + ", authenticationProvider="
+				+ authenticationProvider + ", authenticationCallbackUrl=" + authenticationCallbackUrl
+				+ ", clientPkiInfoList=" + clientPkiInfoList + "]";
+	}
 
 
 }

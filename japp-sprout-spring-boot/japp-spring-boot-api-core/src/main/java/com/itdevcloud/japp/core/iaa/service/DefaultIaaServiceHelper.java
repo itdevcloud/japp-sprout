@@ -138,7 +138,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 	@Override
 	public List<ClientAppInfo> getClientAppInfoList() {
 		List<ClientAppInfo> appInfoList = new ArrayList<ClientAppInfo>();
-		ClientAppInfo appInfo = AppComponents.commonService.getAppInfo();
+		ClientAppInfo appInfo = AppComponents.commonService.getCoreAppInfo();
 		appInfoList.add(appInfo);
 		return appInfoList;
 	}

@@ -16,12 +16,16 @@
  */
 package com.itdevcloud.japp.core.common;
 
+import java.io.BufferedReader;
 /**
 *
 * @author Marvin Sun
 * @since 1.0.0
 */
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
@@ -44,10 +48,9 @@ import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
-import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
-import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
+import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
@@ -329,4 +332,162 @@ public class CommonService implements AppFactoryComponentI {
 		return clientAppInfo;
 	}
 
+	public void handleResponse(HttpServletResponse response, String loginId, String token, String desktop, String password) throws IOException {
+
+		String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_TOKEN_PAGE, "http://localhost:4200/token");
+		logger.info("handleResponse(), url is: " + url);
+
+		String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN, "http://localhost:4200");
+		logger.info("handleResponse(), origin is: " + origin);
+
+		response.addHeader("Access-Control-Allow-Origin", origin);
+
+		//Set login-id 
+		String sslEnabled = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.SERVER_SSL_ENABLED);
+		response.addHeader("Content-Security-Policy", "default-src 'self';");
+		response.addHeader("X-XSS-Protection", "1; mode=block");
+
+		String desktopLoginCallBackURL = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_DESKTOP_LOGIN_CALLBACK_URL, "https://localhost:8443/open/logincallbackservlet");
+
+		if(desktop != null && desktop.equalsIgnoreCase("true")) {
+			handleDesktopPostResponse(response, desktopLoginCallBackURL, token, loginId, password);
+		} else if(desktop != null && desktop.equalsIgnoreCase("false")) {
+			handleOnlinePostResponse(response, token, loginId);
+		} else {
+			handleOnlinePostResponse(response, token, loginId);
+		}
+
+		return;
+	}
+
+	public void handleOnlinePostResponse(HttpServletResponse response, String token, String loginId) throws IOException {
+
+		// ===load token page===
+		InputStream inputStream = null;
+		StringBuilder sb = new StringBuilder();
+		String postUrl = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_HOME_PAGE, "http://localhost:8443/index.html");
+		
+		//defined in OpenRestController
+		String onlineTokenLoaderJsUrl = "/" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT) + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_ONLINE_TOKEN_LOADER_JS_PATHL);
+		try {
+			inputStream = CommonService.class.getResourceAsStream("/page/online_token_loader.html");
+			if (inputStream == null) {
+				throw new RuntimeException("can not load token_loader html file, check code!.......");
+			}
+			String line;
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+			while ((line = br.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			inputStream.close();
+			inputStream = null;
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
+				inputStream = null;
+			}
+		}
+		String htmlText = sb.toString();
+		htmlText = htmlText.replaceAll("@token@", token);
+		htmlText = htmlText.replaceAll("@action@", postUrl);
+		htmlText = htmlText.replaceAll("@loginid@", loginId);
+		htmlText = htmlText.replaceAll("@script@", onlineTokenLoaderJsUrl);
+		response.setContentType("text/html");
+		response.setStatus(200);
+		PrintWriter out = response.getWriter();
+		out.println(htmlText);
+		out.flush();
+		out.close();
+
+		return;
+	}
+
+
+	public void handleDesktopPostResponse(HttpServletResponse response, String postUrl, String token, String loginId, String password) throws IOException {
+
+		// ===load token page===
+		String desktopTokenLoaderJsUrl = "/" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT) + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_DESKTOP_TOKEN_LOADER_JS_PATH);
+		
+		InputStream inputStream = null;
+		StringBuilder sb = new StringBuilder();
+		try {
+			inputStream = CommonService.class.getResourceAsStream("/page/desktop_token_loader.html");
+			if (inputStream == null) {
+				throw new RuntimeException("can not load desktop_token_loader html file, check code!.......");
+			}
+			String line;
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+			while ((line = br.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			inputStream.close();
+			inputStream = null;
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
+				inputStream = null;
+			}
+		}
+		
+		PublicKey publicKey = AppComponents.pkiService.getAppPublicKey();
+		
+		String htmlText = sb.toString();
+		htmlText = htmlText.replaceAll("@token@", token);
+		htmlText = htmlText.replaceAll("@action@", postUrl);
+		htmlText = htmlText.replaceAll("@loginid@", loginId);
+		htmlText = htmlText.replace("@publickey@", SecurityUtil.getPublicKeyString(publicKey));
+		htmlText = htmlText.replace("@algorithm@", publicKey.getAlgorithm());
+		htmlText = htmlText.replaceAll("@password@", password);
+		htmlText = htmlText.replaceAll("@script@", desktopTokenLoaderJsUrl);
+		response.setContentType("text/html");
+		response.setStatus(200);
+		PrintWriter out = response.getWriter();
+		out.println(htmlText);
+		out.flush();
+		out.close();
+
+		return;
+	}
+
+	public void handleRedirect(HttpServletResponse response, String redirectUrl, String cookieValue) throws IOException {
+		// ===load token page===
+		
+		String onlineHandleRedirectJsUrl = "/" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT) + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_ONLINE_HANDLE_REDIRECT_JS_PATH);
+
+		InputStream inputStream = null;
+		StringBuilder sb = new StringBuilder();
+		try {
+			inputStream = CommonService.class.getResourceAsStream("/page/online_handle_redirect.html");
+			if (inputStream == null) {
+				throw new RuntimeException("can not load online_handle_redirect.html file, check code!.......");
+			}
+			String line;
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+			while ((line = br.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			inputStream.close();
+			inputStream = null;
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
+				inputStream = null;
+			}
+		}
+		String htmlText = sb.toString();
+		htmlText = htmlText.replaceAll("@LoginErrorMessage@", cookieValue);
+		htmlText = htmlText.replaceAll("@action@", redirectUrl);
+		htmlText = htmlText.replaceAll("@script@", onlineHandleRedirectJsUrl);
+		response.setContentType("text/html");
+		response.setStatus(200);
+		PrintWriter out = response.getWriter();
+		out.println(htmlText);
+		out.flush();
+		out.close();
+
+		return;
+	}
+
 }
+
+	

@@ -346,6 +346,18 @@ public class SecurityUtil {
 
 	}
 
+	public static String getPublicKeyString(PublicKey key) {
+		if (key == null) {
+			return null;
+		}
+		byte[] bytes = key.getEncoded();
+		String encodedKey = null;
+		if (bytes != null) {
+			encodedKey = new String(Base64.getEncoder().encodeToString(bytes));
+		}
+		return encodedKey;
+
+	}
 	public static String getPublicKeyPemString(PublicKey key, boolean insertLineSeparator) {
 		if (key == null) {
 			return null;

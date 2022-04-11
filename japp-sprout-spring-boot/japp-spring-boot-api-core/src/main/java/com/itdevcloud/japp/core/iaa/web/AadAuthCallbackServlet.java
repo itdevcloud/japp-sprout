@@ -50,7 +50,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @since 1.0.0
  */
 
-@WebServlet(name = "aadAuthCallbackServlet", urlPatterns = "/aadauth")
+@WebServlet(name = "aadAuthCallbackServlet", urlPatterns = "/open/aadauth")
 public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -131,6 +131,7 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 			String[] arr = state.split(":");
 			String appId = null;
 			String ip = null;
+			String desktop = null;
 			if (arr != null) {
 				if (arr.length > 0) {
 					appId = arr[0];
@@ -138,7 +139,12 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 				if (arr.length > 1) {
 					ip = arr[1];
 				}
+				if (arr.length > 2) {
+					desktop = arr[2];
+				}
 			}
+			
+			
 			String currentappId = ConfigFactory.appConfigService
 					.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
 			if (StringUtil.isEmptyOrNull(appId) || appId.equalsIgnoreCase(currentappId)) {

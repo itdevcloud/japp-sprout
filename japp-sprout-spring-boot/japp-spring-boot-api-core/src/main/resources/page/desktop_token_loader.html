@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="token-loader" content="width=device-width, initial-scale=1">
+
+</head>
+<body>
+	<form id="login_redirect" name="login_redirect" action="@action@"
+		method="post">
+		<input type="hidden" id="token" name="token" value="@token@">
+		<input type="hidden" id="login_id" name="login_id" value="@loginid@">
+		<input type="hidden" id="publickey" name="publickey" value="@publickey@">
+		<input type="hidden" id="algorithm" name="algorithm" value="@algorithm@">
+		<input type="hidden" id="password" name="password" value="@password@">
+	</form>
+	<script src="@script@"></script>
+</body>
+</html>

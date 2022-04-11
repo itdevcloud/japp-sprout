@@ -28,19 +28,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppConfigKeys {
 
-	public static final String OAUTH2_AUTHROIZATION_URL = "sdcsts.authorization.url";
-	public static final String OAUTH2_TOKEN_URL = "sdcsts.token.url";
-	public static final String OAUTH2_CLIENT_ID = "sdcsts.clientid";
-	public static final String OAUTH2_RESOURCE = "sdcsts.resource";
-	public static final String OAUTH2_SECRET = "sdcsts.secret";
-	public static final String OAUTH2_REDIRECT_URI = "sdcsts.redirecturi";
-	public static final String OAUTH2_METADATA = "sdcsts.metadata";
+//	public static final String OAUTH2_AUTHROIZATION_URL = "sdcsts.authorization.url";
+//	public static final String OAUTH2_TOKEN_URL = "sdcsts.token.url";
+//	public static final String OAUTH2_CLIENT_ID = "sdcsts.clientid";
+//	public static final String OAUTH2_RESOURCE = "sdcsts.resource";
+//	public static final String OAUTH2_SECRET = "sdcsts.secret";
+//	public static final String OAUTH2_REDIRECT_URI = "sdcsts.redirecturi";
+//	public static final String OAUTH2_METADATA = "sdcsts.metadata";
 
 	public static final String SERVER_SSL_KEY_STORE = "server.ssl.key-store";
 	public static final String SERVER_SSL_KEY_STORE_PASSWORD = "server.ssl.key-store-password";
 	public static final String SERVER_SSL_KEY_ALIAS = "server.ssl.key-alias";
 	public static final String SERVER_SSL_KEY_PASSWORD = "server.ssl.key-password";
-
+	public static final String SERVER_SSL_ENABLED = "server.ssl.enabled";
+	public static final String SERVER_DESKTOP_LOGIN_CALLBACK_URL = "server.ssl.enabled";
+	
 	public static final String JAPPCORE_HTTP_PROXY_SERVER = "jappcore.http.proxy.server";
 	public static final String JAPPCORE_HTTP_PROXY_PORT = "jappcore.http.proxy.port";
 
@@ -65,6 +67,7 @@ public class AppConfigKeys {
 //	public static final String JAPPCORE_APP_SECURITY_CONTROLLER_ENABLED = "jappcore.app.security.controller.enabled";
 //	public static final String JAPPCORE_APP_AUTH_CONTROLLER_ENABLED = "jappcore.app.auth.controller.enabled";
 	public static final String JAPPCORE_APP_CORE_CONTROLLER_ENABLED_COMMANDS = "jappcore.app.core.controller.enabled.commands";
+	
 	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_IP_ENABLED = "jappcore.iaa.token.validate.ip.enabled";
 	public static final String JAPPCORE_IAA_2NDFACTOR_TYPE = "jappcore.iaa.2ndfactor.type";
 	public static final String JAPPCORE_IAA_CIDR_USER_WHITELIST_ENABLED = "jappcore.iaa.cidr.user.whitelist.enabled";
@@ -86,13 +89,21 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME = "jappcore.iaa.accessstoken.handler.name";
 	public static final String JAPPCORE_IAA_AUTH_EXCLUDE_PATHS = "jappcore.iaa.auth.exclude.paths";
 	public static final String JAPPCORE_IAA_PROCESSOR_EMPTY_TARGET_ROLE_ALLOWED = "jappcore.iaa.processor.empty.target.role.allowed";
+	public static final String JAPPCORE_IAA_DESKTOP_LOGIN_CALLBACK_URL = "jappcore.iaa.auth.desktop.callback.url";
 
+	
 	public static final String JAPPCORE_FRONTEND_UI_FRAMEWORK = "jappcore.frontend.ui.framework";
 	public static final String JAPPCORE_FRONTEND_UI_ORIGIN = "jappcore.frontend.ui.origin";
 	public static final String JAPPCORE_FRONTEND_UI_POST_SIGNOUT_PAGE = "jappcore.frontend.ui.post.signout.page";
+	public static final String JAPPCORE_FRONTEND_UI_HOME_PAGE = "jappcore.frontend.ui.home.page";
 	public static final String JAPPCORE_FRONTEND_UI_TOKEN_PAGE = "jappcore.frontend.ui.token.page";
 	public static final String JAPPCORE_FRONTEND_UI_MAINTENANCE_PAGE = "jappcore.frontend.ui.maintenance.page";
 	public static final String JAPPCORE_FRONTEND_UI_SECURE_COOKIE_ENABLED = "jappcore.frontend.ui.secure.cookie.enabled";
+	
+	public static final String JAPPCORE_FRONTEND_ONLINE_TOKEN_LOADER_JS_PATHL = "jappcore.frontend.onlinetokenloader.js.path";
+	public static final String JAPPCORE_FRONTEND_DESKTOP_TOKEN_LOADER_JS_PATH = "jappcore.frontend.desktoptokenloader.js.path";
+	public static final String JAPPCORE_FRONTEND_ONLINE_HANDLE_REDIRECT_JS_PATH = "jappcore.frontend.onlinehandleredirect.js.path";
+	public static final String JAPPCORE_FRONTEND_ONLINE_LOGIN_ERROR_JS_PATH = "jappcore.frontend.onlineloginerror.js.path";
 
 	public static final String JAPPCORE_CACHE_REFRESH_INTERVAL = "jappcore.cache.refresh.interval.millis";
 	public static final String JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL = "jappcore.cache.refresh.least.interval.mins";

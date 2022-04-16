@@ -90,7 +90,7 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_AUTH_EXCLUDE_PATHS = "jappcore.iaa.auth.exclude.paths";
 	public static final String JAPPCORE_IAA_PROCESSOR_EMPTY_TARGET_ROLE_ALLOWED = "jappcore.iaa.processor.empty.target.role.allowed";
 	public static final String JAPPCORE_IAA_DESKTOP_LOGIN_CALLBACK_URL = "jappcore.iaa.auth.desktop.callback.url";
-
+	public static final String JAPPCORE_IAA_AAD_REDIRECT_URL =  "jappcore.iaa.aad.redirect.url";
 	
 	public static final String JAPPCORE_FRONTEND_UI_FRAMEWORK = "jappcore.frontend.ui.framework";
 	public static final String JAPPCORE_FRONTEND_UI_ORIGIN = "jappcore.frontend.ui.origin";
@@ -99,11 +99,14 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_FRONTEND_UI_TOKEN_PAGE = "jappcore.frontend.ui.token.page";
 	public static final String JAPPCORE_FRONTEND_UI_MAINTENANCE_PAGE = "jappcore.frontend.ui.maintenance.page";
 	public static final String JAPPCORE_FRONTEND_UI_SECURE_COOKIE_ENABLED = "jappcore.frontend.ui.secure.cookie.enabled";
-	
-	public static final String JAPPCORE_FRONTEND_ONLINE_TOKEN_LOADER_JS_PATHL = "jappcore.frontend.onlinetokenloader.js.path";
-	public static final String JAPPCORE_FRONTEND_DESKTOP_TOKEN_LOADER_JS_PATH = "jappcore.frontend.desktoptokenloader.js.path";
-	public static final String JAPPCORE_FRONTEND_ONLINE_HANDLE_REDIRECT_JS_PATH = "jappcore.frontend.onlinehandleredirect.js.path";
-	public static final String JAPPCORE_FRONTEND_ONLINE_LOGIN_ERROR_JS_PATH = "jappcore.frontend.onlineloginerror.js.path";
+
+	public static final String JAPPCORE_IAA_TRANSFER_TOKEN_TO_CLIENT_JS_PATH = "jappcore.iaa.transfer.toekn.to.client.js.path";
+	public static final String JAPPCORE_IAA_TRANSFER_TOKEN_TO_CLIENT_CSS_PATH = "jappcore.iaa.transfer.toekn.to.client.css.path";
+
+//	public static final String JAPPCORE_FRONTEND_ONLINE_TOKEN_LOADER_JS_PATH = "jappcore.frontend.onlinetokenloader.js.path";
+//	public static final String JAPPCORE_FRONTEND_DESKTOP_TOKEN_LOADER_JS_PATH = "jappcore.frontend.desktoptokenloader.js.path";
+//	public static final String JAPPCORE_FRONTEND_ONLINE_HANDLE_REDIRECT_JS_PATH = "jappcore.frontend.onlinehandleredirect.js.path";
+//	public static final String JAPPCORE_FRONTEND_ONLINE_LOGIN_ERROR_JS_PATH = "jappcore.frontend.onlineloginerror.js.path";
 
 	public static final String JAPPCORE_CACHE_REFRESH_INTERVAL = "jappcore.cache.refresh.interval.millis";
 	public static final String JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL = "jappcore.cache.refresh.least.interval.mins";

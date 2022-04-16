@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="transfer-token-to-client"
+	content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="styles.css">
+<style>
+.loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 120px;
+  height: 120px;
+  margin: -76px 0 0 -76px;
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Add stop */
+.stopspin {
+  position: relative;
+  -webkit-animation-name: stopspin;
+  -webkit-animation-duration: 1s;
+  animation-name: stopspin;
+  animation-duration: 1s
+}
+
+@-webkit-keyframes stopspin {
+  from { bottom:-100px; opacity:0 } 
+  to { bottom:0px; opacity:1 }
+}
+
+@keyframes stopspin { 
+  from{ bottom:-100px; opacity:0 } 
+  to{ bottom:0; opacity:1 }
+}
+
+#spinDiv {
+  text-align: center;
+}
+
+#stopSpinDiv {
+  display: none;
+  text-align: center;
+}
+
+</style>
+
+</head>
+<body>
+	<form id="post_token" name="post_token" action="@action@" method="post">
+		<input type="hidden" id="token" name="token" value="@token@">
+		<input type="hidden" id="token_transfer" name="token_transfer" value="@token_transfer@"> 
+		<input type="hidden" id="callback_type"	name="callback_type" value="@callback_type@"> 
+	</form>
+	<!-- use api to get script code recommended way owasp-->
+	<script src="@script@"></script>
+
+</body>
+</html>

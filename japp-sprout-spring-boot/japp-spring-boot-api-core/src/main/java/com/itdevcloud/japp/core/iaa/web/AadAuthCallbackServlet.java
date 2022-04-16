@@ -129,63 +129,22 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 
 			String state = (String) request.getParameter("state");
 			String[] arr = state.split(":");
-			String appId = null;
+			String clientId = null;
 			String ip = null;
-			String desktop = null;
+			String authKey = null;
 			if (arr != null) {
 				if (arr.length > 0) {
-					appId = arr[0];
+					clientId = arr[0];
 				}
 				if (arr.length > 1) {
 					ip = arr[1];
 				}
 				if (arr.length > 2) {
-					desktop = arr[2];
+					authKey = arr[2];
 				}
 			}
 			
-			
-			String currentappId = ConfigFactory.appConfigService
-					.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
-			if (StringUtil.isEmptyOrNull(appId) || appId.equalsIgnoreCase(currentappId)) {
-				// if same app, we can use send-redirect
-				AppComponents.commonService.handleResponse(response, token);
-			} else {
-				// redirect to application's call back url
-				// HTTP GET
-				String url = ConfigFactory.appConfigService
-						.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTH_APP_CALLBACK_URL);
-				if (StringUtil.isEmptyOrNull(url)) {
-					logger.error(
-							"AadAuthCallbackServlet.doPost() - Authorization Failed. code E509. Can't find application "
-									+ appId + " call back url from the property file.");
-					AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authorization Failed. code E509");
-					return;
-				}
-
-				if (url.toLowerCase().contains("localhost")) {
-					url.replaceAll("localhost", ip);
-				}
-
-				// produce a post form page
-				response.setContentType("text/html");
-				response.setStatus(200);
-				PrintWriter out = response.getWriter();
-				out.println("<!DOCTYPE html>\r\n" + "<html>\r\n" + "<head> \r\n"
-						+ "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\r\n"
-						+ "    <script type=\"text/javascript\">\r\n" + "        function submitpage() {\r\n"
-						+ "			document.forms['token_redirect'].submit();" + " 		}\r\n" + "    </script>\r\n"
-						+ "</head>\r\n" + "<body onLoad=\"submitpage()\">\r\n"
-						+ "<form name=\"token_redirect\" action=\"");
-				out.print(url);
-				out.print("\" method=\"post\">\r\n" + "    <input type=\"hidden\" name=\"CallingApp-Token"
-						+ "\" value=\"");
-				out.print(token);
-				out.println("\" />\r\n" + "</form>\r\n" + "</body>\r\n" + "</html>");
-				out.flush();
-				out.close();
-			}
+			AppComponents.commonService.handleClientAuthCallbackResponse(response, token, clientId, authKey);
 
 		} finally {
 			AppUtil.clearTransactionContext();

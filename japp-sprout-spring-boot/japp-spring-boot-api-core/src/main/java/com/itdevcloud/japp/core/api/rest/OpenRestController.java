@@ -64,53 +64,17 @@ public class OpenRestController extends BaseRestController {
 		return response;
 	}
 
-	@Operation(summary = "Load Desktop Token Loader Script", description = "Load Desktop Token Loader Script", tags = {
+	@Operation(summary = "Load Transfer Token To Client Script", description = "Load Transfer Token To Client Script", tags = {
 			"Core-Open" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
 
-	@RequestMapping(value="/open/core/desktop_token_loader_script", method=RequestMethod.GET)
-	String getDesktopTokenLoaderScript() {
+	@RequestMapping(value="/open/core/transfer_token_to_client_script", method=RequestMethod.GET)
+	String getTransferTokenToClientScript() {
 		InputStream inputStream = null;
 		StringBuilder sb = new StringBuilder();
 		try {
-			inputStream = OpenRestController.class.getResourceAsStream("/page/desktop_token_loader_script.js");
+			inputStream = OpenRestController.class.getResourceAsStream("/page/transfer_token_to_client_script.js");
 			if (inputStream == null) {
-				throw new Exception("can not load desk_token_loader_script.js, check code!.......");
-			}
-			String line;
-			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-			while ((line = br.readLine()) != null) {
-				sb.append(line).append("\n");
-			}
-			inputStream.close();
-			inputStream = null;
-		} catch (Exception e) {
-			e.printStackTrace();
-			sb = new StringBuilder(e.getMessage());
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				inputStream = null;
-			}
-		}
-		return sb.toString();
-	}
-
-	@Operation(summary = "Load Online Token Loader Script", description = "Load Online Token Loader Script", tags = {
-			"Core-Open" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
-
-	@RequestMapping(value="/open/core/online_token_loader_script", method=RequestMethod.GET)
-	public String getOnlineTokenLoaderScript() {
-		InputStream inputStream = null;
-		StringBuilder sb = new StringBuilder();
-		try {
-			inputStream = OpenRestController.class.getResourceAsStream("/page/online_token_loader_script.js");
-			if (inputStream == null) {
-				throw new Exception("can not load online_token_loader_script.js file, check code!.......");
+				throw new Exception("can not load transfer_token_to_client_script.js, check code!.......");
 			}
 			String line;
 			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
@@ -132,9 +96,43 @@ public class OpenRestController extends BaseRestController {
 				inputStream = null;
 			}
 		}
-
 		return sb.toString();
 	}
+
+	@Operation(summary = "Load Transfer Token To Client Style", description = "Load Transfer Token To Client Style", tags = {
+	"Core-Open" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
+
+@RequestMapping(value="/open/core/transfer_token_to_client_style", method=RequestMethod.GET)
+String getTransferTokenToClientStyle() {
+InputStream inputStream = null;
+StringBuilder sb = new StringBuilder();
+try {
+	inputStream = OpenRestController.class.getResourceAsStream("/page/transfer_token_to_client_style.css");
+	if (inputStream == null) {
+		throw new Exception("can not load transfer_token_to_client_style.css, check code!.......");
+	}
+	String line;
+	BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+	while ((line = br.readLine()) != null) {
+		sb.append(line).append("\r\n");
+	}
+	inputStream.close();
+	inputStream = null;
+} catch (Exception e) {
+	e.printStackTrace();
+	sb = new StringBuilder(e.getMessage());
+} finally {
+	if (inputStream != null) {
+		try {
+			inputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		inputStream = null;
+	}
+}
+return sb.toString();
+}
 
 	@Operation(summary = "Load Online Login Error Script", description = "Load Online Login Error Script", tags = {
 			"Core-Open" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
@@ -171,40 +169,5 @@ public class OpenRestController extends BaseRestController {
 		return sb.toString();
 	}
 
-	@Operation(summary = "Load Online Handle Direct Script", description = "Load Online Handle Direct Script", tags = {
-			"Core-Open" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
-	
-	@RequestMapping(value="/open/core/online_handle_redirect_script", method=RequestMethod.GET)
-	public String getOnlineHandleRedirectScript() {
-		InputStream inputStream = null;
-		StringBuilder sb = new StringBuilder();
-		try {
-			inputStream = OpenRestController.class.getResourceAsStream("/page/online_handle_redirect_script.js");
-			if (inputStream == null) {
-				throw new RuntimeException("can not load online_handle_redirect_script.js file, check code!.......");
-			}
-			String line;
-			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-			while ((line = br.readLine()) != null) {
-				sb.append(line).append("\n");
-			}
-			inputStream.close();
-			inputStream = null;
-		} catch (Exception e) {
-			e.printStackTrace();
-			sb = new StringBuilder(e.getMessage());
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				inputStream = null;
-			}
-		}
-
-		return sb.toString();
-	}
 
 }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="transfer-token-to-client"
+	content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" type="text/css" href="@style@">
+
+</head>
+<body>
+	<p style="text-align:center">Transfer Token......</p>
+	<div id="spinDiv" class="loader">
+	</div>
+	
+	<div style="display:none;" id="stopSpinDiv" class="stopspin">
+	  <p>Transfer Token Callback Page Need to Be Developed!</p>
+	</div>
+	<form id="post_token" name="post_token" action="@action@" method="post">
+		<input type="hidden" id="token" name="token" value="@token@">
+		<input type="hidden" id="token_transfer" name="token_transfer" value="@token_transfer@"> 
+		<input type="hidden" id="callback_type"	name="callback_type" value="@callback_type@"> 
+	</form>
+	<!-- use api to get script code recommended way owasp-->
+	<script src="@script@"></script>
+
+</body>
+</html>

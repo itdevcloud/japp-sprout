@@ -39,8 +39,7 @@ public class ClientAppInfo implements Serializable{
 	private String name;
 	private String organizationId;
 	private String organizationName;
-	private String authenticationProvider;
-	private String authenticationCallbackUrl;
+	private List<ClientAuthInfo> clientAuthInfoList;
 	private List<ClientPkiInfo> clientPkiInfoList;
 	public Long getId() {
 		return id;
@@ -72,18 +71,49 @@ public class ClientAppInfo implements Serializable{
 	public void setOrganizationName(String organizationName) {
 		this.organizationName = organizationName;
 	}
-	public String getAuthenticationProvider() {
-		return authenticationProvider;
+	
+	public void addClientAuthInfo(ClientAuthInfo clientAuthInfo) {
+		if(this.clientAuthInfoList == null) {
+			this.clientAuthInfoList = new ArrayList<ClientAuthInfo>();
+		}
+		if(clientAuthInfo != null) {
+			this.clientAuthInfoList.add(clientAuthInfo);
+		}
+		return;
 	}
-	public void setAuthenticationProvider(String authenticationProvider) {
-		this.authenticationProvider = authenticationProvider;
+
+	public List<ClientAuthInfo> getClientAuthInfoList() {
+		if(this.clientAuthInfoList == null) {
+			this.clientAuthInfoList = new ArrayList<ClientAuthInfo>();
+		}
+		return this.clientAuthInfoList;
 	}
-	public String getAuthenticationCallbackUrl() {
-		return authenticationCallbackUrl;
+	
+	public void resetClientAuthInfoList() {
+		this.clientAuthInfoList = new ArrayList<ClientAuthInfo>();
 	}
-	public void setAuthenticationCallbackUrl(String authenticationCallbackUrl) {
-		this.authenticationCallbackUrl = authenticationCallbackUrl;
+
+	public ClientAuthInfo getClientAuthInfo(String authKey) {
+		if(this.clientAuthInfoList == null) {
+			return null;
+		}
+		if(StringUtil.isNullOrEmpty(authKey)) {
+			for (ClientAuthInfo clientAuthInfo: this.clientAuthInfoList) {
+				if(clientAuthInfo != null && clientAuthInfo.getIsDefault() != null && clientAuthInfo.getIsDefault() == true ) {
+					return clientAuthInfo;
+				}
+			}
+		}else {
+			for (ClientAuthInfo clientAuthInfo: this.clientAuthInfoList) {
+				if(clientAuthInfo != null && authKey.equalsIgnoreCase(clientAuthInfo.getAuthKey()) ) {
+					return clientAuthInfo;
+				}
+			}
+		}
+		return null;
+
 	}
+
 	
 	public void addClientPkiInfo(ClientPkiInfo clientPkiInfo) {
 		if(this.clientPkiInfoList == null) {
@@ -150,14 +180,13 @@ public class ClientAppInfo implements Serializable{
 			return false;
 		return true;
 	}
-	
 	@Override
 	public String toString() {
 		return "ClientAppInfo [id=" + id + ", clientId=" + clientId + ", name=" + name + ", organizationId="
-				+ organizationId + ", organizationName=" + organizationName + ", authenticationProvider="
-				+ authenticationProvider + ", authenticationCallbackUrl=" + authenticationCallbackUrl
-				+ ", clientPkiInfoList=" + clientPkiInfoList + "]";
+				+ organizationId + ", organizationName=" + organizationName + ", clientAuthInfoList="
+				+ clientAuthInfoList + ", clientPkiInfoList=" + clientPkiInfoList + "]";
 	}
+	
 
 
 }

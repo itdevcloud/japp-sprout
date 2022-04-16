@@ -32,6 +32,7 @@ import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -39,7 +40,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @since 1.0.0
  */
 
-@WebServlet(name = "loginServlet", urlPatterns = "/login")
+@WebServlet(name = "loginServlet", urlPatterns = "/open/login")
 public class LoginServlet extends javax.servlet.http.HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LogManager.getLogger(LoginServlet.class);
@@ -52,6 +53,14 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 	}
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		if(true) {
+			String token = "toekn-12345";
+			String clientId  = "jappcore";
+			
+			AppComponents.commonService.handleClientAuthCallbackResponse(response, token, clientId, null);
+		return;
+		}
+		
 		logger.debug("login doPost =======begin==================");
 
 		// App CIDR white list check begin
@@ -74,7 +83,7 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 		PrintWriter out = response.getWriter();
 		out.print("Loading the login page...");
 
-		logger.info("doGet() redirect url============= " + url);
+		logger.info("doPost() redirect url============= " + url);
 		if (url == null) {
 			logger.error("url == null......can't redirect to provider's login page...... ");
 			response.setStatus(401);
@@ -97,11 +106,13 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 			String jappUserEmail = request.getParameter("JAPPCORE_USER_EMAIL");
 			String clientId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.AAD_CLIENT_ID);
 			String appId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
+			String redirectUri = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AAD_REDIRECT_URL, null);
+
 			String prompt = getAadAuthPrompt();
 			logger.debug("retrieveLoginUrl()......email cookie = " + jappUserEmail);
 			String url = AppComponents.aadJwksCache.getAadAuthUri() + "?client_id=" + clientId
 					+ "&response_type=id_token" + "&response_mode=form_post" + "&scope=openid" + "&state=" + appId
-					+ prompt + "&nonce=" + uuid.toString();
+					+ prompt + "&nonce=" + uuid.toString() + "&redirect_uri=" + redirectUri;;
 			if(!StringUtil.isEmptyOrNull(jappUserEmail) ) {
 				url = url + "&login_hint="+jappUserEmail;
 			}

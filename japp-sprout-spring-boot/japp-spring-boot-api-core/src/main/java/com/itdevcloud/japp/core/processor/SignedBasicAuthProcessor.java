@@ -20,6 +20,8 @@ import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.itdevcloud.japp.core.api.vo.ClientPkiInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
+import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
+import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 
 @Component
@@ -53,25 +55,30 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			// ====== business logic starts ======
 			loginId = request.getLoginId();
 			String password = request.getPassword();
-			String clientId = request.getClientId();
-			String clientPkiCode = request.getClientPkiCode();
+			String clientId = request.getClientAppId();
+			String clientPkiKey = request.getClientPkiKey();
 			String tokenNonce = request.getTokenNonce();
 			String uip = txnCtx.getClientIP();
 			String signature = request.getSignature();
 
 			String signedMessage = clientId + loginId + password + (StringUtil.isEmptyOrNull(tokenNonce)?"":tokenNonce);
-			logger.info("signatureText=" + clientPkiCode + signedMessage + ", signature=" + signature);
+			logger.info("signatureText=" + clientPkiKey + signedMessage + ", signature=" + signature);
 			ClientAppInfo clientAppInfo = AppComponents.iaaService.getClientAppInfo(clientId);
-			ClientPkiInfo clientPkiInfo = (clientAppInfo == null ? null : clientAppInfo.getClientPkiInfo(clientPkiCode));
-			if (clientAppInfo == null || clientPkiInfo == null) {
-				String errMsg = "Application/Site was not found: clientId = '" + clientId + "', clientPkiCode='" + clientPkiCode
-						+ "'.....";
-				logger.error(errMsg);
-				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, errMsg);
+			if(clientAppInfo == null) {
+				String errMsg = "Authorization Failed. Error: clientAppInfo is null, check code! Client App Id = " + clientId + ", clientPkiKey = " + clientPkiKey;
+				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
 				response.setResponseStatus(responseStatus);
 				return response;
 			}
-			if (!SecurityUtil.verifySignature(clientPkiInfo.getPublicKey(), signature, signedMessage)) {
+			ClientPKI clientPKI = clientAppInfo.getClientPKI(clientPkiKey);
+			if(clientPKI == null) {
+				String errMsg = "Authorization Failed. Error: clientAuthProvider is null, check code! Client App Id = " + clientId + ", clientPkiKey = " + clientPkiKey;
+				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+				response.setResponseStatus(responseStatus);
+				return response;
+			}
+
+			if (!SecurityUtil.verifySignature(clientPKI.getPublicKey(), signature, signedMessage)) {
 				String errMsg = "Authentication Failed. Signature verification failed: loginId = '" + loginId
 						+ "'.....";
 				logger.error(errMsg);

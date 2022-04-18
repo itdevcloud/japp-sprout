@@ -31,6 +31,7 @@ import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
+import com.itdevcloud.japp.core.iaa.provider.BaseAuthProviderHandler;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -73,48 +74,18 @@ public class LogoutServlet extends javax.servlet.http.HttpServlet {
 		session.invalidate();
 
 		String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
-		String url = retrieveLogoutUrl();
 		response.addHeader("Access-Control-Allow-Origin", origin);
 		response.addHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
 		response.addHeader("Access-Control-Allow-Headers",
 				"Origin, X-Requested-With, Content-Type, Accept, Authorization");
-
-		logger.info("redirect url============= " + url);
-		if (url == null) {
-			logger.error("url == null......can't redirect to provider's logout page...... ");
-			response.setStatus(401);
-			return;
-
+		
+		BaseAuthProviderHandler handler = BaseAuthProviderHandler.getHandler(request, response);
+		if(handler != null) {
+			handler.handleUiLogout(request, response);
 		}
-		response.sendRedirect(url);
+		return;
 	}
 
-	public String retrieveLogoutUrl() {
-		String provider = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER);
-		if (provider == null || provider.trim().equals("")) {
-			// default
-			provider = AppConstant.IDENTITY_PROVIDER_AAD_OIDC;
-		} else {
-			provider = provider.trim();
-		}
-		String jappPostSignOutUri = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_POST_SIGNOUT_PAGE);
-		if (AppConstant.IDENTITY_PROVIDER_AAD_OIDC.equals(provider)) {
-			jappPostSignOutUri = jappPostSignOutUri.replace("/#/", "/%23/");
-			String url = AppComponents.aadJwksCache.getAadAuthLogoutUri();
-			if(!StringUtil.isEmptyOrNull(jappPostSignOutUri)){
-				url = url + "?post_logout_redirect_uri=" + jappPostSignOutUri;
-			}
-			return url;
-		} 
-//		else if (AppConstant.AUTH_PROVIDER_GENERAL_OAUTH2.equals(provider)) {
-//			// SDC STS URL
-//			return jappPostSignOutUri;
-//		} 
-		else {
-			return jappPostSignOutUri;
-		}
-
-	}
 
 }
 

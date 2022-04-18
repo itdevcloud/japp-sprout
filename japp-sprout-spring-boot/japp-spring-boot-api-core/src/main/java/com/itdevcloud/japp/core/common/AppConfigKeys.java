@@ -81,7 +81,7 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH = "jappcore.iaa.token.verify.expiration.length";
 	public static final String JAPPCORE_IAA_TOKEN_ISSUE_ISS = "jappcore.iaa.token.issue.iss";
 	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_AUD = "jappcore.iaa.token.validate.aud";
-	public static final String JAPPCORE_IAA_AUTHENTICATION_PROVIDER = "jappcore.iaa.authentication.provider";
+	public static final String JAPPCORE_IAA_SUPPORTED_AUTH_PROVIDERS = "jappcore.iaa.supported.auth.providers";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLECHECK_ENABLED = "jappcore.iaa.application.rolecheck.enabled";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLE_LIST = "jappcore.iaa.application.rolelist";
 	public static final String JAPPCORE_IAA_AUTH_APP_CALLBACK_URL = "jappcore.iaa.auth.app.callback.url";

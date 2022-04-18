@@ -40,7 +40,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @author Marvin Sun
  * @since 1.0.0
  */
-@WebServlet(name = "basicAuthServlet", urlPatterns = "/auth/basicauth")
+@WebServlet(name = "basicAuthServlet", urlPatterns = "/open/basicauth")
 public class BasicAuthServlet extends javax.servlet.http.HttpServlet {
 
 	private static final long serialVersionUID = 1L;

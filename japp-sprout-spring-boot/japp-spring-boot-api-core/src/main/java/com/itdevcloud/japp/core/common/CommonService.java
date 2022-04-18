@@ -46,6 +46,8 @@ import org.springframework.stereotype.Component;
 import com.itdevcloud.japp.core.api.vo.ClientPkiInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo;
+import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
+import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.ClientCallBackType;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.TokenTransferType;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
@@ -318,35 +320,71 @@ public class CommonService implements AppFactoryComponentI {
 		PublicKey appPublicKey = AppComponents.pkiService.getAppPublicKey();
 		
 		ClientAppInfo clientAppInfo = new ClientAppInfo();
-		ClientPkiInfo clientPkiInfo = new ClientPkiInfo();
+		clientAppInfo.setId(1L);
+		clientAppInfo.setClientAppId("core-app");
+		clientAppInfo.setName("Core App");
+		clientAppInfo.setOrganizationId("Org-1");
+		
+		//this is used to generate JSON string which is used as template for client-auth-info.json
 		ClientAuthInfo clientAuthInfo = new ClientAuthInfo();
+		List<ClientAuthProvider> providerList = new ArrayList<ClientAuthProvider>();
 		
-		clientAppInfo.setClientId(clientId);
+		ClientAuthProvider ClientAuthProvider = new ClientAuthProvider();
+		ClientAuthProvider.setId(1L);
+		ClientAuthProvider.setClientAuthKey("clientAuthKey-1");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setAuthProviderId("AAD-OIDC");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setClientCallbackType(ClientCallBackType.POST);
+		ClientAuthProvider.setTokenTransferType(TokenTransferType.SESSION_STORAGE);
+		ClientAuthProvider.setIsDefault(true);
+		ClientAuthProvider.addAuthProperty("aad.client.id", "c3d6299f-2aed-45be-ab4f-857f5961b13e");
+		ClientAuthProvider.addAuthProperty("aad.auth.prompt", "login");
 		
-		clientPkiInfo.setClientId(clientId);
-		clientPkiInfo.setPkiCode("corePki");
-		clientPkiInfo.setCertificate(appCertificate);
-		clientPkiInfo.setPublicKey(appPublicKey);
-		clientPkiInfo.setIsDefault(true);
 		
-		clientAppInfo.addClientPkiInfo(clientPkiInfo);
+		providerList.add(ClientAuthProvider);
+		
+		ClientAuthProvider = new ClientAuthProvider();
+		ClientAuthProvider.setId(2L);
+		ClientAuthProvider.setClientAuthKey("clientAuthKey-2");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setAuthProviderId("CORE-BASIC");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setClientCallbackType(ClientCallBackType.REDIRECT);
+		ClientAuthProvider.setTokenTransferType(TokenTransferType.COOKIE);
+		ClientAuthProvider.setIsDefault(false);
+		ClientAuthProvider.addAuthProperty("aad.client.id", "c3d6299f-2aed-45be-ab4f-857f5961b13e");
+		ClientAuthProvider.addAuthProperty("aad.auth.prompt", "login");
+		
+		providerList.add(ClientAuthProvider);
+
+		clientAuthInfo.setClientAuthProviderList(providerList); 
+
+		clientAppInfo.setClientAuthInfo(clientAuthInfo);
+		
+		//pki info
+		ClientPkiInfo clientPkiInfo = new ClientPkiInfo();
+		List<ClientPKI> pkiList = new ArrayList<ClientPKI>();
+		
+		ClientPKI clientPKI = new ClientPKI();
+		clientPKI.setId(1L);
+		clientPKI.setClientPkiKey("clientPkiKey-1");
+		clientPKI.setCertificateExpiryDate(null);
+		clientPKI.setCertificate(appCertificate);
+		clientPKI.setPublicKey(appPublicKey);
+		clientPKI.setIsDefault(true);
 		
 		
-		clientAuthInfo.setAuthAppCallbackUrl(appCallbackUrl);
-		clientAuthInfo.setAuthKey("authKey-1");
-		clientAuthInfo.setAuthProviderId("AAD_ID-Token");
-		clientAuthInfo.setClientCallbackType(ClientCallBackType.POST);
-		clientAuthInfo.setClientCallbackUrl(null);
-		clientAuthInfo.setTokenTransferType(TokenTransferType.COOKIE);
-		clientAuthInfo.setIsDefault(true);
-		clientAuthInfo.setClientId("client-1");
+		pkiList.add(clientPKI);
 		
-		clientAppInfo.addClientAuthInfo(clientAuthInfo);
+		clientPkiInfo.setClientPkiList(pkiList); 
+		
+		clientAppInfo.setClientPkiInfo(clientPkiInfo);
 		
 		return clientAppInfo;
 	}
 
-	public void handleClientAuthCallbackResponse(HttpServletResponse response, String token, String clientId, String authKey) throws IOException {
+	public void handleClientAuthCallbackResponse(HttpServletResponse response, String token, String clientAppId, String clientAuthKey) throws IOException {
 
 //		String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_TOKEN_PAGE);
 //		logger.info("handleClientAuthCallbackResponse(), url is: " + url);
@@ -362,26 +400,26 @@ public class CommonService implements AppFactoryComponentI {
 		response.addHeader("Content-Security-Policy", "default-src 'self';");
 		response.addHeader("X-XSS-Protection", "1; mode=block");
 
-		ClientAppInfo clientAppInfo = AppComponents.iaaService.getClientAppInfo(clientId);
+		ClientAppInfo clientAppInfo = AppComponents.iaaService.getClientAppInfo(clientAppId);
 		if(clientAppInfo == null) {
 			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-					"Authorization Failed. Error: clientAppInfo is null, check code! Client Id = " + clientId + ", authKey = " + authKey);
+					"Authorization Failed. Error: clientAppInfo is null, check code! Client App Id = " + clientAppId + ", clientAuthKey = " + clientAuthKey);
 			return;
 		}
-		ClientAuthInfo clientAuthInfo = clientAppInfo.getClientAuthInfo(authKey);
-		if(clientAuthInfo == null) {
+		ClientAuthProvider clientAuthProvider = clientAppInfo.getClientAuthProvider(clientAuthKey);
+		if(clientAuthProvider == null) {
 			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-					"Authorization Failed. Error: clientAuthInfo is null, check code! Client Id = " + clientId + ", authKey = " + authKey);
+					"Authorization Failed. Error: clientAuthProvider is null, check code! Client App Id = " + clientAppId + ", clientAuthKey = " + clientAuthKey);
 			return;
 		}
 		
-		String clientCallbackUrl = clientAuthInfo.getClientCallbackUrl();
+		String clientCallbackUrl = clientAuthProvider.getClientCallbackUrl();
 		clientCallbackUrl = StringUtil.isEmptyOrNull(clientCallbackUrl)?"/none":clientCallbackUrl.trim();
 		
-		ClientCallBackType clientCallBackType = clientAuthInfo.getClientCallbackType();
+		ClientCallBackType clientCallBackType = clientAuthProvider.getClientCallbackType();
 		String clientCallBackTypeStr = (clientCallBackType==null?"":clientCallBackType.name());
 		
-		TokenTransferType tokenTrasferType = clientAuthInfo.getTokenTransferType();
+		TokenTransferType tokenTrasferType = clientAuthProvider.getTokenTransferType();
 		String tokenTrasferTypeStr = (tokenTrasferType==null?"":tokenTrasferType.name());
 		
 		// ===load token page===
@@ -424,6 +462,21 @@ public class CommonService implements AppFactoryComponentI {
 		return;
 	}
 
+	public boolean isSupportedAuthProvider(String authProviderId) {
+		if(StringUtil.isEmptyOrNull(authProviderId)) {
+			return false;
+		}
+		String supportedProviderIds = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_SUPPORTED_AUTH_PROVIDERS);
+		String[] ids= supportedProviderIds.split(",");
+		for(String id: ids) {
+			if(!StringUtil.isEmptyOrNull(id)) {
+				if(authProviderId.equalsIgnoreCase(id.trim())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	
 //	public void handlePostTokenToClientResponse(HttpServletResponse response, String loginId, String token) throws IOException {
 //

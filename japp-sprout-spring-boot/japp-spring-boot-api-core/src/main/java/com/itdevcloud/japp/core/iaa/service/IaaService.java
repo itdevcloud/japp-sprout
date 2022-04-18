@@ -28,6 +28,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
+import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
+import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
@@ -68,10 +70,20 @@ public class IaaService implements AppFactoryComponentI {
 		List<ClientAppInfo> clientAppInfoList = new ArrayList<ClientAppInfo>(clientAppInfoSet);
 		return clientAppInfoList;
 	}
+	
 	public ClientAppInfo getClientAppInfo(String clientId){
 		return AppComponents.clientAppInfoCache.getClientAppInfo(clientId);
 	}
 
+	public ClientAuthProvider getClientAuthProvider(String clientAppId, String clientAuthKey) {
+		return AppComponents.clientAppInfoCache.getClientAuthProvider(clientAppId, clientAuthKey);
+	}
+	
+	public ClientPKI getClientPKI(String clientId, String clientPkiKey) {
+		return AppComponents.clientAppInfoCache.getClientPKI(clientId, clientPkiKey);
+	}
+
+	
 	public IaaUserI login(String loginId, String password, String authProvider) {
 		if (StringUtil.isEmptyOrNull(loginId) || StringUtil.isEmptyOrNull(password)) {
 			String err = "loginByLoginIdPassword() - The login and/or password is null or empty. check code!";

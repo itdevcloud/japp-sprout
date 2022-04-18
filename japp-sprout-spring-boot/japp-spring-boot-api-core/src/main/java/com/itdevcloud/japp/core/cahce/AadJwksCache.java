@@ -71,9 +71,9 @@ public class AadJwksCache extends RefreshableCache {
 
 	@Override
 	public synchronized void initCache() {
-		if (!AppConstant.IDENTITY_PROVIDER_AAD_OIDC.equalsIgnoreCase(ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER))) {
-			String info = "AadJwksCache.init()...... Authentication Provider is not " + AppConstant.IDENTITY_PROVIDER_AAD_OIDC
-					+ ", no cache is needed, do nothing......";
+		if (!AppComponents.commonService.isSupportedAuthProvider(AppConstant.IDENTITY_PROVIDER_CORE_AAD_OIDC) && 
+				!AppComponents.commonService.isSupportedAuthProvider(AppConstant.IDENTITY_PROVIDER_CORE_AAD_OAUTH2)) {
+			String info = "AadJwksCache.init()...... AAD Authentication Providers are not supported, no cache is needed, do nothing......";
 			logger.info(info);
 			AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE, info);
 			return;

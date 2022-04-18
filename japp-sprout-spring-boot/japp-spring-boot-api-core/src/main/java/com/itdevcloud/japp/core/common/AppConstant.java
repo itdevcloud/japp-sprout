@@ -23,13 +23,10 @@ package com.itdevcloud.japp.core.common;
  */
 public class AppConstant {
 
-	public static final String IDENTITY_PROVIDER_AAD_OIDC = "AAD-OIDC";
-	//public static final String AUTH_PROVIDER_GENERAL_OAUTH2 = "GENERAL-OAUTH2";
-	public static final String IDENTITY_PROVIDER_APP_LOCAL_BASIC = "APP-LOCAL";
-	public static final String IDENTITY_PROVIDER_APP_LOCAL_DYNAMIC = "APP-LOCAL-DYNAMIC";
-	public static final String IDENTITY_PROVIDER_APP_REMOTE = "APP-BASIC-REMOTE";
-	//public static final String IDENTITY_PROVIDER_JAPPCORE_DYNAMIC = "APP-DYNAMIC";
-	public static final String IDENTITY_PROVIDER_AUTH0 = "AUTH0";
+	public static final String IDENTITY_PROVIDER_CORE_AAD_OIDC = "CORE-AAD-OIDC";
+	public static final String IDENTITY_PROVIDER_CORE_AAD_OAUTH2 = "CORE-AAD-OAUTH2";
+	public static final String IDENTITY_PROVIDER_CORE_BASIC = "CORE-BASIC";
+	public static final String IDENTITY_PROVIDER_CORE_OKTA_OIDC = "CORE-OKTA-OIDC";
 	public static final String JAPPCORE_TX_ID = "JAPPCORE_TX_ID";
 
 	public static final String FRONTEND_UI_FRAMEWORK_NONE = "none";

@@ -16,7 +16,13 @@
  */
 package com.itdevcloud.japp.core.api.vo;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  *
@@ -24,10 +30,9 @@ import java.io.Serializable;
  * @since 1.0.0
  */
 
-import java.security.PublicKey;
-import java.security.cert.Certificate;
-import java.util.Date;
-
+import java.util.List;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class ClientAuthInfo implements Serializable{
@@ -36,118 +41,145 @@ public class ClientAuthInfo implements Serializable{
 	public static enum ClientCallBackType {REDIRECT, POST};
 	public static enum TokenTransferType {COOKIE, SESSION_STORAGE, QUERY_PARAMETER};
 
-	private Long id;
-	private String clientId;
-	private String authKey;
-	private String authProviderId;
-	private String authAppCallbackUrl;
-	private String clientCallbackUrl;
-	private ClientCallBackType clientCallbackType;
-	private TokenTransferType tokenTransferType;
-	private Boolean isDefault;
+	private static String clientAuthProviderJsonStr;
+	private List<ClientAuthProvider> clientAuthProviderList;
 	
-	public Long getId() {
-		return id;
+	static {
+		init();
 	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	
-	public String getClientId() {
-		return clientId;
-	}
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-	public String getAuthKey() {
-		return authKey;
-	}
-	public void setAuthKey(String authKey) {
-		this.authKey = authKey;
-	}
-	public String getAuthProviderId() {
-		return authProviderId;
-	}
-	public void setAuthProviderId(String authProviderId) {
-		this.authProviderId = authProviderId;
-	}
-	public String getAuthAppCallbackUrl() {
-		return authAppCallbackUrl;
-	}
-	public void setAuthAppCallbackUrl(String authAppCallbackUrl) {
-		this.authAppCallbackUrl = authAppCallbackUrl;
-	}
-	public String getClientCallbackUrl() {
-		return clientCallbackUrl;
-	}
-	public void setClientCallbackUrl(String clientCallbackUrl) {
-		this.clientCallbackUrl = clientCallbackUrl;
-	}
-	public Boolean getIsDefault() {
-		return isDefault;
-	}
-	public void setIsDefault(Boolean isDefault) {
-		this.isDefault = isDefault;
-	}
-	public ClientCallBackType getClientCallbackType() {
-		if(ClientCallBackType.POST == this.clientCallbackType || 
-				ClientCallBackType.REDIRECT == this.clientCallbackType  ) {
-			return this.clientCallbackType;
-		}else {
-			this.clientCallbackType = ClientCallBackType.POST;
+	private static void init() {
+		InputStream inputStream = null;
+		StringBuilder sb = new StringBuilder();
+		try {
+			inputStream = ClientAuthInfo.class.getResourceAsStream("/client-auth-info.json");
+			if (inputStream == null) {
+				throw new Exception("can not load client-auth-info.json, check code!.......");
+			}
+			String line;
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+			while ((line = br.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			inputStream.close();
+			inputStream = null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			sb = new StringBuilder(e.getMessage());
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				inputStream = null;
+			}
 		}
-		return clientCallbackType;
-	}
-	public void setClientCallbackType(ClientCallBackType clientCallbackType) {
-		this.clientCallbackType = clientCallbackType;
+		clientAuthProviderJsonStr =  sb.toString();
+		//System.out.println("clientAuthProviderJsonStr = \n" + clientAuthProviderJsonStr);
+		return;
 	}
 	
-	public TokenTransferType getTokenTransferType() {
-		if(TokenTransferType.COOKIE == this.tokenTransferType || 
-				TokenTransferType.QUERY_PARAMETER == this.tokenTransferType ||
-						TokenTransferType.SESSION_STORAGE == this.tokenTransferType ) {
-			return this.tokenTransferType;
-		}else {
-			this.tokenTransferType = TokenTransferType.SESSION_STORAGE;
+	private List<ClientAuthProvider> loadClientAuthProviderList() {
+		List<ClientAuthProvider> providerList = null;
+		Gson gson = new GsonBuilder().serializeNulls().create();
+		ClientAuthInfo authInfo = null;
+		try {
+			authInfo = gson.fromJson(clientAuthProviderJsonStr, ClientAuthInfo.class);
+		}catch (Throwable t) {
+			t.printStackTrace();
 		}
-		return this.tokenTransferType;
+		providerList = (authInfo == null?null:authInfo.getClientAuthProviderList());
+		if(providerList!= null) {
+			Collections.sort(providerList);
+		}
+		return providerList;
 	}
-	public void setTokenTransferType(TokenTransferType tokenTrasferType) {
-		this.tokenTransferType = tokenTrasferType;
+	public void addClientAuthProvider(ClientAuthProvider clientAuthProvider) {
+		if(this.clientAuthProviderList == null) {
+			this.clientAuthProviderList = loadClientAuthProviderList();
+		}
+		if(clientAuthProvider == null) {
+			return;
+		}
+		this.clientAuthProviderList.add(clientAuthProvider);
+		return;
 	}
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((authKey == null) ? 0 : authKey.hashCode());
-		return result;
+	public ClientAuthProvider findClientAuthProvier(String clientAuthKey) {
+		if(clientAuthProviderList == null || StringUtil.isEmptyOrNull(clientAuthKey)) {
+			return null;
+		}
+		ClientAuthProvider tmpProvider = new ClientAuthProvider();
+		tmpProvider.setClientAuthKey(clientAuthKey);
+		ClientAuthProvider provider = clientAuthProviderList.stream().filter(tmpProvider::equals).findAny().orElse(null);
+		return provider;
+		
 	}
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ClientAuthInfo other = (ClientAuthInfo) obj;
-		if (authKey == null) {
-			if (other.authKey != null)
-				return false;
-		} else if (!authKey.equals(other.authKey))
-			return false;
-		return true;
+	public List<ClientAuthProvider> getClientAuthProviderList() {
+		if(this.clientAuthProviderList == null) {
+			this.clientAuthProviderList = loadClientAuthProviderList();
+		}
+		List<ClientAuthProvider> list = new ArrayList<ClientAuthProvider>();
+		list.addAll(this.clientAuthProviderList);
+		return list;
 	}
+
+	public void setClientAuthProviderList(List<ClientAuthProvider> providerList) {
+		if(providerList == null) {
+			this.clientAuthProviderList = loadClientAuthProviderList();;
+		}else {
+			this.clientAuthProviderList = new ArrayList<ClientAuthProvider>();
+			this.clientAuthProviderList.addAll(providerList);
+			Collections.sort(this.clientAuthProviderList);
+
+		}
+	}
+
 	@Override
 	public String toString() {
-		return "ClientAuthInfo [id=" + id + ", clientId=" + clientId + ", authKey=" + authKey + ", authProviderId="
-				+ authProviderId + ", authAppCallbackUrl=" + authAppCallbackUrl + ", clientCallbackUrl="
-				+ clientCallbackUrl + ", clientCallbackType=" + clientCallbackType + ", tokenTrasferType="
-				+ tokenTransferType + ", isDefault=" + isDefault + "]";
+		return "ClientAuthInfo [clientAuthProviderList=" + clientAuthProviderList + "]";
+	}
+
+	public static void main(String[] args) {
+		
+		//this is used to generate JSON string which is used as template for client-auth-info.json
+		ClientAuthInfo clientAuthInfo = new ClientAuthInfo();
+		List<ClientAuthProvider> providerList = new ArrayList<ClientAuthProvider>();
+		
+		ClientAuthProvider ClientAuthProvider = new ClientAuthProvider();
+		ClientAuthProvider.setId(1L);
+		ClientAuthProvider.setClientAuthKey("clientAuthKey-1");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setAuthProviderId("AAD-OIDC");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setClientCallbackType(ClientCallBackType.POST);
+		ClientAuthProvider.setTokenTransferType(TokenTransferType.SESSION_STORAGE);
+		ClientAuthProvider.setIsDefault(true);
+		ClientAuthProvider.addAuthProperty("aad.client.id", "c3d6299f-2aed-45be-ab4f-857f5961b13e");
+		ClientAuthProvider.addAuthProperty("aad.auth.prompt", "login");
+		
+		
+		providerList.add(ClientAuthProvider);
+		
+		ClientAuthProvider = new ClientAuthProvider();
+		ClientAuthProvider.setId(2L);
+		ClientAuthProvider.setClientAuthKey("clientAuthKey-2");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setAuthProviderId("CORE-BASIC");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setClientCallbackType(ClientCallBackType.REDIRECT);
+		ClientAuthProvider.setTokenTransferType(TokenTransferType.COOKIE);
+		ClientAuthProvider.setIsDefault(false);
+		ClientAuthProvider.addAuthProperty("aad.client.id", "c3d6299f-2aed-45be-ab4f-857f5961b13e");
+		ClientAuthProvider.addAuthProperty("aad.auth.prompt", "login");
+		
+		providerList.add(ClientAuthProvider);
+		
+		clientAuthInfo.setClientAuthProviderList(providerList); 
+		
+		Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+		String jsonStr = gson.toJson(clientAuthInfo);
+		System.out.println("clientAuthInfo json = \n" + jsonStr);
 	}
 	
-	
-
-
-
 }

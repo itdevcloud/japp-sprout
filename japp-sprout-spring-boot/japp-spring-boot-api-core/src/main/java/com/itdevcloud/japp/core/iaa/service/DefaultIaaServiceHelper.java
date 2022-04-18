@@ -16,9 +16,16 @@
  */
 package com.itdevcloud.japp.core.iaa.service;
 
+import java.io.BufferedReader;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -27,10 +34,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
+import com.itdevcloud.japp.core.api.vo.ClientAuthInfo;
+import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.se.common.util.FileUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -138,8 +150,51 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 	@Override
 	public List<ClientAppInfo> getClientAppInfoList() {
 		List<ClientAppInfo> appInfoList = new ArrayList<ClientAppInfo>();
-		ClientAppInfo appInfo = AppComponents.commonService.getCoreAppInfo();
-		appInfoList.add(appInfo);
+		
+		Map<String, String> fnMap = FileUtil.getFileListingInClassPath(FileUtil.class, "client", false, null);
+		Set<String> simpleNameSet = fnMap.keySet();
+		
+		for(String fn: simpleNameSet) {
+			logger.info("getClientAppInfoList() load file:" + fn +"......");
+			InputStream inputStream = null;
+			StringBuilder sb = new StringBuilder();
+			try {
+				inputStream = ClientAuthInfo.class.getResourceAsStream("/client/" + fn);
+				if (inputStream == null) {
+					throw new Exception("can not load " + fn + ", check code!.......");
+				}
+				String line;
+				BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+				while ((line = br.readLine()) != null) {
+					sb.append(line).append("\n");
+				}
+				inputStream.close();
+				inputStream = null;
+				
+				Gson gson = new GsonBuilder().serializeNulls().create();
+				ClientAppInfo appInfo = null;
+				try {
+					String jsonStr = sb.toString();
+					appInfo = gson.fromJson(jsonStr, ClientAppInfo.class);
+					appInfoList.add(appInfo);
+				}catch (Throwable t) {
+					t.printStackTrace();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				sb = new StringBuilder(e.getMessage());
+			} finally {
+				if (inputStream != null) {
+					try {
+						inputStream.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					inputStream = null;
+				}
+			}
+
+		}//end for
 		return appInfoList;
 	}
 

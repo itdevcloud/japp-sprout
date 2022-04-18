@@ -16,6 +16,7 @@
  */
 package com.itdevcloud.japp.core.cahce;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -28,11 +29,16 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
+import com.itdevcloud.japp.core.api.vo.ClientAuthInfo;
+import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
+import com.itdevcloud.japp.core.api.vo.ClientPKI;
+import com.itdevcloud.japp.core.api.vo.ClientPkiInfo;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * This cache will be refreshed daily. 
@@ -46,7 +52,7 @@ public class ClientAppInfoCache extends RefreshableCache {
 
 	private static final Logger logger = LogManager.getLogger(ClientAppInfoCache.class);
 
-	private static Set<ClientAppInfo> clientAppInfoSet = null;
+	private static List<ClientAppInfo> clientAppInfoList = null;
 
 	@PostConstruct
 	public void initService() {
@@ -76,14 +82,21 @@ public class ClientAppInfoCache extends RefreshableCache {
 				IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
 				
 				List<ClientAppInfo> appInfoList = helper.getClientAppInfoList();
-				Set<ClientAppInfo> tmpClientAppInfoSet = new HashSet<ClientAppInfo>();
-				if(appInfoList != null && !appInfoList.isEmpty()) {
-					for(ClientAppInfo info:appInfoList) {
-						tmpClientAppInfoSet.add(info);
-					}
+				if(appInfoList!= null) {
+					Collections.sort(appInfoList);
 				}
+				String errorStr = validateAppInfo(appInfoList);
+				if(!StringUtil.isEmptyOrNull(errorStr)) {
+					logger.warn(errorStr);
+				}
+//				Set<ClientAppInfo> tmpClientAppInfoSet = new HashSet<ClientAppInfo>();
+//				if(appInfoList != null && !appInfoList.isEmpty()) {
+//					for(ClientAppInfo info:appInfoList) {
+//						tmpClientAppInfoSet.add(info);
+//					}
+//				}
 				initInProcess = true;
-				this.clientAppInfoSet = tmpClientAppInfoSet;
+				this.clientAppInfoList = appInfoList;
 				initInProcess = false;
 
 				Date end = new Date();
@@ -91,11 +104,11 @@ public class ClientAppInfoCache extends RefreshableCache {
 				lastUpdatedTS = endTS;
 
 				String str = "ClientAppInfoCache.init()  - end. total time = " + (endTS - startTS) + " millis. Result:"
-						+ "\nclientAppInfoSet Size = " + clientAppInfoSet.size() + "\nclientAppInfoSet = " + clientAppInfoSet ;
+						+ "\nclientAppInfoList Size = " + clientAppInfoList.size() + "\nclientAppInfoList = " + clientAppInfoList ;
 
 				logger.info(str);
 				String info = "ClientAppInfoCache.init() - total time = " + (endTS - startTS) + " millis. Result:"
-						+ "\nclientAppInfoSet size = "+ clientAppInfoSet.size() ;
+						+ "\nclientAppInfoList size = "+ clientAppInfoList.size() ;
 				AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_CLIENT_APPINFO_CACHE, str);
 			}
 		} catch (Exception e) {
@@ -107,25 +120,66 @@ public class ClientAppInfoCache extends RefreshableCache {
 		}
 	}
 
-	public ClientAppInfo getClientAppInfo(String clientId) {
-		if(clientId == null || this.clientAppInfoSet == null || this.clientAppInfoSet.isEmpty()) {
+	private String validateAppInfo(List<ClientAppInfo> appInfoList) {
+		if(appInfoList == null || appInfoList.isEmpty()) {
+			return "appInfoList is null or empty, check code!";
+		}
+		int i = 0;
+		String errorStr = "";
+		for (ClientAppInfo appInfo: appInfoList) {
+			String clientAppId = appInfo.getClientAppId();
+			ClientAuthInfo clientAuthInfo = appInfo.getClientAuthInfo();
+			ClientPkiInfo clientPkiInfo = appInfo.getClientPkiInfo();
+			if(StringUtil.isEmptyOrNull(clientAppId) || clientAuthInfo == null || clientPkiInfo == null) {
+				errorStr = errorStr + "clientAppId, clientAuthInfo and/or clientPkiInfo is null or empty for List("+ i + ")! \n";
+			}
+			i++;
+		}
+		if(StringUtil.isEmptyOrNull(errorStr)) {
+			return null;
+		}else {
+			return errorStr;
+		}
+	}
+	
+	
+	public ClientAppInfo getClientAppInfo(String clientAppId) {
+		if(clientAppId == null || this.clientAppInfoList == null || this.clientAppInfoList.isEmpty()) {
 			return null;
 		}
 		waitForInit();
-		for(ClientAppInfo info: this.clientAppInfoSet) {
-			if(clientId.equalsIgnoreCase(info.getClientId()) ) {
+		for(ClientAppInfo info: this.clientAppInfoList) {
+			if(clientAppId.equalsIgnoreCase(info.getClientAppId()) ) {
 				return info;
 			}
 		}
 		return null;
 	}
 	
-	public Set <ClientAppInfo> getAllClientAppInfo() {
-		waitForInit();
-		if(this.clientAppInfoSet == null) {
+	public ClientAuthProvider getClientAuthProvider(String clientAppId, String clientAuthKey) {
+		ClientAppInfo clientAppInfo = getClientAppInfo(clientAppId);
+		if(clientAppInfo == null ) {
 			return null;
 		}
-		Set<ClientAppInfo> appSet = new HashSet<ClientAppInfo>(this.clientAppInfoSet);
+		ClientAuthProvider provider = clientAppInfo.getClientAuthProvider(clientAuthKey);
+		return provider;
+	}
+	
+	public ClientPKI getClientPKI(String clientAppId, String clientPkiKey) {
+		ClientAppInfo clientAppInfo = getClientAppInfo(clientAppId);
+		if(clientAppInfo == null ) {
+			return null;
+		}
+		ClientPKI clientPKI = clientAppInfo.getClientPKI(clientPkiKey);
+		return clientPKI;
+	}
+	
+	public Set <ClientAppInfo> getAllClientAppInfo() {
+		waitForInit();
+		if(this.clientAppInfoList == null) {
+			return null;
+		}
+		Set<ClientAppInfo> appSet = new HashSet<ClientAppInfo>(this.clientAppInfoList);
 		return appSet;
 	}
 

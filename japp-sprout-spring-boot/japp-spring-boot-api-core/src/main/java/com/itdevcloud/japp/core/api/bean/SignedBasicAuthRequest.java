@@ -32,7 +32,7 @@ public class SignedBasicAuthRequest extends BaseRequest {
 	private String loginId;
 	private String password;
 	private String tokenNonce;
-	private String clientPkiCode;
+	private String clientPkiKey;
 	private String signature;
 	
 	public String getLoginId() {
@@ -59,11 +59,11 @@ public class SignedBasicAuthRequest extends BaseRequest {
 	public void setTokenNonce(String tokenNonce) {
 		this.tokenNonce = tokenNonce;
 	}
-	public String getClientPkiCode() {
-		return clientPkiCode;
+	public String getClientPkiKey() {
+		return clientPkiKey;
 	}
-	public void setClientPkiCode(String clientPkiCode) {
-		this.clientPkiCode = clientPkiCode;
+	public void setClientPkiKey(String clientPkiKey) {
+		this.clientPkiKey = clientPkiKey;
 	}
 	
 

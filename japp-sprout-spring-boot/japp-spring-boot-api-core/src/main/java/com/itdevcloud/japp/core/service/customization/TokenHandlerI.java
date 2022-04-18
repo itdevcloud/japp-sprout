@@ -80,6 +80,7 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 	public static final String JWT_CLAIM_KEY_AAD_USERNAME = "upn";
 	public static final String JWT_CLAIM_KEY_HASHED_USERIP = "uip";
 	public static final String JWT_CLAIM_KEY_HASHED_NONCE = "nonce";
+	public static final String JWT_CLAIM_KEY_AAD_NONCE = "nonce";
 	
 	static final Logger logger = LogManager.getLogger(AppLocalTokenHandler.class);
 
@@ -239,8 +240,9 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 		String iss = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_TOKEN_ISSUE_ISS);
 		String hashedUip = iaaUser.getHashedUserIp();
 		String hashedNonce = iaaUser.getHashedNonce();
-
-		logger.info("hashedUip = " + hashedUip + ", hashednonce = "+ hashedNonce);
+		
+		
+		//logger.info("hashedUip = " + hashedUip + ", hashednonce = "+ hashedNonce);
 
 		Map<String, Object> claims = new HashMap<String, Object>();
 		

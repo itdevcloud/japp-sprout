@@ -1,0 +1,24 @@
+{
+  "clientPkiList": [
+    {
+      "id": 1,
+      "clientPkiKey": "clientPkiKey-1",
+      "clientAppId": "clientAppId-1",
+      "encodedPublicKey": null,
+      "publicKeyAlgorithm": null,
+      "encodedCertificate": null,
+      "certificateExpiryDate": null,
+      "isDefault": true
+    },
+    {
+      "id": 2,
+      "clientPkiKey": "clientPkiKey-2",
+      "clientAppId": "clientAppId-2",
+      "encodedPublicKey": null,
+      "publicKeyAlgorithm": null,
+      "encodedCertificate": null,
+      "certificateExpiryDate": null,
+      "isDefault": true
+    }
+  ]
+}

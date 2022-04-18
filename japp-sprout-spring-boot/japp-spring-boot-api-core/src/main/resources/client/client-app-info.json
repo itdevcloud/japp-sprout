@@ -1,0 +1,64 @@
+{
+  "id": 1,
+  "clientAppId": "clientappid-1",
+  "name": "Client-1",
+  "organizationId": "Org-1",
+  "clientAuthInfo": {
+    "clientAuthProviderList": [
+      {
+        "id": 1,
+        "clientAuthKey": "clientAuthKey-1",
+        "authProviderId": "CORE-AAD-OIDC",
+        "authAppCallbackUrl": "https://localhost:8443/open/aadauth",
+        "clientCallbackUrl": null,
+        "clientCallbackType": "POST",
+        "tokenTransferType": "SESSION_STORAGE",
+        "signoutAppRedirectUrl": null,
+        "signoutClientRedirectUrl": null,
+        "authProperties": {
+          "aad.auth.prompt": "login",
+          "aad.client.id": "c3d6299f-2aed-45be-ab4f-857f5961b13e"
+        },
+        "isDefault": true
+      },
+      {
+        "id": 2,
+        "clientAuthKey": "clientAuthKey-2",
+        "authProviderId": "CORE-BASIC",
+        "authAppCallbackUrl": null,
+        "clientCallbackUrl": null,
+        "clientCallbackType": "REDIRECT",
+        "tokenTransferType": "COOKIE",
+        "signoutAppRedirectUrl": null,
+        "signoutClientRedirectUrl": null,
+        "authProperties": {
+          "aad.auth.prompt": "login",
+          "aad.client.id": "c3d6299f-2aed-45be-ab4f-857f5961b13e"
+        },
+        "isDefault": false
+      }
+    ]
+  },
+  "clientPkiInfo": {
+    "clientPkiList": [
+      {
+        "id": 1,
+        "clientPkiKey": "clientPkiKey-1",
+        "encodedPublicKey": null,
+        "publicKeyAlgorithm": null,
+        "encodedCertificate": null,
+        "certificateExpiryDate": null,
+        "isDefault": true
+      },
+      {
+        "id": 2,
+        "clientPkiKey": "clientPkiKey-2",
+        "encodedPublicKey": null,
+        "publicKeyAlgorithm": null,
+        "encodedCertificate": null,
+        "certificateExpiryDate": null,
+        "isDefault": true
+      }
+    ]
+  }
+}

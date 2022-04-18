@@ -43,7 +43,7 @@ public class BaseResponse implements Serializable, AppFactoryComponentI {
 	public void populateReuqstInfo(BaseRequest request) {
 		if(request != null) {
 			this.command = request.getCommand();
-			this.clientId = request.getClientId();
+			this.clientId = request.getClientAppId();
 			this.clientTxId = request.getClientTxId();
 		}
 	}

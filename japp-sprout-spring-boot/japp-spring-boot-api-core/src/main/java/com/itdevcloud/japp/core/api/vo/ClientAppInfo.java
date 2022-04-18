@@ -28,30 +28,39 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.ClientCallBackType;
+import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.TokenTransferType;
+import com.itdevcloud.japp.core.iaa.provider.CoreAadOidcAuthProviderHandler;
+
 import io.netty.util.internal.StringUtil;
 
-public class ClientAppInfo implements Serializable{
+public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 
 	private static final long serialVersionUID = 1L;
+	private static final Logger logger = LogManager.getLogger(ClientAppInfo.class);
 	
 	private Long id;
-	private String clientId;
+	private String clientAppId;
 	private String name;
 	private String organizationId;
-	private String organizationName;
-	private List<ClientAuthInfo> clientAuthInfoList;
-	private List<ClientPkiInfo> clientPkiInfoList;
+	private ClientAuthInfo clientAuthInfo;
+	private ClientPkiInfo clientPkiInfo;
 	public Long getId() {
 		return id;
 	}
 	public void setId(Long id) {
 		this.id = id;
 	}
-	public String getClientId() {
-		return clientId;
+	public String getClientAppId() {
+		return clientAppId;
 	}
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
+	public void setClientAppId(String clientId) {
+		this.clientAppId = clientId;
 	}
 	public String getName() {
 		return name;
@@ -65,48 +74,32 @@ public class ClientAppInfo implements Serializable{
 	public void setOrganizationId(String organizationId) {
 		this.organizationId = organizationId;
 	}
-	public String getOrganizationName() {
-		return organizationName;
-	}
-	public void setOrganizationName(String organizationName) {
-		this.organizationName = organizationName;
-	}
-	
-	public void addClientAuthInfo(ClientAuthInfo clientAuthInfo) {
-		if(this.clientAuthInfoList == null) {
-			this.clientAuthInfoList = new ArrayList<ClientAuthInfo>();
+
+	public void addClientAuthProvider(ClientAuthProvider clientAuthProvider) {
+		if(this.clientAuthInfo == null) {
+			this.clientAuthInfo = new ClientAuthInfo();
 		}
-		if(clientAuthInfo != null) {
-			this.clientAuthInfoList.add(clientAuthInfo);
+		if(clientAuthProvider != null) {
+			this.clientAuthInfo.addClientAuthProvider(clientAuthProvider);
 		}
 		return;
 	}
 
-	public List<ClientAuthInfo> getClientAuthInfoList() {
-		if(this.clientAuthInfoList == null) {
-			this.clientAuthInfoList = new ArrayList<ClientAuthInfo>();
-		}
-		return this.clientAuthInfoList;
-	}
-	
-	public void resetClientAuthInfoList() {
-		this.clientAuthInfoList = new ArrayList<ClientAuthInfo>();
-	}
-
-	public ClientAuthInfo getClientAuthInfo(String authKey) {
-		if(this.clientAuthInfoList == null) {
+	public ClientAuthProvider getClientAuthProvider(String clientAuthKey) {
+		if(this.clientAuthInfo == null || this.clientAuthInfo.getClientAuthProviderList() == null) {
 			return null;
 		}
-		if(StringUtil.isNullOrEmpty(authKey)) {
-			for (ClientAuthInfo clientAuthInfo: this.clientAuthInfoList) {
-				if(clientAuthInfo != null && clientAuthInfo.getIsDefault() != null && clientAuthInfo.getIsDefault() == true ) {
-					return clientAuthInfo;
+		List<ClientAuthProvider> providerList = this.clientAuthInfo.getClientAuthProviderList();
+		if(StringUtil.isNullOrEmpty(clientAuthKey)) {
+			for (ClientAuthProvider provider: providerList) {
+				if(provider != null && provider.getIsDefault() != null && provider.getIsDefault() == true ) {
+					return provider;
 				}
 			}
 		}else {
-			for (ClientAuthInfo clientAuthInfo: this.clientAuthInfoList) {
-				if(clientAuthInfo != null && authKey.equalsIgnoreCase(clientAuthInfo.getAuthKey()) ) {
-					return clientAuthInfo;
+			for (ClientAuthProvider provider: providerList) {
+				if(provider != null && clientAuthKey.equalsIgnoreCase(provider.getClientAuthKey()) ) {
+					return provider;
 				}
 			}
 		}
@@ -115,40 +108,32 @@ public class ClientAppInfo implements Serializable{
 	}
 
 	
-	public void addClientPkiInfo(ClientPkiInfo clientPkiInfo) {
-		if(this.clientPkiInfoList == null) {
-			this.clientPkiInfoList = new ArrayList<ClientPkiInfo>();
+	public void addClientPKI(ClientPKI clientPKI) {
+		if(this.clientPkiInfo == null) {
+			this.clientPkiInfo = new ClientPkiInfo();
 		}
-		if(clientPkiInfo != null) {
-			this.clientPkiInfoList.add(clientPkiInfo);
+		if(clientPKI != null) {
+			this.clientPkiInfo.addClientPKI(clientPKI);
 		}
 		return;
 	}
 	
-	public List<ClientPkiInfo> getClientPkiInfoList() {
-		if(this.clientPkiInfoList == null) {
-			this.clientPkiInfoList = new ArrayList<ClientPkiInfo>();
-		}
-		return this.clientPkiInfoList;
-	}
-	public void resetClientPkiInfoList() {
-		this.clientPkiInfoList = new ArrayList<ClientPkiInfo>();
-	}	
-	
-	public ClientPkiInfo getClientPkiInfo(String pkiCode) {
-		if(this.clientPkiInfoList == null) {
+
+	public ClientPKI getClientPKI(String clientPkiKey) {
+		if(this.clientPkiInfo == null || this.clientPkiInfo.getClientPkiList() == null) {
 			return null;
 		}
-		if(StringUtil.isNullOrEmpty(pkiCode)) {
-			for (ClientPkiInfo clientPkiInfo: this.clientPkiInfoList) {
-				if(clientPkiInfo != null && clientPkiInfo.getIsDefault() != null && clientPkiInfo.getIsDefault() == true ) {
-					return clientPkiInfo;
+		List<ClientPKI> pkiList = this.clientPkiInfo.getClientPkiList();
+		if(StringUtil.isNullOrEmpty(clientPkiKey)) {
+			for (ClientPKI pki: pkiList) {
+				if(pki != null && pki.getIsDefault() != null && pki.getIsDefault() == true ) {
+					return pki;
 				}
 			}
 		}else {
-			for (ClientPkiInfo clientPkiInfo: this.clientPkiInfoList) {
-				if(clientPkiInfo != null && pkiCode.equalsIgnoreCase(clientPkiInfo.getPkiCode()) ) {
-					return clientPkiInfo;
+			for (ClientPKI pki: pkiList) {
+				if(pki != null && clientPkiKey.equalsIgnoreCase(pki.getClientPkiKey()) ) {
+					return pki;
 				}
 			}
 		}
@@ -156,12 +141,25 @@ public class ClientAppInfo implements Serializable{
 
 	}
 	
+	
+	public ClientAuthInfo getClientAuthInfo() {
+		return clientAuthInfo;
+	}
+	public void setClientAuthInfo(ClientAuthInfo clientAuthInfo) {
+		this.clientAuthInfo = clientAuthInfo;
+	}
+	public ClientPkiInfo getClientPkiInfo() {
+		return clientPkiInfo;
+	}
+	public void setClientPkiInfo(ClientPkiInfo clientPkiInfo) {
+		this.clientPkiInfo = clientPkiInfo;
+	}
 	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((clientId == null) ? 0 : clientId.hashCode());
+		result = prime * result + ((clientAppId == null) ? 0 : clientAppId.hashCode());
 		return result;
 	}
 	@Override
@@ -173,20 +171,120 @@ public class ClientAppInfo implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		ClientAppInfo other = (ClientAppInfo) obj;
-		if (clientId == null) {
-			if (other.clientId != null)
+		if (clientAppId == null) {
+			if (other.clientAppId != null)
 				return false;
-		} else if (!clientId.equals(other.clientId))
+		} else if (!clientAppId.equals(other.clientAppId))
 			return false;
 		return true;
 	}
 	@Override
-	public String toString() {
-		return "ClientAppInfo [id=" + id + ", clientId=" + clientId + ", name=" + name + ", organizationId="
-				+ organizationId + ", organizationName=" + organizationName + ", clientAuthInfoList="
-				+ clientAuthInfoList + ", clientPkiInfoList=" + clientPkiInfoList + "]";
+	public int compareTo(ClientAppInfo o) {
+		if(o == null) {
+			return 1;
+		}
+		ClientAppInfo e = (ClientAppInfo) o;
+		if(getClientAppId() == null && e.getClientAppId() ==null) {
+			return 0;
+		}else if(getClientAppId() == null) {
+			return -1;
+		}else if(e.getClientAppId() ==null) {
+			return 1;
+		}else {
+			return getClientAppId().compareTo(e.getClientAppId());
+		}
 	}
 	
+	@Override
+	public String toString() {
+		return "ClientAppInfo [id=" + id + ", clientAppId=" + clientAppId + ", name=" + name + ", organizationId="
+				+ organizationId + ", clientAuthInfo=" + clientAuthInfo + ", clientPkiInfo=" + clientPkiInfo + "]";
+	}
+	
+	public static void main(String[] args) {
+		
+		ClientAppInfo clientAppInfo = new ClientAppInfo();
+		clientAppInfo.setId(1L);
+		clientAppInfo.setClientAppId("clientappid-1");
+		clientAppInfo.setName("Client-1");
+		clientAppInfo.setOrganizationId("Org-1");
+		
+		//this is used to generate JSON string which is used as template for client-auth-info.json
+		ClientAuthInfo clientAuthInfo = new ClientAuthInfo();
+		List<ClientAuthProvider> providerList = new ArrayList<ClientAuthProvider>();
+		
+		ClientAuthProvider ClientAuthProvider = new ClientAuthProvider();
+		ClientAuthProvider.setId(1L);
+		ClientAuthProvider.setClientAuthKey("clientAuthKey-1");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setAuthProviderId("AAD-OIDC");
+		ClientAuthProvider.setAuthAppCallbackUrl("https://localhost:8443/open/aadauth");
+		ClientAuthProvider.setClientCallbackType(ClientCallBackType.POST);
+		ClientAuthProvider.setTokenTransferType(TokenTransferType.SESSION_STORAGE);
+		ClientAuthProvider.setSignoutAppRedirectUrl(null);
+		ClientAuthProvider.setSignoutClientRedirectUrl(null);
+		ClientAuthProvider.setIsDefault(true);
+		ClientAuthProvider.addAuthProperty("aad.client.id", "c3d6299f-2aed-45be-ab4f-857f5961b13e");
+		ClientAuthProvider.addAuthProperty("aad.auth.prompt", "login");
+		
+		
+		providerList.add(ClientAuthProvider);
+		
+		ClientAuthProvider = new ClientAuthProvider();
+		ClientAuthProvider.setId(2L);
+		ClientAuthProvider.setClientAuthKey("clientAuthKey-2");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setAuthProviderId("CORE-BASIC");
+		ClientAuthProvider.setAuthAppCallbackUrl(null);
+		ClientAuthProvider.setClientCallbackType(ClientCallBackType.REDIRECT);
+		ClientAuthProvider.setTokenTransferType(TokenTransferType.COOKIE);
+		ClientAuthProvider.setSignoutAppRedirectUrl(null);
+		ClientAuthProvider.setSignoutClientRedirectUrl(null);
+		ClientAuthProvider.setIsDefault(false);
+		ClientAuthProvider.addAuthProperty("aad.client.id", "c3d6299f-2aed-45be-ab4f-857f5961b13e");
+		ClientAuthProvider.addAuthProperty("aad.auth.prompt", "login");
+		
+		providerList.add(ClientAuthProvider);
+
+		clientAuthInfo.setClientAuthProviderList(providerList); 
+
+		clientAppInfo.setClientAuthInfo(clientAuthInfo);
+		
+		//pki info
+		ClientPkiInfo clientPkiInfo = new ClientPkiInfo();
+		List<ClientPKI> pkiList = new ArrayList<ClientPKI>();
+		
+		ClientPKI clientPKI = new ClientPKI();
+		clientPKI.setId(1L);
+		clientPKI.setClientPkiKey("clientPkiKey-1");
+		clientPKI.setCertificateExpiryDate(null);
+		clientPKI.setEncodedCertificate(null);
+		clientPKI.setEncodedPublicKey(null);
+		clientPKI.setIsDefault(true);
+		
+		
+		pkiList.add(clientPKI);
+		
+		clientPKI = new ClientPKI();
+		clientPKI.setId(2L);
+		clientPKI.setClientPkiKey("clientPkiKey-2");
+		clientPKI.setCertificateExpiryDate(null);
+		clientPKI.setEncodedCertificate(null);
+		clientPKI.setEncodedPublicKey(null);
+		clientPKI.setIsDefault(true);
+		
+		pkiList.add(clientPKI);
+		
+		clientPkiInfo.setClientPkiList(pkiList); 
+		
+		clientAppInfo.setClientPkiInfo(clientPkiInfo);
+		
+		
+		Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+		String jsonStr = gson.toJson(clientAppInfo);
+		System.out.println("clientAppInfo json Template = \n" + jsonStr);
+	}
+
 
 
 }

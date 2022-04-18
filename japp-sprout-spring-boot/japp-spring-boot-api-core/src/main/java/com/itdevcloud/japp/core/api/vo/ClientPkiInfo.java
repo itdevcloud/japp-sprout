@@ -16,6 +16,10 @@
  */
 package com.itdevcloud.japp.core.api.vo;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 
 /**
@@ -24,109 +28,150 @@ import java.io.Serializable;
  * @since 1.0.0
  */
 
-import java.security.PublicKey;
-import java.security.cert.Certificate;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class ClientPkiInfo implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
-	private Long id;
-	private String clientId;
-	private String pkiCode;
-	private PublicKey publicKey;
-	private Certificate certificate;
-	private Date certificateExpiryDate;
-	private Boolean isDefault;
+	private static String clientPkiJsonStr;
+	private List<ClientPKI> clientPkiList;
 	
-	public Long getId() {
-		return id;
+	static {
+		init();
 	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public String getClientId() {
-		return clientId;
-	}
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-	
-	public String getPkiCode() {
-		return pkiCode;
-	}
-	public void setPkiCode(String pkiCode) {
-		this.pkiCode = pkiCode;
-	}
-	public PublicKey getPublicKey() {
-		return publicKey;
-	}
-	public void setPublicKey(PublicKey publicKey) {
-		this.publicKey = publicKey;
-	}
-	public Certificate getCertificate() {
-		return certificate;
-	}
-	public void setCertificate(Certificate certificate) {
-		this.certificate = certificate;
-	}
-	public Date getCertificateExpiryDate() {
-		return certificateExpiryDate;
-	}
-	public void setCertificateExpiryDate(Date certificateExpiryDate) {
-		this.certificateExpiryDate = certificateExpiryDate;
+	private static void init() {
+		InputStream inputStream = null;
+		StringBuilder sb = new StringBuilder();
+		try {
+			inputStream = ClientAuthInfo.class.getResourceAsStream("/client-pki-info.json");
+			if (inputStream == null) {
+				throw new Exception("can not load client-pki-info.json, check code!.......");
+			}
+			String line;
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+			while ((line = br.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			inputStream.close();
+			inputStream = null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			sb = new StringBuilder(e.getMessage());
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				inputStream = null;
+			}
+		}
+		clientPkiJsonStr =  sb.toString();
+		//System.out.println("clientPkiJsonStr = \n" + clientPkiJsonStr);
+		return;
 	}
 	
-	
-	public Boolean getIsDefault() {
-		return isDefault;
+	private List<ClientPKI> loadClientPkiList() {
+		List<ClientPKI> pkiList = null;
+		Gson gson = new GsonBuilder().serializeNulls().create();
+		ClientPkiInfo pkiInfo = null;
+		try {
+			pkiInfo = gson.fromJson(clientPkiJsonStr, ClientPkiInfo.class);
+		}catch (Throwable t) {
+			t.printStackTrace();
+		}
+		pkiList = (pkiInfo == null?null:pkiInfo.getClientPkiList());
+		if(pkiList!= null) {
+			Collections.sort(pkiList);
+		}
+		return pkiList;
 	}
-	public void setIsDefault(Boolean isDefault) {
-		this.isDefault = isDefault;
+	public void addClientPKI(ClientPKI clientPki) {
+		if(this.clientPkiList == null) {
+			this.clientPkiList = loadClientPkiList();
+		}
+		if(clientPki == null) {
+			return;
+		}
+		this.clientPkiList.add(clientPki);
+		return;
 	}
-	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((clientId == null) ? 0 : clientId.hashCode());
-		result = prime * result + ((pkiCode == null) ? 0 : pkiCode.hashCode());
-		return result;
+	public ClientPKI getClientPKI(String clientPkiKey) {
+		if(clientPkiList == null || StringUtil.isEmptyOrNull(clientPkiKey)) {
+			return null;
+		}
+		ClientPKI tmpPKI = new ClientPKI();
+		tmpPKI.setClientPkiKey(clientPkiKey);
+		ClientPKI provider = clientPkiList.stream().filter(tmpPKI::equals).findAny().orElse(null);
+		return provider;
+		
 	}
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ClientPkiInfo other = (ClientPkiInfo) obj;
-		if (clientId == null) {
-			if (other.clientId != null)
-				return false;
-		} else if (!clientId.equals(other.clientId))
-			return false;
-		if (pkiCode == null) {
-			if (other.pkiCode != null)
-				return false;
-		} else if (!pkiCode.equals(other.pkiCode))
-			return false;
-		return true;
+	public List<ClientPKI> getClientPkiList() {
+		if(this.clientPkiList == null) {
+			this.clientPkiList = loadClientPkiList();
+		}
+		List<ClientPKI> list = new ArrayList<ClientPKI>();
+		list.addAll(this.clientPkiList);
+		return list;
 	}
+
+	public void setClientPkiList(List<ClientPKI> providerList) {
+		if(providerList == null) {
+			this.clientPkiList = loadClientPkiList();;
+		}else {
+			this.clientPkiList = new ArrayList<ClientPKI>();
+			this.clientPkiList.addAll(providerList);
+			Collections.sort(this.clientPkiList);
+
+		}
+	}
+
 	@Override
 	public String toString() {
-		String certStr = (certificate != null? "*":null);
-		String keyStr = (publicKey != null? "*":null);
-		return "ClientPkiInfo [id=" + id + ", clientId=" + clientId + ", pkiCode=" + pkiCode + ", publicKey="
-				+ keyStr + ", certificate=" + certStr + ", certificateExpiryDate=" + certificateExpiryDate
-				+ ", isDefault=" + isDefault + "]";
+		return "ClientPkiInfo [clientPkiList=" + clientPkiList + "]";
 	}
-	
 
+	public static void main(String[] args) {
+		
+		//this is used to generate JSON string which is used as template for client-auth-info.json
+		ClientPkiInfo clientPkiInfo = new ClientPkiInfo();
+		List<ClientPKI> pkiList = new ArrayList<ClientPKI>();
+		
+		ClientPKI clientPKI = new ClientPKI();
+		clientPKI.setId(1L);
+		clientPKI.setClientPkiKey("clientPkiKey-1");
+		clientPKI.setCertificateExpiryDate(null);
+		clientPKI.setEncodedCertificate(null);
+		clientPKI.setEncodedPublicKey(null);
+		clientPKI.setIsDefault(true);
+		
+		
+		pkiList.add(clientPKI);
+		
+		clientPKI = new ClientPKI();
+		clientPKI.setId(2L);
+		clientPKI.setClientPkiKey("clientPkiKey-2");
+		clientPKI.setCertificateExpiryDate(null);
+		clientPKI.setEncodedCertificate(null);
+		clientPKI.setEncodedPublicKey(null);
+		clientPKI.setIsDefault(true);
+		
+		pkiList.add(clientPKI);
+		
+		clientPkiInfo.setClientPkiList(pkiList); 
+		
+		Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+		String jsonStr = gson.toJson(clientPkiInfo);
+		System.out.println("clientPkiInfo json = \n" + jsonStr);
+	}
 
 
 

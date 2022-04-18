@@ -26,10 +26,10 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
-import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
+import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import io.jsonwebtoken.Claims;
@@ -114,7 +114,7 @@ public class AadIdTokenHandler implements TokenHandlerI {
 //			String nbf = "" + claims.get(JWT_CLAIM_KEY_NOT_BEFORE);
 //			String exp = "" + claims.get(JWT_CLAIM_KEY_EXPIRE);
 //			String name = "" + claims.get(JWT_CLAIM_KEY_NAME);
-//			String email = "" + claims.get(JWT_CLAIM_KEY_EMAIL);
+			String email = "" + claims.get(JWT_CLAIM_KEY_EMAIL);
 //			String phone = "" + claims.get(JWT_CLAIM_KEY_PHONE);
 //			String iss = "" + claims.get(JWT_CLAIM_KEY_ISSUER);
 //			String busRoles = "" + claims.get(JWT_CLAIM_KEY_BUS_ROLES);
@@ -124,6 +124,7 @@ public class AadIdTokenHandler implements TokenHandlerI {
 //			String idp = "" + claims.get(JWT_CLAIM_KEY_IDENTITY_PROVIDER);
 			String sub = "" + claims.get(JWT_CLAIM_KEY_SUBJECT);
 			String upn = "" + claims.get(JWT_CLAIM_KEY_AAD_USERNAME);
+			String nonce = "" + claims.get(JWT_CLAIM_KEY_AAD_NONCE);
 //			String uid = "" + claims.get(JWT_CLAIM_KEY_UID);
 
 //			iaaUser.setEmail(email);
@@ -140,15 +141,19 @@ public class AadIdTokenHandler implements TokenHandlerI {
 			
 			String loginId = null;
 			logger.info("subject: " + sub + ", upn=" + upn + "......");
-			if (!StringUtil.isEmptyOrNull(upn)) {
+			if (!StringUtil.isEmptyOrNull(upn) && (upn.indexOf("@") != -1)) {
+				loginId = upn;
+			}else if (!StringUtil.isEmptyOrNull(sub) && (sub.indexOf("@") != -1)){
 				loginId = sub;
 			}else {
-				loginId = upn;
+				loginId = email;
 			}
-			logger.error("retrieve user by loginid = " + loginId + ", Auth provider =  " + AppConstant.IDENTITY_PROVIDER_AAD_OIDC);
-			IaaUserI iaaUser = AppComponents.iaaService.getIaaUserFromRepositoryByLoginId(loginId,
-					AppConstant.IDENTITY_PROVIDER_AAD_OIDC);
-
+			logger.info("retrieving user by loginid = " + loginId );
+			IaaUserI iaaUser = AppComponents.iaaService.getIaaUserFromRepositoryByLoginId(loginId);
+			
+			if(!StringUtil.isEmptyOrNull(nonce)) {
+				iaaUser.setHashedNonce(Hasher.hashPassword(nonce));
+			}
 			return iaaUser;
 
 		} catch (SignatureException e) {

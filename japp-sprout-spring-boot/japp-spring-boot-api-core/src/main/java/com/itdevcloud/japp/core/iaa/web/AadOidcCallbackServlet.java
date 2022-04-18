@@ -35,6 +35,7 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.iaa.azure.AadIdTokenHandler;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
+import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -50,64 +51,83 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @since 1.0.0
  */
 
-@WebServlet(name = "aadAuthCallbackServlet", urlPatterns = "/open/aadauth")
-public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
+@WebServlet(name = "aadOidcCallbackServlet", urlPatterns = "/open/aadauth")
+public class AadOidcCallbackServlet extends javax.servlet.http.HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private static final Logger logger = LogManager.getLogger(AadAuthCallbackServlet.class);
+	private static final Logger logger = LogManager.getLogger(AadOidcCallbackServlet.class);
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
 		AppUtil.initTransactionContext(request);
 		try {
-			logger.debug("AadAuthCallbackServlet.doPost().....start......");
+			logger.debug("aadOidcCallbackServlet.doPost().....start......");
 
 			String idToken = request.getParameter("id_token");
 			// log.debug("id_token=========" + idToken);
 
 			if (idToken == null || idToken.equals("")) {
 				logger.error(
-						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E501. can not receive id_token from AAD response....");
+						"aadOidcCallbackServlet.doPost() - Authorization Failed. code E501. can not receive id_token from AAD response....");
 				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E501");
+						"Authorization Failed. ");
 				return;
 			}
 			// verify JWT from AAD;
-			logger.debug("AadAuthCallbackServlet.doPost() - verify idToken token=========");
+			logger.debug("aadOidcCallbackServlet.doPost() - verify idToken token=========" );
 			TokenHandlerI aadIdTokenHandler = AppFactory.getTokenHandler(AadIdTokenHandler.class.getSimpleName());
 			if (!aadIdTokenHandler.isValidToken(idToken, null, true, null)) {
 				logger.error(
-						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E502. id_token from AAD is not valid....");
+						"aadOidcCallbackServlet.doPost() - Authorization Failed. id_token from AAD is not valid....");
 				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E502");
+						"Authorization Failed. ");
 				return;
 			}
+			
+			String state = (String) request.getParameter("state");
+			String[] arr = state.split(";");
+			String clientAppId = null;
+			String clientIP = null;
+			String clientAuthKey = null;
+			if (arr != null) {
+				if (arr.length > 0) {
+					clientAppId = arr[0];
+				}
+				if (arr.length > 1) {
+					clientIP = arr[1];
+				}
+				if (arr.length > 2) {
+					clientAuthKey = arr[2];
+				}
+			}
+
+			
 			// retrieve IaaUser for Authorization
-			logger.debug("AadAuthCallbackServlet.doPost() - retrieve userInfo for Authorization==============");
+			logger.debug("aadOidcCallbackServlet.doPost() - retrieve userInfo for Authorization==============");
 			IaaUserI iaaUser = null;
 			try {
 				iaaUser = aadIdTokenHandler.getIaaUser(idToken);
-				logger.debug("AadAuthCallbackServlet.doPost() - IaaUser: " + iaaUser);
+				logger.debug("aadOidcCallbackServlet.doPost() - IaaUser: " + iaaUser);
 				if (iaaUser == null) {
-					logger.error("Authentication / Authorization Failed. code E504 - can't retrieve user ......" + "Auth provider =  " + AppConstant.IDENTITY_PROVIDER_AAD_OIDC);
+					logger.error("Authentication / Authorization Failed - can't retrieve user ......");
 					AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authentication / Authorization Failed. code E504");
+							"Authentication / Authorization Failed.");
 					return;
 				}
 			} catch (Throwable t) {
-				logger.error("Authentication / Authorization Failed. code E504 - can't retrieve user ......" + "Auth provider =  " + AppConstant.IDENTITY_PROVIDER_AAD_OIDC
+				logger.error("Authentication / Authorization Failed - can't retrieve user ......" 
 						+ "\n" + CommonUtil.getStackTrace(t));
 				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E505");
+						"Authorization Failed. ");
 				return;
 			}
 			String loginId = iaaUser.getLoginId();
 			// Application role list check
 			if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
-				logger.error("Authorization Failed. code E508 - requestor's is not on the APP's role list" + ".....");
+				logger.error("Authorization Failed - requestor's is not on the APP's role list" + ".....");
 				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E508");
+						"Authorization Failed. ");
 				return;
 			}
 
@@ -117,34 +137,21 @@ public class AadAuthCallbackServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			// issue new JAPP JWT token;
+			if(!StringUtil.isEmptyOrNull(clientIP)) {
+				iaaUser.setHashedUserIp(Hasher.hashPassword(clientIP));
+			}
+			
 			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error(
-						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E507. JAPP Token can not be created for login Id '"
+						"AadAuthCallbackServlet.doPost() - Authorization Failed. Token can not be created for login Id '"
 								+ loginId + "'......");
 				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E507");
+						"Authorization Failed. ");
 				return;
 			}
 
-			String state = (String) request.getParameter("state");
-			String[] arr = state.split(":");
-			String clientId = null;
-			String ip = null;
-			String authKey = null;
-			if (arr != null) {
-				if (arr.length > 0) {
-					clientId = arr[0];
-				}
-				if (arr.length > 1) {
-					ip = arr[1];
-				}
-				if (arr.length > 2) {
-					authKey = arr[2];
-				}
-			}
-			
-			AppComponents.commonService.handleClientAuthCallbackResponse(response, token, clientId, authKey);
+			AppComponents.commonService.handleClientAuthCallbackResponse(response, token, clientAppId, clientAuthKey);
 
 		} finally {
 			AppUtil.clearTransactionContext();

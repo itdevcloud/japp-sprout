@@ -321,7 +321,7 @@ public class FileUtil {
 		return getFileListingInClassPath(null, path,
 				 includeSubPackage, fileFilter);
 	}
-
+	//path is relative path???
 	public static Map<String, String> getFileListingInClassPath(Class clazz, String path,
 			boolean includeSubPackage, FileFilter fileFilter) {
 		
@@ -359,6 +359,8 @@ public class FileUtil {
 						if (fileFilter.accept(new File(fileFullName))) {
 							map.put(fileSimpleName, fileFullName);
 						}
+					}else {
+						map.put(fileSimpleName, fileFullName);
 					}
 					logger.fine("FileUtil.getFileListingInClassPath()... fileSimpleName = " + fileSimpleName);
 				}//end for

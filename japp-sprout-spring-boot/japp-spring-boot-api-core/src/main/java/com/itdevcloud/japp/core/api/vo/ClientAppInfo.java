@@ -35,8 +35,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.ClientCallBackType;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.TokenTransferType;
-import com.itdevcloud.japp.core.iaa.provider.CoreAadOidcAuthProviderHandler;
-
 import io.netty.util.internal.StringUtil;
 
 public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
@@ -48,6 +46,8 @@ public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 	private String clientAppId;
 	private String name;
 	private String organizationId;
+	private Boolean apiRenewAccessToken;
+	private CidrWhiteList cidrWhiteList;
 	private ClientAuthInfo clientAuthInfo;
 	private ClientPkiInfo clientPkiInfo;
 	public Long getId() {
@@ -75,6 +75,12 @@ public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 		this.organizationId = organizationId;
 	}
 
+	public Boolean getApiRenewAccessToken() {
+		return apiRenewAccessToken;
+	}
+	public void setApiRenewAccessToken(Boolean apiRenewAccessToken) {
+		this.apiRenewAccessToken = apiRenewAccessToken;
+	}
 	public void addClientAuthProvider(ClientAuthProvider clientAuthProvider) {
 		if(this.clientAuthInfo == null) {
 			this.clientAuthInfo = new ClientAuthInfo();
@@ -142,6 +148,12 @@ public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 	}
 	
 	
+	public CidrWhiteList getCidrWhiteList() {
+		return cidrWhiteList;
+	}
+	public void setCidrWhiteList(CidrWhiteList cidrWhiteList) {
+		this.cidrWhiteList = cidrWhiteList;
+	}
 	public ClientAuthInfo getClientAuthInfo() {
 		return clientAuthInfo;
 	}
@@ -198,20 +210,28 @@ public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 	@Override
 	public String toString() {
 		return "ClientAppInfo [id=" + id + ", clientAppId=" + clientAppId + ", name=" + name + ", organizationId="
-				+ organizationId + ", clientAuthInfo=" + clientAuthInfo + ", clientPkiInfo=" + clientPkiInfo + "]";
+				+ organizationId + ", cidrWhiteList=" + cidrWhiteList + ", clientAuthInfo=" + clientAuthInfo + ", clientPkiInfo=" + clientPkiInfo + "]";
 	}
 	
 	public static void main(String[] args) {
 		
+		//this is used to generate JSON string which is used as template for client-auth-info.json
 		ClientAppInfo clientAppInfo = new ClientAppInfo();
 		clientAppInfo.setId(1L);
 		clientAppInfo.setClientAppId("clientappid-1");
 		clientAppInfo.setName("Client-1");
 		clientAppInfo.setOrganizationId("Org-1");
-		
-		//this is used to generate JSON string which is used as template for client-auth-info.json
+		clientAppInfo.setApiRenewAccessToken(false);
+
+		CidrWhiteList cidrWhitelist = new CidrWhiteList();
 		ClientAuthInfo clientAuthInfo = new ClientAuthInfo();
 		List<ClientAuthProvider> providerList = new ArrayList<ClientAuthProvider>();
+		
+		cidrWhitelist.addCidr("127.0.0.1"); 
+		cidrWhitelist.addCidr("127.0.0.1"); 
+		cidrWhitelist.addCidr("192.168.1.0/24"); 
+
+		clientAppInfo.setCidrWhiteList(cidrWhitelist);
 		
 		ClientAuthProvider ClientAuthProvider = new ClientAuthProvider();
 		ClientAuthProvider.setId(1L);

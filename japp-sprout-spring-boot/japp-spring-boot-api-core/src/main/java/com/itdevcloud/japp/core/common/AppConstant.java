@@ -27,22 +27,29 @@ public class AppConstant {
 	public static final String IDENTITY_PROVIDER_CORE_AAD_OAUTH2 = "CORE-AAD-OAUTH2";
 	public static final String IDENTITY_PROVIDER_CORE_BASIC = "CORE-BASIC";
 	public static final String IDENTITY_PROVIDER_CORE_OKTA_OIDC = "CORE-OKTA-OIDC";
-	public static final String JAPPCORE_TX_ID = "JAPPCORE_TX_ID";
+	public static final String CONTEXT_KEY_JAPPCORE_TX_ID = "JAPPCORE_TX_ID";
 
 	public static final String FRONTEND_UI_FRAMEWORK_NONE = "none";
 	public static final String FRONTEND_UI_FRAMEWORK_ANGULAR = "angular";
 
 
-	public static final String IAA_2NDFACTOR_TYPE_NONE = "none";
-	public static final String IAA_2NDFACTOR_TYPE_VERIFICATION_CODE = "verificationCode";
-	public static final String IAA_2NDFACTOR_TYPE_TOTP = "TOTP";
+	public static final String IAA_MULTI_FACTOR_TYPE_NONE = "none";
+	public static final String IAA_MULTI_FACTOR_TYPE_VERIFICATION_CODE_EMAIL = "verificationCodeEmail";
+	public static final String IAA_MULTI_FACTOR_TYPE_VERIFICATION_CODE_SMS = "verificationCodeSMS";
+	public static final String IAA_MULTI_FACTOR_TYPE_VERIFICATION_CODE_PHONE_CALL = "verificationCodePhoneCall";
+	public static final String IAA_MULTI_FACTOR_TYPE_TOTP = "TOTP";
 
 	public static final String HTTP_AUTHORIZATION_HEADER_NAME = "Authorization";
-	public static final String HTTP_AUTHORIZATION_COOKIE_NAME = "Japp_Token_Cookie";
-	public static final String HTTP_TOKEN_NONCE_HEADER_NAME = "token-nonce";
+	public static final String HTTP_AUTHORIZATION_COOKIE_NAME = "CoreTokenCookie";
+	public static final String HTTP_AUTHORIZATION_ARG_NAME_CLIENT_APP_ID = "CoreClientAppId";
+	public static final String HTTP_AUTHORIZATION_ARG_NAME_TOKEN_NONCE = "CoreTokenNonce";
+	public static final String HTTP_AUTHORIZATION_ARG_NAME_CLIENT_AUTH_KEY = "CoreClientAuthKey";
+	public static final String HTTP_AUTHORIZATION_ARG_NAME_LOGIN_ID = "CoreLoginId";
 
 
 	public static final String JAPPCORE_SPRING_ACTIVE_PROFILE_PROD = "PROD";
+	public static final String JAPPCORE_CLIENT_APP_ID = "CoreApp";
+	public static final String JAPPCORE_CLIENT_APP_NAME = "CoreApp";
 
 	public static final String ASYNC_EXECUTOR_REJECT_POLICY_DEFAULT = "default";
 	public static final String ASYNC_EXECUTOR_REJECT_POLICY_CALLERRUN = "callerrun";

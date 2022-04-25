@@ -60,6 +60,7 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 	public static final String JWT_CLAIM_KEY_ISSUE_AT = "iat";
 	public static final String JWT_CLAIM_KEY_IAT_LOCAL = "iatLocal";
 	public static final String JWT_CLAIM_KEY_SUBJECT = "sub";
+	//aud format: clietAppId:cluentAuthKey
 	public static final String JWT_CLAIM_KEY_AUDIENCE = "aud";
 	public static final String JWT_CLAIM_KEY_EXPIRE = "exp";
 	public static final String JWT_CLAIM_KEY_EXPIRE_LOCAL = "expLocal";

@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletRequest;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -45,6 +46,8 @@ import org.springframework.stereotype.Component;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
+import com.itdevcloud.japp.core.api.vo.BasicCredential;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -159,31 +162,31 @@ public class AppUtil {
 
 
 
-	public static String getQuestionMarks1(List list) {
-		if (list == null || list.size() == 0) {
-			return null;
-		}
-
-		StringBuilder result = new StringBuilder("?");
-		int size = list.size() - 1;
-		for (int i = 0; i < size; i++) {
-			result.append(", ?");
-		}
-		return result.toString();
-	}
-
-	public static String getIdentifier1(int count) {
-		String result = null;
-		if (count < 10) {
-			result = "000" + count;
-		} else if (count < 100) {
-			result = "00" + count;
-		} else if (count < 1000) {
-			result = "0" + count;
-		}
-
-		return result;
-	}
+//	public static String getQuestionMarks1(List list) {
+//		if (list == null || list.size() == 0) {
+//			return null;
+//		}
+//
+//		StringBuilder result = new StringBuilder("?");
+//		int size = list.size() - 1;
+//		for (int i = 0; i < size; i++) {
+//			result.append(", ?");
+//		}
+//		return result.toString();
+//	}
+//
+//	public static String getIdentifier1(int count) {
+//		String result = null;
+//		if (count < 10) {
+//			result = "000" + count;
+//		} else if (count < 100) {
+//			result = "00" + count;
+//		} else if (count < 1000) {
+//			result = "0" + count;
+//		}
+//
+//		return result;
+//	}
 
 	public static String getSpringActiveProfile() {
 		if (StringUtil.isEmptyOrNull(springActiveProfile)) {
@@ -289,23 +292,23 @@ public class AppUtil {
 		}
 	}
 
-	public static String parseHttpCodeAuthString(ServletRequest request) {
-		if (request == null || !(request instanceof HttpServletRequest)) {
-			logger.error(
-					"parseHttpCodeAuthString() - request is null or not instanceof HttpServletRequest, return null... ");
-			return null;
-		}
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
-		String code;
-		try {
-			code = httpRequest.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-		} catch (IOException e) {
-			logger.error(CommonUtil.getStackTrace(e));
-			return null;
-		}
-		// logger.debug("verification code = " + code);
-		return code;
-	}
+//	public static String parseHttpCodeAuthString(ServletRequest request) {
+//		if (request == null || !(request instanceof HttpServletRequest)) {
+//			logger.error(
+//					"parseHttpCodeAuthString() - request is null or not instanceof HttpServletRequest, return null... ");
+//			return null;
+//		}
+//		HttpServletRequest httpRequest = (HttpServletRequest) request;
+//		String code;
+//		try {
+//			code = httpRequest.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+//		} catch (IOException e) {
+//			logger.error(CommonUtil.getStackTrace(e));
+//			return null;
+//		}
+//		// logger.debug("verification code = " + code);
+//		return code;
+//	}
 
 	public static String getClientHost(HttpServletRequest request) {
 
@@ -327,7 +330,7 @@ public class AppUtil {
 			if (StringUtil.isEmptyOrNull(remoteAddr)) {
 				remoteAddr = request.getRemoteAddr();
 			} else {
-				logger.debug("-------------remoteAddr 1-----X-FORWARDED-FOR-----" + remoteAddr);
+				//logger.debug("-------------remoteAddr 1-----X-FORWARDED-FOR-----" + remoteAddr);
 				int idx = remoteAddr.indexOf(",");
 				if (idx > 0) {
 					// client part
@@ -337,7 +340,7 @@ public class AppUtil {
 				if (idx > 0) {
 					remoteAddr = remoteAddr.substring(0, idx);
 				}
-				logger.debug("-------------remoteAddr 2-------------------------" + remoteAddr);
+				//logger.debug("-------------remoteAddr 2-------------------------" + remoteAddr);
 			}
 		}
 		if (InetAddressValidator.getInstance().isValid(remoteAddr)) {
@@ -368,12 +371,11 @@ public class AppUtil {
 		httpResponse.setContentType("application/json");
 		httpResponse.setCharacterEncoding("UTF-8");
 		out.print(jsonResponseStr);
-		// out.flush();
 	}
 
 	public static String getJwtTokenFromRequest(HttpServletRequest httpRequest) {
 		if (httpRequest == null) {
-			logger.debug("getJwtTokenFromRequest - httpRequest is null.........");
+			//logger.debug("getJwtTokenFromRequest - httpRequest is null.........");
 			return null;
 		}
 		String authHeader = httpRequest.getHeader(AppConstant.HTTP_AUTHORIZATION_HEADER_NAME);
@@ -470,26 +472,27 @@ public class AppUtil {
 
 	public static void initTransactionContext(HttpServletRequest request) {
 		logger.debug("initTransactionContext()...init transaction context........");
+		String errMsg = null;
+		if (request == null ) {
+			errMsg = "initTransactionContext() - request can not be null!" ;
+			logger.error(errMsg);
+			throw new RuntimeException(errMsg);
+		}
 		TransactionContext txnCtx = new TransactionContext();
 		String txId = UUID.randomUUID().toString();
 
 		txnCtx.setTransactionId(txId);
 		txnCtx.setRequestReceivedTimeStamp(new Timestamp(new Date().getTime()));
 		txnCtx.setServerTimezoneId(TimeZone.getDefault().getID());
-		if (request != null) {
-			String host = getClientHost(request);
-			host = (StringUtil.isEmptyOrNull(host) ? "n/a" : host);
-			txnCtx.setClientHostName(host);
-			String ip = getClientIp(request);
-			ip = (StringUtil.isEmptyOrNull(ip) ? "n/a" : ip);
-			txnCtx.setClientIP(ip);
-		}
-
+		
+		ApiAuthInfo authInfo = AppComponents.commonService.getApiAuthInfo(request);
+		txnCtx.setApiAuthInfo(authInfo);
+		
 		// for request processor
 		AppThreadContext.setTransactionContext(txnCtx);
 
 		// for log4j2
-		ThreadContext.put(AppConstant.JAPPCORE_TX_ID, txId);
+		ThreadContext.put(AppConstant.CONTEXT_KEY_JAPPCORE_TX_ID, txId);
 
 	}
 
@@ -499,4 +502,53 @@ public class AppUtil {
 		ThreadContext.clearAll();
 	}
 
+	public static String getParaCookieHeaderValue(HttpServletRequest request, String name) {
+        if(request == null || StringUtil.isEmptyOrNull(name)) {
+        	return null;
+        }
+        String value = request.getParameter(name);
+        if(StringUtil.isEmptyOrNull(value)) {
+        	value = request.getHeader(name);
+            if(StringUtil.isEmptyOrNull(value)) {
+                Cookie[] cookies = request.getCookies();
+                if (cookies != null) {
+                    for (Cookie cookie : cookies) {
+                        if (cookie.getName().equalsIgnoreCase(name)) {
+                            value = cookie.getValue();
+                            return value;
+                        }
+                    }
+                }
+
+            }
+        }
+        return value;
+    }
+	public static BasicCredential getBasicCredential(HttpServletRequest request) {
+        if(request == null) {
+        	return null;
+        }
+        String loginId = getParaCookieHeaderValue(request, "username");
+        String password = null;
+        if(StringUtil.isEmptyOrNull(loginId)) {
+        	loginId = getParaCookieHeaderValue(request, "loginId");
+        }
+        if(StringUtil.isEmptyOrNull(loginId)) {
+			String[] basicInfo = parseHttpBasicAuthString(request);
+			if (basicInfo == null || basicInfo.length != 2) {
+				return null;
+			}
+			loginId = basicInfo[0];
+			password = basicInfo[1];
+
+        }else {
+        	password = getParaCookieHeaderValue(request, "password");
+        }
+        
+        BasicCredential basicCredential = new BasicCredential();
+        basicCredential.setLoginId(loginId);
+        basicCredential.setPassword(password);
+        
+        return basicCredential;
+    }
 }

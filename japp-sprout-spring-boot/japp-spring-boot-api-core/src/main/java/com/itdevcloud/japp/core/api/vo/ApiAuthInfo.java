@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.iaa.provider;
+package com.itdevcloud.japp.core.api.vo;
 
 
 
@@ -27,15 +27,23 @@ package com.itdevcloud.japp.core.iaa.provider;
 
 import java.io.Serializable;
 
-import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
-import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
-
-public class AuthProviderHandlerInfo implements Serializable{
+public class ApiAuthInfo implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
-	public String coreLoginId;
-	public ApiAuthInfo apiAuthInfo ;
-	public ClientAuthProvider authProvider;
+	public String clientAppId ;
+	public String clientAuthKey;
+	public String tokenNonce;
+	public String clientIP;
+	public String clientHost;
+	public String token;
+	
+	@Override
+	public String toString() {
+		return "ApiAuthInfo [clientAppId=" + clientAppId + ", clientAuthKey=" + clientAuthKey + ", tokenNonce="
+				+ tokenNonce  + ", clientIP=" + clientIP + ", clientHost=" + clientHost
+				+ ", token=" + (token==null?null:"*") + "]";
+	}
+	
 	
 }

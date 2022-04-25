@@ -19,6 +19,7 @@ package com.itdevcloud.japp.core.common;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 
 /**
@@ -33,7 +34,6 @@ public class AppThreadContext {
 	//private static ThreadLocal<String> userIdContext = new ThreadLocal<String>();
 	//private static ThreadLocal<String> tokenSubjectContext = new ThreadLocal<String>();
 	private static ThreadLocal<IaaUserI> iaaUserContext = new ThreadLocal<IaaUserI>();
-
 	private static ThreadLocal<TransactionContext> txContext = new ThreadLocal<TransactionContext>();
 
 	public static IaaUserI getIaaUser() {
@@ -65,6 +65,7 @@ public class AppThreadContext {
 		return txCtx;
 	}
 
+
 	public static void setTransactionContext(TransactionContext txCtx) {
 		if (txCtx == null) {
 			txContext.set(null);
@@ -75,7 +76,6 @@ public class AppThreadContext {
 	public static void clean() {
 		logger.debug("clean AppThreadContext..... => start");
 		iaaUserContext.set(null);
-//		tokenSubjectContext.set(null);
 		txContext.set(null);
 		logger.debug("clean AppThreadContext..... <= end");
 	}

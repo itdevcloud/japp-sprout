@@ -16,6 +16,7 @@
  */
 package com.itdevcloud.japp.core.cahce;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -34,8 +35,10 @@ import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ClientPkiInfo;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppFactory;
+import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -82,19 +85,18 @@ public class ClientAppInfoCache extends RefreshableCache {
 				IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
 				
 				List<ClientAppInfo> appInfoList = helper.getClientAppInfoList();
-				if(appInfoList!= null) {
-					Collections.sort(appInfoList);
+				if(appInfoList == null) {
+					appInfoList = new ArrayList<ClientAppInfo>();
 				}
+				ClientAppInfo coreAppInfo = AppComponents.commonService.getCoreAppInfo();
+				appInfoList.add(coreAppInfo);
+				Collections.sort(appInfoList);
+				
 				String errorStr = validateAppInfo(appInfoList);
 				if(!StringUtil.isEmptyOrNull(errorStr)) {
 					logger.warn(errorStr);
 				}
-//				Set<ClientAppInfo> tmpClientAppInfoSet = new HashSet<ClientAppInfo>();
-//				if(appInfoList != null && !appInfoList.isEmpty()) {
-//					for(ClientAppInfo info:appInfoList) {
-//						tmpClientAppInfoSet.add(info);
-//					}
-//				}
+				
 				initInProcess = true;
 				this.clientAppInfoList = appInfoList;
 				initInProcess = false;
@@ -133,6 +135,17 @@ public class ClientAppInfoCache extends RefreshableCache {
 			if(StringUtil.isEmptyOrNull(clientAppId) || clientAuthInfo == null || clientPkiInfo == null) {
 				errorStr = errorStr + "clientAppId, clientAuthInfo and/or clientPkiInfo is null or empty for List("+ i + ")! \n";
 			}
+			List<ClientAuthProvider> providerList = clientAuthInfo.getClientAuthProviderList();
+			if(providerList == null || providerList.isEmpty()) {
+				errorStr = errorStr + "clientAppId, clientAuthInfo and/or clientPkiInfo is null or empty for List("+ i + ")! \n";
+				return errorStr;
+			}
+			for (ClientAuthProvider provider: providerList) {
+				if(!AppComponents.commonService.isSupportedAuthProvider(provider.getAuthProviderId())) {
+					errorStr = errorStr + "authProviderId is not supported for List("+ i + ")! \n";
+					return errorStr;
+				}
+			}
 			i++;
 		}
 		if(StringUtil.isEmptyOrNull(errorStr)) {
@@ -144,8 +157,12 @@ public class ClientAppInfoCache extends RefreshableCache {
 	
 	
 	public ClientAppInfo getClientAppInfo(String clientAppId) {
-		if(clientAppId == null || this.clientAppInfoList == null || this.clientAppInfoList.isEmpty()) {
+		if(this.clientAppInfoList == null || this.clientAppInfoList.isEmpty()) {
 			return null;
+		}
+		if (StringUtil.isEmptyOrNull(clientAppId)) {
+			//default to core app, refer to CommonService.getCoreAppInfo()
+			clientAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
 		}
 		waitForInit();
 		for(ClientAppInfo info: this.clientAppInfoList) {

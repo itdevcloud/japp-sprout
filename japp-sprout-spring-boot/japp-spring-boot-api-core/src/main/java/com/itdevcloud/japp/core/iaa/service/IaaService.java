@@ -71,13 +71,13 @@ public class IaaService implements AppFactoryComponentI {
 		return clientAppInfoList;
 	}
 	
-	public ClientAppInfo getClientAppInfo(String clientId){
-		return AppComponents.clientAppInfoCache.getClientAppInfo(clientId);
-	}
+//	public ClientAppInfo getClientAppInfo(String clientId){
+//		return AppComponents.clientAppInfoCache.getClientAppInfo(clientId);
+//	}
 
-	public ClientAuthProvider getClientAuthProvider(String clientAppId, String clientAuthKey) {
-		return AppComponents.clientAppInfoCache.getClientAuthProvider(clientAppId, clientAuthKey);
-	}
+//	public ClientAuthProvider getClientAuthProvider(String clientAppId, String clientAuthKey) {
+//		return AppComponents.clientAppInfoCache.getClientAuthProvider(clientAppId, clientAuthKey);
+//	}
 	
 	public ClientPKI getClientPKI(String clientId, String clientPkiKey) {
 		return AppComponents.clientAppInfoCache.getClientPKI(clientId, clientPkiKey);

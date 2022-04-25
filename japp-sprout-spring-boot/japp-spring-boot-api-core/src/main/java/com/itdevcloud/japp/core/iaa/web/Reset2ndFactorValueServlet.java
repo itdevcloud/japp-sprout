@@ -101,7 +101,7 @@ public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
 			}
 
 			// issue new JAPP JWT token;
-			String newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
+			String newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
 
 			if (StringUtil.isEmptyOrNull(newToken)) {
 				logger.error(

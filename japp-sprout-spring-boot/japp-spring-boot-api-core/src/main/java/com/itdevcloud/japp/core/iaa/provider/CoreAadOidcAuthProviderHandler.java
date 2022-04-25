@@ -51,21 +51,26 @@ public class CoreAadOidcAuthProviderHandler extends BaseAuthProviderHandler {
 		String aadClientId = handlerInfo.authProvider.getAuthProperty("aad.client.id");
 		String aadPrompt = handlerInfo.authProvider.getAuthProperty("aad.auth.prompt");
 		String appCallbackUrl = handlerInfo.authProvider.getAuthAppCallbackUrl();
-		String loginUserEmail = handlerInfo.loginUserEmail;
-		String tokenNonce = handlerInfo.tokenNonce;
-		String clientAppId = handlerInfo.clientAppId;
-		String clientIP = handlerInfo.clientIP;
-		String clientAuthKey = handlerInfo.clientAuthKey;
+		String coreLoginId = handlerInfo.coreLoginId;
+		String tokenNonce = handlerInfo.apiAuthInfo.tokenNonce;
+		String clientAppId = handlerInfo.apiAuthInfo.clientAppId;
+		String clientIP = handlerInfo.apiAuthInfo.clientIP;
+		String clientAuthKey = handlerInfo.apiAuthInfo.clientAuthKey;
 		
 		String prompt = getAadAuthPrompt(aadPrompt);
+
+		if (StringUtil.isEmptyOrNull(appCallbackUrl)) {
+			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "CoreAadOidcAuthProviderHandler - appCallbackUrl must be provided in the ClientAuthProvider! Check Provider configuration.");
+			return ;
+		}
 
 		String url = AppComponents.aadJwksCache.getAadAuthUri() + "?client_id=" + aadClientId
 				+ "&response_type=id_token" + "&response_mode=form_post" + "&scope=openid" + "&state=" + clientAppId 
 				     + ";" + (clientIP==null?"":clientIP) + ";" + (clientAuthKey==null?"":clientAuthKey)
 				+ prompt + "&nonce=" + tokenNonce + "&redirect_uri=" + appCallbackUrl;
 		;
-		if (!StringUtil.isEmptyOrNull(loginUserEmail)) {
-			url = url + "&login_hint=" + loginUserEmail;
+		if (!StringUtil.isEmptyOrNull(coreLoginId)) {
+			url = url + "&login_hint=" + coreLoginId;
 		}
 		logger.info("AuthProvider - " + authProviderId + ", Login Redirect URL: " + url);
 		
@@ -73,8 +78,8 @@ public class CoreAadOidcAuthProviderHandler extends BaseAuthProviderHandler {
 			response.sendRedirect(url);
 		} catch (IOException e) {
 			e.printStackTrace();
-			logger.error("Can't redirect to AAD login page!", e);
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, e.getMessage());
+			logger.error("CoreAadOidcAuthProviderHandler - Can't redirect to AAD login page!", e);
+			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "CoreAadOidcAuthProviderHandler - "+ e.getMessage());
 			return;
 		}
 
@@ -100,10 +105,10 @@ public class CoreAadOidcAuthProviderHandler extends BaseAuthProviderHandler {
 		String aadClientId = handlerInfo.authProvider.getAuthProperty("aad.client.id");
 		String aadPrompt = handlerInfo.authProvider.getAuthProperty("aad.auth.prompt");
 		String appCallbackUrl = handlerInfo.authProvider.getAuthAppCallbackUrl();
-		String loginUserEmail = handlerInfo.loginUserEmail;
-		String tokenNonce = handlerInfo.tokenNonce;
-		String clientAppId = handlerInfo.clientAppId;
-		String clientAuthKey = handlerInfo.clientAuthKey;
+		String coreLoginId = handlerInfo.coreLoginId;
+		String tokenNonce = handlerInfo.apiAuthInfo.tokenNonce;
+		String clientAppId = handlerInfo.apiAuthInfo.clientAppId;
+		String clientAuthKey = handlerInfo.apiAuthInfo.clientAuthKey;
 		
 
 		String signoutAppRedirectUrl = handlerInfo.authProvider.getSignoutAppRedirectUrl();
@@ -118,8 +123,8 @@ public class CoreAadOidcAuthProviderHandler extends BaseAuthProviderHandler {
 			response.sendRedirect(url);
 		} catch (IOException e) {
 			e.printStackTrace();
-			logger.error("Can't redirect to AAD login page!", e);
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, e.getMessage());
+			logger.error("CoreAadOidcAuthProviderHandler - Can't redirect to AAD login page!", e);
+			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "CoreAadOidcAuthProviderHandler - " + e.getMessage());
 			return;
 		}
 

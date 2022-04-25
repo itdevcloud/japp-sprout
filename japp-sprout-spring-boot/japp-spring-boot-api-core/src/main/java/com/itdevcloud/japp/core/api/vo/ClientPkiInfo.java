@@ -43,55 +43,55 @@ public class ClientPkiInfo implements Serializable{
 	private static String clientPkiJsonStr;
 	private List<ClientPKI> clientPkiList;
 	
-	static {
-		init();
-	}
-	private static void init() {
-		InputStream inputStream = null;
-		StringBuilder sb = new StringBuilder();
-		try {
-			inputStream = ClientAuthInfo.class.getResourceAsStream("/client-pki-info.json");
-			if (inputStream == null) {
-				throw new Exception("can not load client-pki-info.json, check code!.......");
-			}
-			String line;
-			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-			while ((line = br.readLine()) != null) {
-				sb.append(line).append("\n");
-			}
-			inputStream.close();
-			inputStream = null;
-		} catch (Exception e) {
-			e.printStackTrace();
-			sb = new StringBuilder(e.getMessage());
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				inputStream = null;
-			}
-		}
-		clientPkiJsonStr =  sb.toString();
-		//System.out.println("clientPkiJsonStr = \n" + clientPkiJsonStr);
-		return;
-	}
+//	static {
+//		init();
+//	}
+//	private static void init() {
+//		InputStream inputStream = null;
+//		StringBuilder sb = new StringBuilder();
+//		try {
+//			inputStream = ClientAuthInfo.class.getResourceAsStream("/client-pki-info.json");
+//			if (inputStream == null) {
+//				throw new Exception("can not load client-pki-info.json, check code!.......");
+//			}
+//			String line;
+//			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+//			while ((line = br.readLine()) != null) {
+//				sb.append(line).append("\n");
+//			}
+//			inputStream.close();
+//			inputStream = null;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			sb = new StringBuilder(e.getMessage());
+//		} finally {
+//			if (inputStream != null) {
+//				try {
+//					inputStream.close();
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//				inputStream = null;
+//			}
+//		}
+//		clientPkiJsonStr =  sb.toString();
+//		//System.out.println("clientPkiJsonStr = \n" + clientPkiJsonStr);
+//		return;
+//	}
 	
 	private List<ClientPKI> loadClientPkiList() {
-		List<ClientPKI> pkiList = null;
-		Gson gson = new GsonBuilder().serializeNulls().create();
-		ClientPkiInfo pkiInfo = null;
-		try {
-			pkiInfo = gson.fromJson(clientPkiJsonStr, ClientPkiInfo.class);
-		}catch (Throwable t) {
-			t.printStackTrace();
-		}
-		pkiList = (pkiInfo == null?null:pkiInfo.getClientPkiList());
-		if(pkiList!= null) {
-			Collections.sort(pkiList);
-		}
+		List<ClientPKI> pkiList = new ArrayList<ClientPKI>();
+//		Gson gson = new GsonBuilder().serializeNulls().create();
+//		ClientPkiInfo pkiInfo = null;
+//		try {
+//			pkiInfo = gson.fromJson(clientPkiJsonStr, ClientPkiInfo.class);
+//		}catch (Throwable t) {
+//			t.printStackTrace();
+//		}
+//		pkiList = (pkiInfo == null?null:pkiInfo.getClientPkiList());
+//		if(pkiList!= null) {
+//			Collections.sort(pkiList);
+//		}
 		return pkiList;
 	}
 	public void addClientPKI(ClientPKI clientPki) {
@@ -125,7 +125,7 @@ public class ClientPkiInfo implements Serializable{
 
 	public void setClientPkiList(List<ClientPKI> providerList) {
 		if(providerList == null) {
-			this.clientPkiList = loadClientPkiList();;
+			this.clientPkiList = loadClientPkiList();
 		}else {
 			this.clientPkiList = new ArrayList<ClientPKI>();
 			this.clientPkiList.addAll(providerList);

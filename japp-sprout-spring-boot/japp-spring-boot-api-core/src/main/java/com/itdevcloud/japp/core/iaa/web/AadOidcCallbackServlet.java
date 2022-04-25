@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
@@ -141,7 +142,7 @@ public class AadOidcCallbackServlet extends javax.servlet.http.HttpServlet {
 				iaaUser.setHashedUserIp(Hasher.hashPassword(clientIP));
 			}
 			
-			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
+			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error(
 						"AadAuthCallbackServlet.doPost() - Authorization Failed. Token can not be created for login Id '"
@@ -150,8 +151,11 @@ public class AadOidcCallbackServlet extends javax.servlet.http.HttpServlet {
 						"Authorization Failed. ");
 				return;
 			}
-
-			AppComponents.commonService.handleClientAuthCallbackResponse(response, token, clientAppId, clientAuthKey);
+			ApiAuthInfo apiAuthInfo = new ApiAuthInfo();
+			apiAuthInfo.clientAppId = clientAppId;
+			apiAuthInfo.clientAuthKey = clientAuthKey;
+			apiAuthInfo.token = token;
+			AppComponents.commonService.handleClientAuthCallbackResponse(response, apiAuthInfo);
 
 		} finally {
 			AppUtil.clearTransactionContext();

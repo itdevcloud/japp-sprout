@@ -44,55 +44,55 @@ public class ClientAuthInfo implements Serializable{
 	private static String clientAuthProviderJsonStr;
 	private List<ClientAuthProvider> clientAuthProviderList;
 	
-	static {
-		init();
-	}
-	private static void init() {
-		InputStream inputStream = null;
-		StringBuilder sb = new StringBuilder();
-		try {
-			inputStream = ClientAuthInfo.class.getResourceAsStream("/client-auth-info.json");
-			if (inputStream == null) {
-				throw new Exception("can not load client-auth-info.json, check code!.......");
-			}
-			String line;
-			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-			while ((line = br.readLine()) != null) {
-				sb.append(line).append("\n");
-			}
-			inputStream.close();
-			inputStream = null;
-		} catch (Exception e) {
-			e.printStackTrace();
-			sb = new StringBuilder(e.getMessage());
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				inputStream = null;
-			}
-		}
-		clientAuthProviderJsonStr =  sb.toString();
-		//System.out.println("clientAuthProviderJsonStr = \n" + clientAuthProviderJsonStr);
-		return;
-	}
+//	static {
+//		init();
+//	}
+//	private static void init() {
+//		InputStream inputStream = null;
+//		StringBuilder sb = new StringBuilder();
+//		try {
+//			inputStream = ClientAuthInfo.class.getResourceAsStream("/client-auth-info.json");
+//			if (inputStream == null) {
+//				throw new Exception("can not load client-auth-info.json, check code!.......");
+//			}
+//			String line;
+//			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+//			while ((line = br.readLine()) != null) {
+//				sb.append(line).append("\n");
+//			}
+//			inputStream.close();
+//			inputStream = null;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			sb = new StringBuilder(e.getMessage());
+//		} finally {
+//			if (inputStream != null) {
+//				try {
+//					inputStream.close();
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//				inputStream = null;
+//			}
+//		}
+//		clientAuthProviderJsonStr =  sb.toString();
+//		//System.out.println("clientAuthProviderJsonStr = \n" + clientAuthProviderJsonStr);
+//		return;
+//	}
 	
 	private List<ClientAuthProvider> loadClientAuthProviderList() {
-		List<ClientAuthProvider> providerList = null;
-		Gson gson = new GsonBuilder().serializeNulls().create();
-		ClientAuthInfo authInfo = null;
-		try {
-			authInfo = gson.fromJson(clientAuthProviderJsonStr, ClientAuthInfo.class);
-		}catch (Throwable t) {
-			t.printStackTrace();
-		}
-		providerList = (authInfo == null?null:authInfo.getClientAuthProviderList());
-		if(providerList!= null) {
-			Collections.sort(providerList);
-		}
+		List<ClientAuthProvider> providerList = new ArrayList<ClientAuthProvider>();;
+//		Gson gson = new GsonBuilder().serializeNulls().create();
+//		ClientAuthInfo authInfo = null;
+//		try {
+//			authInfo = gson.fromJson(clientAuthProviderJsonStr, ClientAuthInfo.class);
+//		}catch (Throwable t) {
+//			t.printStackTrace();
+//		}
+//		providerList = (authInfo == null?null:authInfo.getClientAuthProviderList());
+//		if(providerList!= null) {
+//			Collections.sort(providerList);
+//		}
 		return providerList;
 	}
 	public void addClientAuthProvider(ClientAuthProvider clientAuthProvider) {

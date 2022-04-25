@@ -14,28 +14,42 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.iaa.provider;
+package com.itdevcloud.japp.core.api.vo;
 
+import java.io.Serializable;
 
+import com.itdevcloud.japp.core.common.AppConstant;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
- * Base Request Class.
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
-
-import java.io.Serializable;
-
-import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
-import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
-
-public class AuthProviderHandlerInfo implements Serializable{
+public class BasicCredential implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	private String loginId;
+	private String password;
 	
-	public String coreLoginId;
-	public ApiAuthInfo apiAuthInfo ;
-	public ClientAuthProvider authProvider;
 	
+	public String getLoginId() {
+		return loginId;
+	}
+	public void setLoginId(String loginId) {
+		this.loginId = loginId;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	@Override
+	public String toString() {
+		return "BasicCredential [loginId=" + loginId + ", password=" + (password==null?"":"*") + "]";
+	}
+
+
+
 }

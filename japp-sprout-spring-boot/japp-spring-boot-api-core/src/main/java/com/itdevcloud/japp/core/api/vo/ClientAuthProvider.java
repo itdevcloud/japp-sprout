@@ -36,12 +36,11 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 public class ClientAuthProvider implements Serializable,  Comparable<ClientAuthProvider>{
 
 	private static final long serialVersionUID = 1L;
-//	public static enum ClientCallBackType {REDIRECT, POST};
-//	public static enum TokenTransferType {COOKIE, SESSION_STORAGE, QUERY_PARAMETER};
 
 	private Long id;
 	private String clientAuthKey;
 	private String authProviderId;
+	private String multiFactorType;
 	private String authAppCallbackUrl;
 	private String clientCallbackUrl;
 	private ClientCallBackType clientCallbackType;
@@ -68,6 +67,13 @@ public class ClientAuthProvider implements Serializable,  Comparable<ClientAuthP
 	}
 	public void setAuthProviderId(String authProviderId) {
 		this.authProviderId = authProviderId;
+	}
+	
+	public String getMultiFactorType() {
+		return multiFactorType;
+	}
+	public void setMultiFactorType(String multiFactorType) {
+		this.multiFactorType = multiFactorType;
 	}
 	public String getAuthAppCallbackUrl() {
 		return authAppCallbackUrl;

@@ -32,12 +32,17 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppFactory;
+import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.core.common.ConfigFactory;
+import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public abstract class BaseAuthProviderHandler implements Serializable{
@@ -46,44 +51,47 @@ public abstract class BaseAuthProviderHandler implements Serializable{
 	private static final Logger logger = LogManager.getLogger(BaseAuthProviderHandler.class);
     protected AuthProviderHandlerInfo handlerInfo;
     
-	private static AuthProviderHandlerInfo getValidatedHandlerInfo(HttpServletRequest request, HttpServletResponse response)  {
+	public static AuthProviderHandlerInfo getValidatedHandlerInfo(HttpServletRequest request, HttpServletResponse response)  {
 
+		String errMsg = null;
 		if (request == null || response == null) {
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "Request and/or Respone Parameters can not be null!");
+			errMsg = "getValidatedHandlerInfo() - request and/or response can not be null!" ;
+			logger.error(errMsg);
+			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
 			return null;
 		}
+		TransactionContext txContext = AppThreadContext.getTransactionContext();
+		ApiAuthInfo apiAuthInfo = txContext.getApiAuthInfo();
 		
-		String clientAppId = request.getParameter("clientAppId");
-		String clientAuthKey = request.getParameter("clientAuthKey");
-		String tokenNonce = request.getParameter("tokenNonce");
-		String loginUserEmail = request.getParameter("loginUserEmail");
-
-		if (StringUtil.isEmptyOrNull(clientAppId) || StringUtil.isEmptyOrNull(tokenNonce)) {
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "clientAppId and tokenNonce must be provided in the request! ");
+		String clientAppId = apiAuthInfo.clientAppId;
+		String clientAuthKey = apiAuthInfo.clientAuthKey;
+		String tokenNonce = apiAuthInfo.tokenNonce;
+		String coreLoginId = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_LOGIN_ID);
+		
+		if (StringUtil.isEmptyOrNull(tokenNonce)) {
+			errMsg = "getValidatedHandlerInfo() - tokenNonce must be provided!";
+			logger.error(errMsg);
+			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
 			return null;
 		}
-		ClientAuthProvider authProvider = AppComponents.iaaService.getClientAuthProvider(clientAppId, clientAuthKey);
+		ClientAuthProvider authProvider = AppComponents.clientAppInfoCache.getClientAuthProvider(clientAppId, clientAuthKey);
 
 		if (authProvider == null) {
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "Can not get Auth provider !, check code or configuration! clientAppId = " + clientAppId + ", clientAuthKey = " + clientAuthKey);
-			return null;
-		}
-		String authProviderId = authProvider.getAuthProviderId();
-		String appCallbackUrl = authProvider.getAuthAppCallbackUrl();
-		
-		if (StringUtil.isEmptyOrNull(authProviderId) || StringUtil.isEmptyOrNull(appCallbackUrl)) {
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "authProviderId and appCallbackUrl must be provided in the ClientAuthProvider! Check Provider configuration.");
+			errMsg = "getValidatedHandlerInfo() - can not retrieve ClientAuthProvider! clientAppId = " + clientAppId + ", clientAuthKey = " + clientAuthKey;
+			logger.error(errMsg);
+			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
 			return null;
 		}
 		
 		AuthProviderHandlerInfo handlerInfo = new AuthProviderHandlerInfo();
-		handlerInfo.clientAppId = clientAppId;
-		handlerInfo.clientAuthKey = clientAuthKey;
-		handlerInfo.tokenNonce = tokenNonce;
-		handlerInfo.loginUserEmail = loginUserEmail;
-		handlerInfo.clientIP = AppUtil.getClientIp(request);
+		handlerInfo.apiAuthInfo = apiAuthInfo;
+		handlerInfo.apiAuthInfo.clientAppId = clientAppId;
+		handlerInfo.apiAuthInfo.clientAuthKey = clientAuthKey;
+		handlerInfo.apiAuthInfo.tokenNonce = tokenNonce;
+		handlerInfo.coreLoginId = coreLoginId;
+		handlerInfo.apiAuthInfo.clientIP = AppUtil.getClientIp(request);
 		handlerInfo.authProvider = authProvider;
-		
+
 		return handlerInfo;
 	}
 	
@@ -97,8 +105,7 @@ public abstract class BaseAuthProviderHandler implements Serializable{
 		if(AppConstant.IDENTITY_PROVIDER_CORE_AAD_OIDC.equalsIgnoreCase(authProviderId)) {
 			handler =  AppFactory.getInstance(CoreAadOidcAuthProviderHandler.class);
 		}else if (AppConstant.IDENTITY_PROVIDER_CORE_BASIC.equalsIgnoreCase(authProviderId)) {
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "AuthProviderId is not supported at this time, check code or configuration! authProviderId = " + authProviderId );
-			return null;
+			handler =  AppFactory.getInstance(CoreBasicAuthProviderHandler.class);
 		}else {
 			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "AuthProviderId is not supported at this time, check code or configuration! authProviderId = " + authProviderId );
 			return null;

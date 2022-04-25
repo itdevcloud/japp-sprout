@@ -31,10 +31,10 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -44,18 +44,21 @@ import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ClientPkiInfo;
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
+import com.itdevcloud.japp.core.api.vo.CidrWhiteList;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.ClientCallBackType;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.TokenTransferType;
+import com.itdevcloud.japp.core.iaa.provider.AuthProviderHandlerInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
-import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
@@ -103,20 +106,20 @@ public class CommonService implements AppFactoryComponentI {
 
 	}
 	
-	public List<String> getApplicationCidrWhiteList() {
-		String whitelist = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST);
-		if(StringUtil.isEmptyOrNull(whitelist)) {
-			return null;
-		}
-		String[]  wlArr = whitelist.split(";");
-		List<String> wlist = new ArrayList<String>();
-		for(String cidr: wlArr) {
-			if(!StringUtil.isEmptyOrNull(cidr)) {
-				wlist.add(cidr.trim());
-			}
-		}
-		return (wlist.isEmpty()?null:wlist);
-	}
+//	public List<String> getApplicationCidrWhiteList() {
+//		String whitelist = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST);
+//		if(StringUtil.isEmptyOrNull(whitelist)) {
+//			return null;
+//		}
+//		String[]  wlArr = whitelist.split(";");
+//		List<String> wlist = new ArrayList<String>();
+//		for(String cidr: wlArr) {
+//			if(!StringUtil.isEmptyOrNull(cidr)) {
+//				wlist.add(cidr.trim());
+//			}
+//		}
+//		return (wlist.isEmpty()?null:wlist);
+//	}
 	
 
 	public boolean matchUserIpWhiteList(HttpServletRequest httpRequest, IaaUserI iaaUser) {
@@ -158,31 +161,42 @@ public class CommonService implements AppFactoryComponentI {
 	}
 	
 
-	public boolean matchAppIpWhiteList(HttpServletRequest httpRequest) {
+	public boolean matchAppIpWhiteList(HttpServletRequest request) {
 		// CIDR white list check begin
-		if(httpRequest == null ) {
-			logger.error("userIpWhiteListCheck() - httpRequest is null, return false.....");
+		if(request == null ) {
+			logger.error("matchAppIpWhiteList() - httpRequest is null, return false.....");
 			return false;
 		}
-		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST_ENABLED)) {
-			List<String> whiteList = getApplicationCidrWhiteList();
-			boolean isIpValid = false;
-			if (whiteList == null || whiteList.isEmpty()) {
-				isIpValid = true;
-			} else {
-				for (String entry : whiteList) {
-					if (new IpAddressMatcher(entry).matches(httpRequest)) {
-						isIpValid = true;
-						break;
-					}
+		TransactionContext txContext = AppThreadContext.getTransactionContext();
+		ApiAuthInfo apiAuthInfo = txContext.getApiAuthInfo();
+		
+		ClientAppInfo clientAppInfo = AppComponents.clientAppInfoCache.getClientAppInfo(apiAuthInfo.clientAppId);
+		if(clientAppInfo == null) {
+			logger.error("matchAppIpWhiteList() - can not get ClientAppInfo, clientAppId = " + apiAuthInfo.clientAppId);
+			return false;
+			
+		}
+		String clientIP = AppUtil.getClientIp(request);
+		List<String> whiteList = (clientAppInfo.getCidrWhiteList()==null?null:clientAppInfo.getCidrWhiteList().getCidrWhiteList());
+		boolean isIpValid = false;
+		if (whiteList == null || whiteList.isEmpty()) {
+			isIpValid = true;
+		} else {
+			for (String entry : whiteList) {
+				if(StringUtil.isEmptyOrNull(entry)) {
+					continue;
+				}
+				if (new IpAddressMatcher(entry).matches(request) || entry.equals(clientIP)) {
+					isIpValid = true;
+					break;
 				}
 			}
-			if (!isIpValid) {
-				logger.error(
-						"requester's IP is not on the Applicaion's IP white list, request IP = " + AppUtil.getClientIp(httpRequest) + ", APP whiteList = " + whiteList
-						+ ".....");
-				return false;
-			}
+		}
+		if (!isIpValid) {
+			logger.error(
+					"requester's IP is not in the Applicaion's IP white list, request IP = " + clientIP + ", APP whiteList = " + whiteList
+					+ ".....");
+			return false;
 		}
 		return true;
 	}
@@ -275,86 +289,58 @@ public class CommonService implements AppFactoryComponentI {
 		severInstanceInfo.setStartupDate(AppUtil.getStartupDate());
 		return severInstanceInfo;
 	}
-	public void handleResponse111(HttpServletResponse response, String token)
-			throws IOException {
-
-		String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_TOKEN_PAGE);
-		boolean secureCookieEnabled = ConfigFactory.appConfigService
-				.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_FRONTEND_UI_SECURE_COOKIE_ENABLED);
-
-		Cookie tokenCookie = new Cookie(AppConstant.HTTP_AUTHORIZATION_COOKIE_NAME, token);
-		tokenCookie.setPath("/");
-		if (secureCookieEnabled) {
-			tokenCookie.setSecure(true);
-		}
-		tokenCookie.setMaxAge(300);
-
-		response.addCookie(tokenCookie);
-
-		response.addHeader("Content-Security-Policy", "default-src 'self';");
-		response.addHeader("X-XSS-Protection", "1; mode=block");
-
-		//response.addHeader("Access-Control-Expose-Headers", "Authorization");
-		//response.addHeader("Access-Control-Expose-Headers", "APP_ROLES");
-
-		logger.info("redirect back to front-end UI token page============= ");
-
-		/*
-		 * //get all headers Collection<String> headers =
-		 * response.getHeaders("Access-Control-Allow-Origin"); for (String header :
-		 * headers) { System.out.println("    Value : " + header); }
-		 */
-
-		response.sendRedirect(url);
-
-		return;
-	}
 
 
 	public ClientAppInfo getCoreAppInfo(){
 		
-		String clientId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
-		String authProvider = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTH_APP_CALLBACK_URL);
-		String appCallbackUrl = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTH_APP_CALLBACK_URL);
+		String clientAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
+		String clientAppName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_NAME);
+		String clientOrgName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ORGANIZATION_ID);
+		String clientCidrWhiteListStr = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST);
+		Boolean renewToken = ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_API_RENEW_ACCESS_TOKEN_ENABLED, false);
 		Certificate appCertificate = AppComponents.pkiService.getAppCertificate();
 		PublicKey appPublicKey = AppComponents.pkiService.getAppPublicKey();
 		
+		List<String> cidrWhiteList = new ArrayList<String>();
+		String[] strArr = StringUtil.isEmptyOrNull(clientCidrWhiteListStr)?null:clientCidrWhiteListStr.split(";");
+		if(strArr != null) {
+			for (String str:strArr) {
+				str = StringUtil.isEmptyOrNull(str)?null:str.trim();
+				if(str != null) {
+					cidrWhiteList.add(str);
+				}
+			}
+		}
+		CidrWhiteList cidrWL = new CidrWhiteList();
+		cidrWL.setCidrWhiteList(cidrWhiteList);
+		
 		ClientAppInfo clientAppInfo = new ClientAppInfo();
 		clientAppInfo.setId(1L);
-		clientAppInfo.setClientAppId("core-app");
-		clientAppInfo.setName("Core App");
-		clientAppInfo.setOrganizationId("Org-1");
+		clientAppInfo.setClientAppId(clientAppId);
+		clientAppInfo.setName(clientAppName);
+		clientAppInfo.setOrganizationId(clientOrgName);
+		clientAppInfo.setApiRenewAccessToken(null);
+		clientAppInfo.setCidrWhiteList(cidrWL);
+		clientAppInfo.setApiRenewAccessToken(renewToken);
 		
 		//this is used to generate JSON string which is used as template for client-auth-info.json
 		ClientAuthInfo clientAuthInfo = new ClientAuthInfo();
 		List<ClientAuthProvider> providerList = new ArrayList<ClientAuthProvider>();
 		
 		ClientAuthProvider ClientAuthProvider = new ClientAuthProvider();
-		ClientAuthProvider.setId(1L);
-		ClientAuthProvider.setClientAuthKey("clientAuthKey-1");
-		ClientAuthProvider.setAuthAppCallbackUrl(null);
-		ClientAuthProvider.setAuthProviderId("AAD-OIDC");
-		ClientAuthProvider.setAuthAppCallbackUrl(null);
-		ClientAuthProvider.setClientCallbackType(ClientCallBackType.POST);
-		ClientAuthProvider.setTokenTransferType(TokenTransferType.SESSION_STORAGE);
-		ClientAuthProvider.setIsDefault(true);
-		ClientAuthProvider.addAuthProperty("aad.client.id", "c3d6299f-2aed-45be-ab4f-857f5961b13e");
-		ClientAuthProvider.addAuthProperty("aad.auth.prompt", "login");
 		
-		
-		providerList.add(ClientAuthProvider);
+		String clientAuthKey = clientAppId;
 		
 		ClientAuthProvider = new ClientAuthProvider();
 		ClientAuthProvider.setId(2L);
-		ClientAuthProvider.setClientAuthKey("clientAuthKey-2");
+		ClientAuthProvider.setClientAuthKey(clientAuthKey);
 		ClientAuthProvider.setAuthAppCallbackUrl(null);
-		ClientAuthProvider.setAuthProviderId("CORE-BASIC");
+		ClientAuthProvider.setAuthProviderId(AppConstant.IDENTITY_PROVIDER_CORE_BASIC);
+		ClientAuthProvider.setMultiFactorType(AppConstant.IAA_MULTI_FACTOR_TYPE_NONE);
 		ClientAuthProvider.setAuthAppCallbackUrl(null);
 		ClientAuthProvider.setClientCallbackType(ClientCallBackType.REDIRECT);
 		ClientAuthProvider.setTokenTransferType(TokenTransferType.COOKIE);
-		ClientAuthProvider.setIsDefault(false);
-		ClientAuthProvider.addAuthProperty("aad.client.id", "c3d6299f-2aed-45be-ab4f-857f5961b13e");
-		ClientAuthProvider.addAuthProperty("aad.auth.prompt", "login");
+		ClientAuthProvider.setIsDefault(true);
 		
 		providerList.add(ClientAuthProvider);
 
@@ -365,10 +351,11 @@ public class CommonService implements AppFactoryComponentI {
 		//pki info
 		ClientPkiInfo clientPkiInfo = new ClientPkiInfo();
 		List<ClientPKI> pkiList = new ArrayList<ClientPKI>();
+		String clientPkiKey = clientAppId + "-pk-1";
 		
 		ClientPKI clientPKI = new ClientPKI();
 		clientPKI.setId(1L);
-		clientPKI.setClientPkiKey("clientPkiKey-1");
+		clientPKI.setClientPkiKey(clientPkiKey);
 		clientPKI.setCertificateExpiryDate(null);
 		clientPKI.setCertificate(appCertificate);
 		clientPKI.setPublicKey(appPublicKey);
@@ -384,32 +371,35 @@ public class CommonService implements AppFactoryComponentI {
 		return clientAppInfo;
 	}
 
-	public void handleClientAuthCallbackResponse(HttpServletResponse response, String token, String clientAppId, String clientAuthKey) throws IOException {
-
-//		String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_TOKEN_PAGE);
-//		logger.info("handleClientAuthCallbackResponse(), url is: " + url);
+	public void handleClientAuthCallbackResponse(HttpServletResponse response, ApiAuthInfo apiAuthInfo) throws IOException {
 
 		String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
 		logger.info("handleClientAuthCallbackResponse(), origin is: " + origin);
 
 		String transferTokenJsUrl = "/" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT) + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_TRANSFER_TOKEN_TO_CLIENT_JS_PATH);
 		String transferTokenCssUrl = "/" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT) + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_TRANSFER_TOKEN_TO_CLIENT_CSS_PATH);
-
+		
+		String queryStr = "?" + AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_APP_ID + "=" + apiAuthInfo.clientAppId + "&"  
+				+ AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_AUTH_KEY + "=" + apiAuthInfo.clientAuthKey;
+		
+		transferTokenJsUrl = transferTokenJsUrl + queryStr;
+		transferTokenCssUrl = transferTokenCssUrl + queryStr;
+		
 		response.addHeader("Access-Control-Allow-Origin", origin);
 		//owasp - restriction source download
 		response.addHeader("Content-Security-Policy", "default-src 'self';");
 		response.addHeader("X-XSS-Protection", "1; mode=block");
 
-		ClientAppInfo clientAppInfo = AppComponents.iaaService.getClientAppInfo(clientAppId);
+		ClientAppInfo clientAppInfo = AppComponents.clientAppInfoCache.getClientAppInfo(apiAuthInfo.clientAppId);
 		if(clientAppInfo == null) {
 			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-					"Authorization Failed. Error: clientAppInfo is null, check code! Client App Id = " + clientAppId + ", clientAuthKey = " + clientAuthKey);
+					"Authorization Failed. Error: clientAppInfo is null, check code! Client App Id = " + apiAuthInfo.clientAppId + ", clientAuthKey = " + apiAuthInfo.clientAuthKey);
 			return;
 		}
-		ClientAuthProvider clientAuthProvider = clientAppInfo.getClientAuthProvider(clientAuthKey);
+		ClientAuthProvider clientAuthProvider = clientAppInfo.getClientAuthProvider(apiAuthInfo.clientAuthKey);
 		if(clientAuthProvider == null) {
 			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-					"Authorization Failed. Error: clientAuthProvider is null, check code! Client App Id = " + clientAppId + ", clientAuthKey = " + clientAuthKey);
+					"Authorization Failed. Error: clientAuthProvider is null, check code! Client App Id = " + apiAuthInfo.clientAppId + ", clientAuthKey = " + apiAuthInfo.clientAuthKey);
 			return;
 		}
 		
@@ -445,7 +435,7 @@ public class CommonService implements AppFactoryComponentI {
 			}
 		}
 		String htmlText = sb.toString();
-		htmlText = htmlText.replaceAll("@token@", token);
+		htmlText = htmlText.replaceAll("@token@", apiAuthInfo.token);
 		htmlText = htmlText.replaceAll("@action@", clientCallbackUrl);
 		htmlText = htmlText.replaceAll("@callback_type@", clientCallBackTypeStr);
 		htmlText = htmlText.replaceAll("@token_transfer@", tokenTrasferTypeStr);
@@ -478,288 +468,56 @@ public class CommonService implements AppFactoryComponentI {
 		return false;
 	}
 	
-//	public void handlePostTokenToClientResponse(HttpServletResponse response, String loginId, String token) throws IOException {
-//
-//		String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_TOKEN_PAGE);
-//		logger.info("handleResponse(), url is: " + url);
-//
-//		String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN, "http://localhost:4200");
-//		logger.info("handleResponse(), origin is: " + origin);
-//
-//		response.addHeader("Access-Control-Allow-Origin", origin);
-//
-//		//Set login-id 
-//		response.addHeader("Content-Security-Policy", "default-src 'self';");
-//		response.addHeader("X-XSS-Protection", "1; mode=block");
-//
-//		String clientPostTokenUrl = getClientPostTokenUrl();
-//		String clientPostTokenStorage = getClientPostTokenUrl();
-//		
-//		// ===load token page===
-//		InputStream inputStream = null;
-//		StringBuilder sb = new StringBuilder();
-//		
-//		try {
-//			inputStream = CommonService.class.getResourceAsStream("/page/post_token_to_client.html");
-//			if (inputStream == null) {
-//				throw new RuntimeException("can not load post_token_to_client html file, check code!.......");
-//			}
-//			String line;
-//			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-//			while ((line = br.readLine()) != null) {
-//				sb.append(line).append("\n");
-//			}
-//			inputStream.close();
-//			inputStream = null;
-//		} finally {
-//			if (inputStream != null) {
-//				inputStream.close();
-//				inputStream = null;
-//			}
-//		}
-//		String htmlText = sb.toString();
-//		htmlText = htmlText.replaceAll("@token@", token);
-//		htmlText = htmlText.replaceAll("@action@", clientPostTokenUrl);
-//		htmlText = htmlText.replaceAll("@loginid@", loginId);
-//		htmlText = htmlText.replaceAll("@token_storage@", onlineTokenLoaderJsUrl);
-//		response.setContentType("text/html");
-//		response.setStatus(200);
-//		PrintWriter out = response.getWriter();
-//		out.println(htmlText);
-//		out.flush();
-//		out.close();
-//
-//		return;
-//
-//		
-//		return;
-//	}
-//	public void handlePostTokenToClientResponse(HttpServletResponse response, String loginId, String token, String desktop, String password) throws IOException {
-//
-//		String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_TOKEN_PAGE);
-//		logger.info("handleResponse(), url is: " + url);
-//
-//		String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN, "http://localhost:4200");
-//		logger.info("handleResponse(), origin is: " + origin);
-//
-//		response.addHeader("Access-Control-Allow-Origin", origin);
-//
-//		//Set login-id 
-//		response.addHeader("Content-Security-Policy", "default-src 'self';");
-//		response.addHeader("X-XSS-Protection", "1; mode=block");
-//
-//		String desktopLoginCallBackURL = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_DESKTOP_LOGIN_CALLBACK_URL);
-//
-//		if(desktop != null && desktop.equalsIgnoreCase("true")) {
-//			handleDesktopPostResponse(response, desktopLoginCallBackURL, token, loginId, password);
-//		} else {
-//			handleOnlinePostResponse(response, token, loginId);
-//		}
-//
-//		return;
-//	}
+	public ApiAuthInfo getApiAuthInfo(HttpServletRequest request)  {
 
-//	public void handleOnlinePostResponse(HttpServletResponse response, String token, String loginId) throws IOException {
-//
-//		// ===load token page===
-//		InputStream inputStream = null;
-//		StringBuilder sb = new StringBuilder();
-//		String postUrl = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_HOME_PAGE);
-//		
-//		//defined in OpenRestController
-//		String onlineTokenLoaderJsUrl = "/" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT) + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_ONLINE_TOKEN_LOADER_JS_PATHL);
-//		try {
-//			inputStream = CommonService.class.getResourceAsStream("/page/online_token_loader.html");
-//			if (inputStream == null) {
-//				throw new RuntimeException("can not load token_loader html file, check code!.......");
-//			}
-//			String line;
-//			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-//			while ((line = br.readLine()) != null) {
-//				sb.append(line).append("\n");
-//			}
-//			inputStream.close();
-//			inputStream = null;
-//		} finally {
-//			if (inputStream != null) {
-//				inputStream.close();
-//				inputStream = null;
-//			}
-//		}
-//		String htmlText = sb.toString();
-//		htmlText = htmlText.replaceAll("@token@", token);
-//		htmlText = htmlText.replaceAll("@action@", postUrl);
-//		htmlText = htmlText.replaceAll("@loginid@", loginId);
-//		htmlText = htmlText.replaceAll("@script@", onlineTokenLoaderJsUrl);
-//		response.setContentType("text/html");
-//		response.setStatus(200);
-//		PrintWriter out = response.getWriter();
-//		out.println(htmlText);
-//		out.flush();
-//		out.close();
-//
-//		return;
-//	}
+		String errMsg = null;
+		if (request == null ) {
+			errMsg = "getApiAuthInfo() - request can not be null!" ;
+			logger.error(errMsg);
+			throw new RuntimeException(errMsg);
+		}
+		String clientAppId = null;
+		String clientAuthKey = null;
+		String tokenNonce =null;
+		//get token first
+		String token = AppUtil.getJwtTokenFromRequest(request);
+		if(!StringUtil.isEmptyOrNull(token)) {
+			Map<String, Object> claims = AppUtil.parseJwtClaims(token);
+			String aud = (claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE)==null?null:""+claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE));
+			if(!StringUtil.isEmptyOrNull(aud)) {
+				String[] strArr = aud.split(":");
+				clientAppId = StringUtil.isEmptyOrNull(strArr[0])?null:strArr[0].trim();
+				clientAuthKey = StringUtil.isEmptyOrNull(strArr[1])?null:strArr[1].trim();
+			}
+		}
+		if(StringUtil.isEmptyOrNull(clientAppId)) {
+			clientAppId = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_APP_ID);
+			clientAuthKey = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_AUTH_KEY);
+		}
+		tokenNonce = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_TOKEN_NONCE);
+//		coreLoginId = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_LOGIN_ID);
+		
+		if (StringUtil.isEmptyOrNull(clientAppId)) {
+			//default to core app, refer to CommonService.getCoreAppInfo()
+			clientAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
+			clientAuthKey = clientAppId;
+		}
+		String host = AppUtil.getClientHost(request);
+		host = (StringUtil.isEmptyOrNull(host) ? "n/a" : host);
+		
+		String ip = AppUtil.getClientIp(request);
+		ip = (StringUtil.isEmptyOrNull(ip) ? "n/a" : ip);
 
-
-//	public void handleDesktopPostResponse(HttpServletResponse response, String postUrl, String token, String loginId, String password) throws IOException {
-//
-//		// ===load token page===
-//		String desktopTokenLoaderJsUrl = "/" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT) + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_DESKTOP_TOKEN_LOADER_JS_PATH);
-//		
-//		InputStream inputStream = null;
-//		StringBuilder sb = new StringBuilder();
-//		try {
-//			inputStream = CommonService.class.getResourceAsStream("/page/desktop_token_loader.html");
-//			if (inputStream == null) {
-//				throw new RuntimeException("can not load desktop_token_loader html file, check code!.......");
-//			}
-//			String line;
-//			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-//			while ((line = br.readLine()) != null) {
-//				sb.append(line).append("\n");
-//			}
-//			inputStream.close();
-//			inputStream = null;
-//		} finally {
-//			if (inputStream != null) {
-//				inputStream.close();
-//				inputStream = null;
-//			}
-//		}
-//		
-//		PublicKey publicKey = AppComponents.pkiService.getAppPublicKey();
-//		
-//		String htmlText = sb.toString();
-//		htmlText = htmlText.replaceAll("@token@", token);
-//		htmlText = htmlText.replaceAll("@action@", postUrl);
-//		htmlText = htmlText.replaceAll("@loginid@", loginId);
-//		htmlText = htmlText.replace("@publickey@", SecurityUtil.getPublicKeyString(publicKey));
-//		htmlText = htmlText.replace("@algorithm@", publicKey.getAlgorithm());
-//		htmlText = htmlText.replaceAll("@password@", password);
-//		htmlText = htmlText.replaceAll("@script@", desktopTokenLoaderJsUrl);
-//		response.setContentType("text/html");
-//		response.setStatus(200);
-//		PrintWriter out = response.getWriter();
-//		out.println(htmlText);
-//		out.flush();
-//		out.close();
-//
-//		return;
-//	}
-	
-//	//Land on index.html with error message in cookie
-//	public void setLoginErrorHttpResponse(HttpServletRequest request, HttpServletResponse httpResponse, int httpStatus, String statusCode,
-//			String message, String token) throws IOException {
-//		if (CoreUtil.isEmptyOrNull(statusCode)) {
-//			statusCode = "" + httpStatus;
-//		}
-//		BaseResponse skBaseResponse = CoreUtil.createBaseResponse(statusCode, message);
-//		Gson gson = new GsonBuilder().serializeNulls().create();
-//		String jsonResponseStr = gson.toJson(skBaseResponse);
-//
-//		String state = (String) request.getParameter("state");
-//		String desktop = null;
-//		if(state != null) {
-//			String[] arr = state.split(":");
-//			String appId = null;
-//			
-//			String ip = null;
-//			if (arr != null) {
-//				if (arr.length > 0) {
-//					appId = arr[0];
-//				}
-//				if (arr.length > 1) {
-//					desktop = arr[1];
-//				}
-//				if (arr.length > 2) {
-//					ip = arr[2];
-//				}
-//			}
-//		} else {
-//			httpResponse.sendError(HttpStatus.BAD_REQUEST.value());
-//			return;
-//		}
-//
-//
-//		String loginId = "";
-//
-//		if(null != token) {
-//			loginId = CoreUtil.getSubjectFromJwt(token);
-//		} else {
-//			loginId = "";
-//		}
-//
-//		String method = "get";
-//		String postUrl = ConfigService.getInstance().getPropertyAsString(ConfigKeys.STARTKIT_FRONTEND_UI_LOGIN_ERROR_PAGE, "http://localhost:8443/rdcui/index.html/#/loginError");
-//		
-//		//jsonResponseStr = URLEncoder.encode(jsonResponseStr, StandardCharsets.UTF_8.toString());
-//
-//		if(desktop != null && desktop.equalsIgnoreCase("true")) {
-//			postUrl = ConfigService.getInstance().getPropertyAsString(ConfigKeys.SERVER_DESKTOP_LOGIN_CALLBACK_URL, "https://localhost:8443/open/logincallbackservlet");
-//			method = "post";
-//
-//
-//
-//			InputStream inputStream = null;
-//			StringBuilder sb = new StringBuilder();
-//			try {
-//				inputStream = WebCoreUtil.class.getResourceAsStream("/online_loginError.html");
-//				if (inputStream == null) {
-//					throw new RuntimeException("can not load token_loader html file.......");
-//				}
-//				String line;
-//				BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-//				while ((line = br.readLine()) != null) {
-//					sb.append(line).append("\n");
-//				}
-//				inputStream.close();
-//				inputStream = null;
-//			} finally {
-//				if (inputStream != null) {
-//					inputStream.close();
-//					inputStream = null;
-//				}
-//			}
-//
-//			
-//
-//			String htmlText = sb.toString();
-//			htmlText = htmlText.replaceAll("@actionType@", method);
-//			htmlText = htmlText.replaceAll("@actionError@", postUrl);
-//			htmlText = htmlText.replaceAll("@loginId@", loginId);
-//			htmlText = htmlText.replaceAll("@isError@", "true");
-//			htmlText = htmlText.replaceAll("@loginError@", jsonResponseStr);
-//			httpResponse.setContentType("text/html");
-//			httpResponse.setStatus(200);
-//			PrintWriter out = httpResponse.getWriter();
-//			out.println(htmlText);
-//			out.flush();
-//			out.close();
-//
-//		} else {
-//			/*String cookieName = ConfigService.getInstance().getPropertyAsString(ConfigKeys.LOGIN_ERROR_MESSAGE, "LoginErrorMessage");
-//			logger.info("WebCoreUtil.setLoginErrorHttpResponse(), cookieName is: ***" + cookieName + "***");
-//			logger.info("WebCoreUtil.setLoginErrorHttpResponse(), jsonResponseStr is: " + jsonResponseStr);
-//			Cookie loginErrorCookie = new Cookie(cookieName, jsonResponseStr);
-//			loginErrorCookie.setPath("/");
-//			loginErrorCookie.setHttpOnly(false);
-//			String sslEnabled = ConfigService.getInstance().getPropertyAsString(ConfigKeys.SERVER_SSL_ENABLED, "true");
-//			
-//			logger.info("WebCoreUtil.setLoginErrorHttpResponse(), sslEnabled is: " + sslEnabled);
-//			if (Boolean.TRUE.toString().equalsIgnoreCase(sslEnabled) && !postUrl.startsWith("http://localhost:4200")) {
-//				// for local if set cookie to secure then page cannot get it
-//				logger.info("WebCoreUtil.setLoginErrorHttpResponse(), set secure for cookie.");
-//				loginErrorCookie.setSecure(true);
-//			}
-//			loginErrorCookie.setMaxAge(60);
-//			httpResponse.addCookie(loginErrorCookie);*/
-//			
-//			logger.info("WebCoreUtil.setLoginErrorHttpResponse(), Login error response is: " + jsonResponseStr);
-//			
-//			httpResponse.sendRedirect(postUrl);
-//		}
-//	}
+		ApiAuthInfo authInfo = new ApiAuthInfo();
+		authInfo.clientAppId = clientAppId;
+		authInfo.clientAuthKey = clientAuthKey;
+		authInfo.tokenNonce = tokenNonce;
+//		authInfo.coreLoginId = coreLoginId;
+		authInfo.clientIP = ip;
+		authInfo.clientHost = host;
+		
+		return authInfo;
+	}
 
 
 }

@@ -3,12 +3,21 @@
   "clientAppId": "clientappid-1",
   "name": "Client-1",
   "organizationId": "Org-1",
+  "apiRenewAccessToken": false,
+  "cidrWhiteList": {
+    "cidrWhiteList": [
+      "127.0.0.1",
+	  "0:0:0:0:0:0:0:1",
+      "192.168.1.0/24"
+    ]
+  },
   "clientAuthInfo": {
     "clientAuthProviderList": [
       {
         "id": 1,
         "clientAuthKey": "clientAuthKey-1",
         "authProviderId": "CORE-AAD-OIDC",
+        "multiFactorType": "none",
         "authAppCallbackUrl": "https://localhost:8443/open/aadauth",
         "clientCallbackUrl": null,
         "clientCallbackType": "POST",
@@ -25,6 +34,7 @@
         "id": 2,
         "clientAuthKey": "clientAuthKey-2",
         "authProviderId": "CORE-BASIC",
+        "multiFactorType": "none",
         "authAppCallbackUrl": null,
         "clientCallbackUrl": null,
         "clientCallbackType": "REDIRECT",

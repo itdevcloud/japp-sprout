@@ -53,7 +53,7 @@ public class BasicAuthProcessor extends RequestProcessor {
 		String loginId = request.getLoginId();
 		String password = request.getPassword();
 		String tokenNonce = request.getTokenNonce();
-		String uip = txnCtx.getClientIP();
+		String uip = txnCtx.getApiAuthInfo().clientIP;
 		IaaUserI iaaUser = null;
 		try {
 			iaaUser = AppComponents.iaaService.login(loginId, password, null);
@@ -78,7 +78,7 @@ public class BasicAuthProcessor extends RequestProcessor {
 		iaaUser.setHashedNonce(hashedNonce);
 		iaaUser.setHashedUserIp(hashedUip);
 		
-		String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
+		String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
 		
 		if (StringUtil.isEmptyOrNull(token)) {
 			logger.error("JWT Token can not be created for login Id '" + loginId);

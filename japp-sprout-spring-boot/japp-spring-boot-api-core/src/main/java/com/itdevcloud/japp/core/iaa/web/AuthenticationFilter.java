@@ -79,7 +79,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 //NOTE:
 //if update urlPattern, also need to update web.xml
 //
-@WebFilter(filterName = "JappApiAuthenticationFilter", urlPatterns = "/*")
+@WebFilter(filterName = "CoreApiAuthenticationFilter", urlPatterns = "/*")
 public class AuthenticationFilter implements Filter {
 
 	private static final Logger logger = LogManager.getLogger(AuthenticationFilter.class);
@@ -105,7 +105,7 @@ public class AuthenticationFilter implements Filter {
 			String errMessage = null;
 			// App CIDR white list check begin
 			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
-				errMessage = "Authorization Failed. Request IP is not on the APP's IP white list, user IP = "
+				errMessage = "Authorization Failed. Request IP is not in the APP's IP white list, user IP = "
 						+ AppUtil.getClientIp(httpRequest) + ".....";
 				logger.error(errMessage);
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
@@ -155,7 +155,7 @@ public class AuthenticationFilter implements Filter {
 						return;
 					}
 					
-					String nonce = httpRequest.getHeader(AppConstant.HTTP_TOKEN_NONCE_HEADER_NAME);
+					String nonce = AppUtil.getParaCookieHeaderValue(httpRequest, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_TOKEN_NONCE);
 					String userIp = AppUtil.getClientIp(httpRequest);
 					
 					Map<String, String> claimEqualMatchMap = new HashMap<String,String>();
@@ -182,8 +182,10 @@ public class AuthenticationFilter implements Filter {
 						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
 						return;
 					}
+					//add nonce and uerip
+					iaaUser.setHashedNonce(Hasher.hashPassword(nonce));
+					iaaUser.setHashedUserIp(Hasher.hashPassword(userIp));
 					
-
 					// Application role list check
 					if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
 						errMessage = "Authorization Failed. Requestor's role does not match APP role list";
@@ -223,7 +225,7 @@ public class AuthenticationFilter implements Filter {
 				httpResponse.addHeader("Access-Control-Expose-Headers", "Token");
 
 				logger.info("AuthenticationFilter - Issue new token........");
-				String newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN);
+				String newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
 				httpResponse.addHeader("Token", newToken);
 
 			} else {

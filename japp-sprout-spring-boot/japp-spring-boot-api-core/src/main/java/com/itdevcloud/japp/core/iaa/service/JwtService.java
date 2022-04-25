@@ -83,7 +83,7 @@ public class JwtService implements AppFactoryComponentI {
 		return tokenHandler.getIaaUser(token);
 	}
 
-	public String issueToken(IaaUserI iaaUser, String tokenType) {
+	public String issueToken(IaaUserI iaaUser, String tokenType, Map<String, Object> customClaimMap) {
 		TokenHandlerI tokenHandler = getTokenHandler();
 		Key privateKey = AppComponents.pkiService.getAppPrivateKey();
 		//default is refresh token
@@ -94,7 +94,7 @@ public class JwtService implements AppFactoryComponentI {
 				  !TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType)) {
 			tokenType = TokenHandlerI.TYPE_REFRESH_TOKEN;
 		}
-		return tokenHandler.issueToken(iaaUser, tokenType, privateKey, -1, null);
+		return tokenHandler.issueToken(iaaUser, tokenType, privateKey, -1, customClaimMap);
 	}
 	
 	

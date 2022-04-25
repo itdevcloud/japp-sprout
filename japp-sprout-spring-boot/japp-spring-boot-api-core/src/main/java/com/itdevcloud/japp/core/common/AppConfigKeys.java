@@ -47,6 +47,8 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_HTTP_PROXY_PORT = "jappcore.http.proxy.port";
 
 	public static final String JAPPCORE_APP_APPLICATION_ID = "jappcore.app.application.id";
+	public static final String JAPPCORE_APP_APPLICATION_NAME = "jappcore.app.application.name";
+	public static final String JAPPCORE_APP_APPLICATION_ORGANIZATION_ID = "jappcore.app.application.organization.id";
 	public static final String JAPPCORE_APP_APPLICATION_VERSION = "jappcore.app.application.version";
 	public static final String JAPPCORE_APP_SPRING_SCAN_BASE_PACKAGE = "jappcore.app.spring.scan.base.package";
 	public static final String JAPPCORE_APP_API_CONTROLLER_PATH_ROOT = "jappcore.app.api.controller.path.root";
@@ -71,10 +73,10 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_IP_ENABLED = "jappcore.iaa.token.validate.ip.enabled";
 	public static final String JAPPCORE_IAA_2NDFACTOR_TYPE = "jappcore.iaa.2ndfactor.type";
 	public static final String JAPPCORE_IAA_CIDR_USER_WHITELIST_ENABLED = "jappcore.iaa.cidr.user.whitelist.enabled";
-	public static final String JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST_ENABLED = "jappcore.iaa.cidr.application.whitelist.enabled";
 	public static final String JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST = "jappcore.iaa.cidr.application.whitelist";
 	public static final String JAPPCORE_IAA_CIDR_SYSTEMUSER_WHITELIST = "jappcore.iaa.cidr.whitelist.systemuser";
 	public static final String JAPPCORE_IAA_API_AUTH_ENABLED = "jappcore.iaa.japp.api.auth.enabled";
+	public static final String JAPPCORE_IAA_API_RENEW_ACCESS_TOKEN_ENABLED = "jappcore.iaa.api.renew.access.token.enabled";
 	public static final String JAPPCORE_IAA_TOKEN_ACCESS_EXPIRATION_LENGTH = "jappcore.iaa.token.access.expiration.length.mins";
 	public static final String JAPPCORE_IAA_TOKEN_REFRESH_EXPIRATION_LENGTH = "jappcore.iaa.token.refresh.expiration.length.mins";
 	public static final String JAPPCORE_IAA_TOKEN_IDTOKEN_EXPIRATION_LENGTH = "jappcore.iaa.token.idtoken.expiration.length.mins";

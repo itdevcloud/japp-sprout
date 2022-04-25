@@ -37,10 +37,10 @@ import com.itdevcloud.japp.core.iaa.provider.BaseAuthProviderHandler;
  * @since 1.0.0
  */
 
-@WebServlet(name = "loginServlet", urlPatterns = "/open/login")
-public class LoginServlet extends javax.servlet.http.HttpServlet {
+@WebServlet(name = "coreLoginServlet", urlPatterns = "/open/core/login")
+public class CoreLoginServlet extends javax.servlet.http.HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private static final Logger logger = LogManager.getLogger(LoginServlet.class);
+	private static final Logger logger = LogManager.getLogger(CoreLoginServlet.class);
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -50,15 +50,9 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-//		if(true) {
-//			String token = "toekn-12345";
-//			String clientId  = "jappcore";
-//			
-//			AppComponents.commonService.handleClientAuthCallbackResponse(response, token, clientId, null);
-//		return;
-//		}
 
 		logger.debug("login doPost =======begin==================");
+		//AppUtil.initTransactionContext(request);
 
 		// App CIDR white list check begin
 		if (!AppComponents.commonService.matchAppIpWhiteList(request)) {
@@ -71,14 +65,12 @@ public class LoginServlet extends javax.servlet.http.HttpServlet {
 		
 		String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
 
-		logger.debug("set login doGet Header with CORS ==========================");
+		logger.debug("set login Header with CORS ==========================");
 		response.addHeader("Access-Control-Allow-Origin", origin);
 		response.addHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
 		response.addHeader("Access-Control-Allow-Headers",
 				"Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
-		PrintWriter out = response.getWriter();
-		out.print("redirt to login page...");
 
 		BaseAuthProviderHandler handler = BaseAuthProviderHandler.getHandler(request, response);
 		if(handler != null) {

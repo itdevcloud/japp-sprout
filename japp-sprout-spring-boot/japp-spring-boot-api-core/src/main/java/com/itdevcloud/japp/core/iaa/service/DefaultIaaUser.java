@@ -33,7 +33,8 @@ public class DefaultIaaUser implements IaaUserI, Serializable {
 	private static final long serialVersionUID = 1L;
 	private String systemUid;
 	private String loginId;
-	private String identityProvider;
+	private String clientAppId;
+	private String clientAuthKey;
 	private String mfaStatus;
 	private String userType;
 	private String applicationId;
@@ -184,14 +185,19 @@ public class DefaultIaaUser implements IaaUserI, Serializable {
 	public Class<?> getInterfaceClass() {
 		return IaaUserI.class;
 	}
-	@Override
-	public String getIdentityProvider() {
-		return this.identityProvider;
+	
+	
+	public String getClientAppId() {
+		return clientAppId;
 	}
-	@Override
-	public void setIdentityProvider(String idp) {
-		this.identityProvider = idp;
-		
+	public void setClientAppId(String clientAppId) {
+		this.clientAppId = clientAppId;
+	}
+	public String getClientAuthKey() {
+		return clientAuthKey;
+	}
+	public void setClientAuthKey(String clientAuthKey) {
+		this.clientAuthKey = clientAuthKey;
 	}
 	@Override
 	public String getMfaStatus() {

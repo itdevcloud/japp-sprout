@@ -39,8 +39,8 @@ public class AzureJwksKey {
 	private String e;
 	private List<String> x5c;
 	//not in the AAD json, drived from above fields
-	private Certificate certificate;
-	private PublicKey publicKey;
+	private transient Certificate certificate;
+	private transient PublicKey publicKey;
 
 	public String getKty() {
 		return kty;

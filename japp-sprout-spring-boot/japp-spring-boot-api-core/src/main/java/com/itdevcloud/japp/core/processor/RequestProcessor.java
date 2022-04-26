@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
@@ -86,7 +87,12 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 				response = commandResponse;
 				return response;
 		    }
-
+			//check clientAppId in context and in request
+			TransactionContext txContext = AppThreadContext.getTransactionContext();
+			ApiAuthInfo apiAuthInfo = txContext.getApiAuthInfo();
+			if(!apiAuthInfo.clientAppId.equalsIgnoreCase(request.getClientAppId())){
+				logger.warn("ClientAppId in Tx Context (" + apiAuthInfo.clientAppId + ") is different fron clientAppId in request (" + request.getClientAppId() + ") !");
+			}
 			response = (T) processRequest(request);
 			if(response == null) {
 				String simpleName = this.getClass().getSimpleName();

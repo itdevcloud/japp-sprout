@@ -52,7 +52,6 @@ import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.ClientCallBackType;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.TokenTransferType;
-import com.itdevcloud.japp.core.iaa.provider.AuthProviderHandlerInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
@@ -483,12 +482,8 @@ public class CommonService implements AppFactoryComponentI {
 		String token = AppUtil.getJwtTokenFromRequest(request);
 		if(!StringUtil.isEmptyOrNull(token)) {
 			Map<String, Object> claims = AppUtil.parseJwtClaims(token);
-			String aud = (claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE)==null?null:""+claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE));
-			if(!StringUtil.isEmptyOrNull(aud)) {
-				String[] strArr = aud.split(":");
-				clientAppId = StringUtil.isEmptyOrNull(strArr[0])?null:strArr[0].trim();
-				clientAuthKey = StringUtil.isEmptyOrNull(strArr[1])?null:strArr[1].trim();
-			}
+			clientAppId = (claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE)==null?null:""+claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE));
+			clientAuthKey = (claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUTH_KEY)==null?null:""+claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUTH_KEY));
 		}
 		if(StringUtil.isEmptyOrNull(clientAppId)) {
 			clientAppId = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_APP_ID);

@@ -19,8 +19,9 @@
 		</RollingFile>
 
 		<Console name="console" target="SYSTEM_OUT">
-			<PatternLayout
-				pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{JAPPCORE_TX_ID}] %c{1} - %m%n" />
+			<PatternLayout 
+			    disableAnsi="false"
+				pattern="[%highlight{%-5level}{FATAL=BRIGHT RED, ERROR=BRIGHT RED, WARN=BRIGHT YELLOW, INFO=BRIGHT BLUE, DEBUG=WHITE, TRACE=WHITE}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{JAPPCORE_TX_ID}] %c{1} - %m%n " />
 		</Console>
 	
 	    <ApplicationInsightsAppender name="aiAppender" />

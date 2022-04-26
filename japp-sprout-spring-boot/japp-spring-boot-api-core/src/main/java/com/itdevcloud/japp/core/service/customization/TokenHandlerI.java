@@ -55,13 +55,13 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 
 	public static final String JWT_CLAIM_KEY_ISSUER = "iss";
 	public static final String JWT_CLAIM_KEY_TOKEN_TYPE = "type";
-	public static final String JWT_CLAIM_KEY_IDENTITY_PROVIDER = "idp";
+//	public static final String JWT_CLAIM_KEY_IDENTITY_PROVIDER = "idp";
 	public static final String JWT_CLAIM_KEY_APP_ID = "appid";
 	public static final String JWT_CLAIM_KEY_ISSUE_AT = "iat";
 	public static final String JWT_CLAIM_KEY_IAT_LOCAL = "iatLocal";
 	public static final String JWT_CLAIM_KEY_SUBJECT = "sub";
-	//aud format: clietAppId:cluentAuthKey
 	public static final String JWT_CLAIM_KEY_AUDIENCE = "aud";
+	public static final String JWT_CLAIM_KEY_AUTH_KEY = "authKey";
 	public static final String JWT_CLAIM_KEY_EXPIRE = "exp";
 	public static final String JWT_CLAIM_KEY_EXPIRE_LOCAL = "expLocal";
 //	public static final String JWT_CLAIM_KEY_2NDFACTOR_VERIFIED = "2fVerified";
@@ -183,8 +183,6 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 		}
 		try {
 			
-			String iss = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_TOKEN_ISSUE_ISS);
-
 			Map<String, Object> claims = TokenHandlerI.getDefaultTokenClaims(iaaUser, tokenType, expireMinutes);
 			if(customClaimMap != null) {
 				customClaimMap.putAll(claims);
@@ -253,7 +251,8 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 		claims.put(JWT_CLAIM_KEY_NOT_BEFORE, iat);
 		claims.put(JWT_CLAIM_KEY_EXPIRE, exp);
 		claims.put(JWT_CLAIM_KEY_EXPIRE_LOCAL, expLocal);
-		claims.put(JWT_CLAIM_KEY_IDENTITY_PROVIDER, iaaUser.getIdentityProvider());
+		claims.put(JWT_CLAIM_KEY_AUDIENCE, iaaUser.getClientAppId());
+		claims.put(JWT_CLAIM_KEY_AUTH_KEY, iaaUser.getClientAuthKey());
 		claims.put(JWT_CLAIM_KEY_APP_ID, iaaUser.getApplicationId());
 		claims.put(JWT_CLAIM_KEY_SUBJECT, iaaUser.getSystemUid());
 		claims.put(JWT_CLAIM_KEY_MFA_STATUS, iaaUser.getMfaStatus());
@@ -317,19 +316,15 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 			
 			if(iaaUser == null){
 
-				String aud = claims.get(JWT_CLAIM_KEY_AUDIENCE)==null?null:"" + claims.get(JWT_CLAIM_KEY_AUDIENCE);
 				String nbf = claims.get(JWT_CLAIM_KEY_NOT_BEFORE)==null?null:"" + claims.get(JWT_CLAIM_KEY_NOT_BEFORE);
 				String exp = claims.get(JWT_CLAIM_KEY_EXPIRE)==null?null:"" + claims.get(JWT_CLAIM_KEY_EXPIRE);
 				String name = claims.get(JWT_CLAIM_KEY_NAME)==null?null:"" + claims.get(JWT_CLAIM_KEY_NAME);
 				String email = claims.get(JWT_CLAIM_KEY_EMAIL)==null?null:"" + claims.get(JWT_CLAIM_KEY_EMAIL);
 				String phone = claims.get(JWT_CLAIM_KEY_PHONE)==null?null:"" + claims.get(JWT_CLAIM_KEY_PHONE);
 				String loginId = claims.get(JWT_CLAIM_KEY_LOGINID)==null?null:"" + claims.get(JWT_CLAIM_KEY_LOGINID);
-				String iss = claims.get(JWT_CLAIM_KEY_ISSUER)==null?null:"" + claims.get(JWT_CLAIM_KEY_ISSUER);
 				String busRoles = claims.get(JWT_CLAIM_KEY_BUS_ROLES)==null?null:"" + claims.get(JWT_CLAIM_KEY_BUS_ROLES);
 				String appRoles = claims.get(JWT_CLAIM_KEY_APP_ROLES)==null?null:"" + claims.get(JWT_CLAIM_KEY_APP_ROLES);
 				String authGroups = claims.get(JWT_CLAIM_KEY_AUTH_GROUPS)==null?null:"" + claims.get(JWT_CLAIM_KEY_AUTH_GROUPS);
-				String mfaStatus = claims.get(JWT_CLAIM_KEY_MFA_STATUS)==null?null:"" + claims.get(JWT_CLAIM_KEY_MFA_STATUS);
-				String idp = claims.get(JWT_CLAIM_KEY_IDENTITY_PROVIDER)==null?null:"" + claims.get(JWT_CLAIM_KEY_IDENTITY_PROVIDER);
 	
 				iaaUser = new DefaultIaaUser();
 				iaaUser.setEmail(email);
@@ -338,17 +333,22 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 				iaaUser.setApplicationRoles(CommonUtil.getSetFromString(appRoles));
 				iaaUser.setAuthGroups(CommonUtil.getSetFromString(authGroups));
 				iaaUser.setPhone(phone);
-				iaaUser.setApplicationId(aud);
-				iaaUser.setIdentityProvider(idp);
 				iaaUser.setLoginId(loginId);
 				iaaUser.setSystemUid(uid);
-				//iaaUser.setUserType(authGroups);
-				iaaUser.setMfaStatus(mfaStatus);
+				iaaUser.setAuthGroups(CommonUtil.getSetFromString(authGroups));
 			}
 			
+			String iss = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_TOKEN_ISSUE_ISS);
+			String aud = claims.get(JWT_CLAIM_KEY_AUDIENCE)==null?null:"" + claims.get(JWT_CLAIM_KEY_AUDIENCE);
+			String authKey = claims.get(JWT_CLAIM_KEY_AUTH_KEY)==null?null:"" + claims.get(JWT_CLAIM_KEY_AUTH_KEY);
+			String mfaStatus = claims.get(JWT_CLAIM_KEY_MFA_STATUS)==null?null:"" + claims.get(JWT_CLAIM_KEY_MFA_STATUS);
 			String hashedUip = claims.get(JWT_CLAIM_KEY_HASHED_USERIP)==null?null:"" + claims.get(JWT_CLAIM_KEY_HASHED_USERIP);
 			String hashedNonce = claims.get(JWT_CLAIM_KEY_HASHED_NONCE)==null?null:"" + claims.get(JWT_CLAIM_KEY_HASHED_NONCE);
 			
+			iaaUser.setApplicationId(iss);
+			iaaUser.setClientAppId(aud);
+			iaaUser.setClientAuthKey(authKey);
+			iaaUser.setMfaStatus(mfaStatus);
 			iaaUser.setHashedUserIp(hashedUip);
 			iaaUser.setHashedNonce(hashedNonce);
 			

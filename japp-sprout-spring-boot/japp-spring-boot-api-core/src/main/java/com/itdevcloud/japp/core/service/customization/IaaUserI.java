@@ -34,8 +34,11 @@ public interface IaaUserI  extends CustomizableComponentI {
 	public String getLoginId() ;
 	public void setLoginId(String loginId) ;
 	
-	public String getIdentityProvider() ;
-	public void setIdentityProvider(String idp);
+	public String getClientAppId() ;
+	public void setClientAppId(String clientAppId);
+	
+	public String getClientAuthKey() ;
+	public void setClientAuthKey(String clientAuthKey);
 	
 	public String getUserType() ;
 	public void setUserType(String userType) ;

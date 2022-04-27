@@ -31,6 +31,7 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.core.common.CachedHttpServletRequest;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.iaa.provider.AuthProviderHandlerInfo;
 import com.itdevcloud.japp.core.iaa.provider.BaseAuthProviderHandler;
@@ -52,15 +53,16 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 	private static final Logger logger = LogManager.getLogger(CoreBasicAuthServlet.class);
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	protected void doPost(HttpServletRequest httpServletRequest, HttpServletResponse response) throws IOException {
 
-//		AppUtil.initTransactionContext(request);
+		CachedHttpServletRequest request = new CachedHttpServletRequest(httpServletRequest);
+		AppUtil.initTransactionContext(request);
 		try {
 			
 			logger.debug("coreBasicAuthServlet.doPost()...start.......");
 			
 			TransactionContext txContext = AppThreadContext.getTransactionContext();
-			ApiAuthInfo apiAuthInfo = txContext.getApiAuthInfo();
+			ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
 			
 			String errMsg = null;
 			AuthProviderHandlerInfo handlerInfo = BaseAuthProviderHandler.getValidatedHandlerInfo(request, response);			

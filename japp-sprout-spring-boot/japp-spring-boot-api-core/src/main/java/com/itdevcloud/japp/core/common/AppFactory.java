@@ -432,16 +432,16 @@ public class AppFactory {
 			return t;
 		} catch (Exception e) {
 			// there is no static getInstance() method, try default constructor
-			logger.debug("Can not find static getInstance(...) method in class '" + implClassName
-					+ "', try to use default constructor to create an instance. " + e);
+//			logger.debug("Can not find static getInstance(...) method in class '" + implClassName
+//					+ "', try to use default constructor to create an instance. " + e);
 			try {
 				Constructor<?> construtor = interfaceImpl.getConstructor(parameterTypes);
 				t = (T) construtor.newInstance(initargs);
 			} catch (NoSuchMethodException e0) {
 				try {
-					logger.debug(
-							"Can not find static getInstance(...) or constructor(...) method in class '" + implClassName
-									+ "', try to use getInstance() or default construtor to create an instance. " + e0);
+//					logger.debug(
+//							"Can not find static getInstance(...) or constructor(...) method in class '" + implClassName
+//									+ "', try to use getInstance() or default construtor to create an instance. " + e0);
 					if (parameterTypes != null && parameterTypes.length > 0) {
 						return getInstance(interfaceImpl);
 					} else {

@@ -19,6 +19,7 @@ import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 
 @Component
@@ -34,6 +35,8 @@ public class BasicAuthProcessor extends RequestProcessor {
 	@Override
 	protected BaseResponse processRequest(BaseRequest req) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
+		ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
+
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
 				+ txnCtx.getTransactionId() + ">...... ");
 
@@ -52,8 +55,11 @@ public class BasicAuthProcessor extends RequestProcessor {
 		// ====== business logic starts ======
 		String loginId = request.getLoginId();
 		String password = request.getPassword();
-		String tokenNonce = request.getTokenNonce();
-		String uip = txnCtx.getApiAuthInfo().clientIP;
+		String tokenNonce = apiAuthInfo.tokenNonce;
+		String uip = apiAuthInfo.clientIP;
+		String clientAppId = apiAuthInfo.clientAppId;
+		String clientAuthKey = apiAuthInfo.clientAuthKey;
+
 		IaaUserI iaaUser = null;
 		try {
 			iaaUser = AppComponents.iaaService.login(loginId, password, null);
@@ -77,6 +83,9 @@ public class BasicAuthProcessor extends RequestProcessor {
 		
 		iaaUser.setHashedNonce(hashedNonce);
 		iaaUser.setHashedUserIp(hashedUip);
+		
+		iaaUser.setClientAppId(clientAppId);
+		iaaUser.setClientAuthKey(clientAuthKey);
 		
 		String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
 		

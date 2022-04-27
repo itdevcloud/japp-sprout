@@ -19,8 +19,6 @@ package com.itdevcloud.japp.core.common;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
-import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
-
 /**
  *
  * @author Marvin Sun
@@ -34,7 +32,6 @@ public class TransactionContext implements Serializable {
 	private Timestamp requestReceivedTimeStamp = null;
 	private String serverTimezoneId = null;
 	private String clientTimezoneId = null;
-	private ApiAuthInfo apiAuthInfo = null;
 	
 	public String getTransactionId() {
 		return transactionId;
@@ -68,22 +65,12 @@ public class TransactionContext implements Serializable {
 		this.clientTimezoneId = clientTimezone;
 	}
 
-
-	public ApiAuthInfo getApiAuthInfo() {
-		return apiAuthInfo;
-	}
-
-	public void setApiAuthInfo(ApiAuthInfo apiAuthInfo) {
-		this.apiAuthInfo = apiAuthInfo;
-	}
-
 	@Override
 	public String toString() {
 		return "TransactionContext [transactionId=" + transactionId + ", requestReceivedTimeStamp="
 				+ requestReceivedTimeStamp + ", serverTimezoneId=" + serverTimezoneId + ", clientTimezoneId="
-				+ clientTimezoneId + ", apiAuthInfo=" + apiAuthInfo + "]";
+				+ clientTimezoneId + "]";
 	}
-
 
 
 }

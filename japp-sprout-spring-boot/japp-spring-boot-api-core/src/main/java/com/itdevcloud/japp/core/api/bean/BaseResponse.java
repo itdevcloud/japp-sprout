@@ -36,14 +36,14 @@ public class BaseResponse implements Serializable, AppFactoryComponentI {
 
 	private ResponseStatus responseStatus = null;
 	private String command;
-	private String clientId;
+	private String clientAppId;
 	private String clientTxId;
 	private String serverTxId;
 
 	public void populateReuqstInfo(BaseRequest request) {
 		if(request != null) {
 			this.command = request.getCommand();
-			this.clientId = request.getClientAppId();
+			this.clientAppId = request.getClientAppId();
 			this.clientTxId = request.getClientTxId();
 		}
 	}
@@ -87,12 +87,12 @@ public class BaseResponse implements Serializable, AppFactoryComponentI {
 		this.serverTxId = serverTxId;
 	}
 
-	public String getClientId() {
-		return clientId;
+	public String getClientAppId() {
+		return clientAppId;
 	}
 
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
+	public void setClientAppId(String clientId) {
+		this.clientAppId = clientId;
 	}
 
 	public String getClientTxId() {

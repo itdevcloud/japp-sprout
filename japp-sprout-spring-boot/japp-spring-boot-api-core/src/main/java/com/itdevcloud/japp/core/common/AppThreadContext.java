@@ -31,10 +31,9 @@ public class AppThreadContext {
 
 	private static final Logger logger = LogManager.getLogger(AppThreadContext.class);
 
-	//private static ThreadLocal<String> userIdContext = new ThreadLocal<String>();
-	//private static ThreadLocal<String> tokenSubjectContext = new ThreadLocal<String>();
 	private static ThreadLocal<IaaUserI> iaaUserContext = new ThreadLocal<IaaUserI>();
 	private static ThreadLocal<TransactionContext> txContext = new ThreadLocal<TransactionContext>();
+	private static ThreadLocal<ApiAuthInfo> authContext = new ThreadLocal<ApiAuthInfo>();
 
 	public static IaaUserI getIaaUser() {
 		IaaUserI user = iaaUserContext.get();
@@ -48,14 +47,6 @@ public class AppThreadContext {
 		iaaUserContext.set(user);
 	}
 
-//	public static String getTokenSubject() {
-//		return new String(tokenSubjectContext.get());
-//	}
-//
-//	public static void setTokenSubject(String id) {
-//		tokenSubjectContext.set(new String(id));
-//	}
-//	
 	public static TransactionContext getTransactionContext() {
 		TransactionContext txCtx = txContext.get();
 		if (txCtx == null) {
@@ -73,10 +64,24 @@ public class AppThreadContext {
 		txContext.set(txCtx);
 	}
 
+	public static ApiAuthInfo getApiAuthInfo() {
+		ApiAuthInfo authInfo = authContext.get();
+		return authInfo;
+	}
+
+
+	public static void setApiAuthInfo(ApiAuthInfo authInfo) {
+		if (authInfo == null) {
+			authContext.set(null);
+		}
+		authContext.set(authInfo);
+	}
+
 	public static void clean() {
 		logger.debug("clean AppThreadContext..... => start");
 		iaaUserContext.set(null);
 		txContext.set(null);
+		authContext.set(null);
 		logger.debug("clean AppThreadContext..... <= end");
 	}
 }

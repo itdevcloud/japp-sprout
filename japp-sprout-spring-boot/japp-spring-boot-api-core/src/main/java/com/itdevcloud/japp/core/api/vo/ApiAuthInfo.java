@@ -37,13 +37,14 @@ public class ApiAuthInfo implements Serializable{
 	public String clientIP;
 	public String clientHost;
 	public String token;
-	
+	public boolean useCoreAppIdAsClientAppId;
 	@Override
 	public String toString() {
 		return "ApiAuthInfo [clientAppId=" + clientAppId + ", clientAuthKey=" + clientAuthKey + ", tokenNonce="
-				+ tokenNonce  + ", clientIP=" + clientIP + ", clientHost=" + clientHost
-				+ ", token=" + (token==null?null:"*") + "]";
+				+ tokenNonce + ", clientIP=" + clientIP + ", clientHost=" + clientHost + ", token=" + token
+				+ ", useCoreAppIdAsClientAppId=" + useCoreAppIdAsClientAppId + "]";
 	}
+	
 	
 	
 }

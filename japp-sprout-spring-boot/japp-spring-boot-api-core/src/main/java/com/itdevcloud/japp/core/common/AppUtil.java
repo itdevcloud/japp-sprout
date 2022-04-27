@@ -16,8 +16,11 @@
  */
 package com.itdevcloud.japp.core.common;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.sql.Timestamp;
@@ -45,6 +48,9 @@ import org.apache.logging.log4j.ThreadContext;
 import org.springframework.stereotype.Component;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.BasicCredential;
@@ -469,15 +475,78 @@ public class AppUtil {
 			return null;
 		}
 	}
+	public static String getHttpRequestJsonBody (HttpServletRequest request) {
+		logger.debug("getHttpRequestJsonBody()...start........");
+		if (request == null) {
+			return null;
+		}
+		String body = null;
+		BufferedReader reader = null;
+		StringBuffer sBuffer = new StringBuffer();
+		try {
+           reader = request.getReader();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				sBuffer.append(line);
+			}
+			reader.close();
+			reader = null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("getHttpRequestJsonBody()...end....with Error, json read: " + sBuffer.toString());
+//			logger.error("getHttpRequestJsonBody().......with Error: " + e);
+			return null;
+		} finally{
+			if(reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+					//logger.error("getHttpRequestJsonBody()......close reader......with Error: " + e + "\njson read: " + sBuffer.toString());
+				}
+			}
+		}
+		String jsonStr = sBuffer.toString();
+		logger.debug("getHttpRequestJsonBody()......end......JSON Read: " + jsonStr);
+		return jsonStr;
+	}
+
+	public static String getValueFromJsonString (String jsonString, String name) {
+		logger.debug("getValueFromJsonString()...start........");
+		if (StringUtil.isEmptyOrNull(jsonString) || StringUtil.isEmptyOrNull(name) || !jsonString.startsWith("{")) {
+			logger.debug("getValueFromJsonString()...input is not a json string, return null........");
+			return null;
+		}
+		String value = null;
+		try {
+			JsonObject obj = JsonParser.parseString(jsonString).getAsJsonObject();
+			if(obj != null) {
+				JsonElement element = obj.get(name.trim());
+				value = (element == null? null: element.getAsString());
+			}
+			logger.debug("getValueFromJsonString()......end......name = " + name +", value = "+value);
+		} catch (Exception e) {
+			logger.debug("getValueFromJsonString()...input is not a valid json string, return null....Error:" + e);
+			return null;
+		} 
+		return value;
+	}
+
 
 	public static void initTransactionContext(HttpServletRequest request) {
-		logger.debug("initTransactionContext()...init transaction context........");
+		logger.debug("initTransactionContext()...init transaction context....begin....");
 		String errMsg = null;
 		if (request == null ) {
 			errMsg = "initTransactionContext() - request can not be null!" ;
 			logger.error(errMsg);
 			throw new RuntimeException(errMsg);
 		}
+		
+		//used during authentication process
+		ApiAuthInfo authInfo = AppComponents.commonService.getApiAuthInfo(request);
+		AppThreadContext.setApiAuthInfo(authInfo);
+		
+		//used during processing request
 		TransactionContext txnCtx = new TransactionContext();
 		String txId = UUID.randomUUID().toString();
 
@@ -485,15 +554,21 @@ public class AppUtil {
 		txnCtx.setRequestReceivedTimeStamp(new Timestamp(new Date().getTime()));
 		txnCtx.setServerTimezoneId(TimeZone.getDefault().getID());
 		
-		ApiAuthInfo authInfo = AppComponents.commonService.getApiAuthInfo(request);
-		txnCtx.setApiAuthInfo(authInfo);
+//		String clientAppId = authInfo.useCoreAppIdAsClientAppId?null:authInfo.clientAppId;
+//		txnCtx.setClientAppId(clientAppId);
+//		txnCtx.setClientIP(authInfo==null?null:authInfo.clientIP);
+//		txnCtx.setClientHost(authInfo==null?null:authInfo.clientHost);
+//		txnCtx.setToken(authInfo==null?null:authInfo.token);
+//		txnCtx.setTokenNonce(authInfo==null?null:authInfo.tokenNonce);
 		
 		// for request processor
 		AppThreadContext.setTransactionContext(txnCtx);
 
 		// for log4j2
 		ThreadContext.put(AppConstant.CONTEXT_KEY_JAPPCORE_TX_ID, txId);
-
+		
+		logger.debug("initTransactionContext()...init transaction context...end.....\ntxnCtx = " + txnCtx + "\nauthInfo = " + authInfo);
+		
 	}
 
 	public static void clearTransactionContext() {

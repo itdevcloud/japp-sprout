@@ -60,8 +60,8 @@ public abstract class BaseAuthProviderHandler implements Serializable{
 			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
 			return null;
 		}
-		TransactionContext txContext = AppThreadContext.getTransactionContext();
-		ApiAuthInfo apiAuthInfo = txContext.getApiAuthInfo();
+		//TransactionContext txContext = AppThreadContext.getTransactionContext();
+		ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
 		
 		String clientAppId = apiAuthInfo.clientAppId;
 		String clientAuthKey = apiAuthInfo.clientAuthKey;

@@ -166,8 +166,7 @@ public class CommonService implements AppFactoryComponentI {
 			logger.error("matchAppIpWhiteList() - httpRequest is null, return false.....");
 			return false;
 		}
-		TransactionContext txContext = AppThreadContext.getTransactionContext();
-		ApiAuthInfo apiAuthInfo = txContext.getApiAuthInfo();
+		ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
 		
 		ClientAppInfo clientAppInfo = AppComponents.clientAppInfoCache.getClientAppInfo(apiAuthInfo.clientAppId);
 		if(clientAppInfo == null) {
@@ -467,6 +466,7 @@ public class CommonService implements AppFactoryComponentI {
 		return false;
 	}
 	
+	
 	public ApiAuthInfo getApiAuthInfo(HttpServletRequest request)  {
 
 		String errMsg = null;
@@ -478,7 +478,8 @@ public class CommonService implements AppFactoryComponentI {
 		String clientAppId = null;
 		String clientAuthKey = null;
 		String tokenNonce =null;
-		//get token first
+		boolean useCoreAppIdAsClientAppId = false;
+		//get from token first
 		String token = AppUtil.getJwtTokenFromRequest(request);
 		if(!StringUtil.isEmptyOrNull(token)) {
 			Map<String, Object> claims = AppUtil.parseJwtClaims(token);
@@ -486,17 +487,27 @@ public class CommonService implements AppFactoryComponentI {
 			clientAuthKey = (claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUTH_KEY)==null?null:""+claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUTH_KEY));
 		}
 		if(StringUtil.isEmptyOrNull(clientAppId)) {
+			//get from para/cookie etc.
 			clientAppId = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_APP_ID);
 			clientAuthKey = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_AUTH_KEY);
 		}
 		tokenNonce = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_TOKEN_NONCE);
-//		coreLoginId = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_LOGIN_ID);
 		
+		if (StringUtil.isEmptyOrNull(clientAppId)) {
+			//try to get from request body json string
+			String requestBodyStr = AppUtil.getHttpRequestJsonBody(request);
+			if (!StringUtil.isEmptyOrNull(requestBodyStr)) {
+				clientAppId = AppUtil.getValueFromJsonString(requestBodyStr, "clientAppId");
+				clientAuthKey = AppUtil.getValueFromJsonString(requestBodyStr, "clientAuthKey");
+			}
+		}
 		if (StringUtil.isEmptyOrNull(clientAppId)) {
 			//default to core app, refer to CommonService.getCoreAppInfo()
 			clientAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
-			clientAuthKey = clientAppId;
+			clientAuthKey = null;
+			useCoreAppIdAsClientAppId = true;
 		}
+
 		String host = AppUtil.getClientHost(request);
 		host = (StringUtil.isEmptyOrNull(host) ? "n/a" : host);
 		
@@ -507,10 +518,9 @@ public class CommonService implements AppFactoryComponentI {
 		authInfo.clientAppId = clientAppId;
 		authInfo.clientAuthKey = clientAuthKey;
 		authInfo.tokenNonce = tokenNonce;
-//		authInfo.coreLoginId = coreLoginId;
 		authInfo.clientIP = ip;
 		authInfo.clientHost = host;
-		
+		authInfo.useCoreAppIdAsClientAppId = useCoreAppIdAsClientAppId;
 		return authInfo;
 	}
 

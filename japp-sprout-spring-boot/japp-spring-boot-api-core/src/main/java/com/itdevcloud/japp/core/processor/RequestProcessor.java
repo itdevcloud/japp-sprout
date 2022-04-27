@@ -88,10 +88,14 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 				return response;
 		    }
 			//check clientAppId in context and in request
-			TransactionContext txContext = AppThreadContext.getTransactionContext();
-			ApiAuthInfo apiAuthInfo = txContext.getApiAuthInfo();
+			ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
 			if(!apiAuthInfo.clientAppId.equalsIgnoreCase(request.getClientAppId())){
-				logger.warn("ClientAppId in Tx Context (" + apiAuthInfo.clientAppId + ") is different fron clientAppId in request (" + request.getClientAppId() + ") !");
+				logger.error("ClientAppId in Tx Context (" + apiAuthInfo.clientAppId + ") is different fron clientAppId in request (" + request.getClientAppId() + ") !");
+				String simpleName = this.getClass().getSimpleName();
+				T commandResponse = AppUtil
+						.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_ERROR_VALIDATION, apiAuthInfo.clientAppId + " not same as clientAppId in request: " + request.getClientAppId());
+				response = commandResponse;
+				return response;
 			}
 			response = (T) processRequest(request);
 			if(response == null) {

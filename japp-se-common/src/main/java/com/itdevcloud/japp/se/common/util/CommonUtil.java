@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -250,6 +251,24 @@ public class CommonUtil {
 			value = arr[i];
 			sb.append(prefix + i + " = ");
 			sb.append(objectToStringForPrint(value, level + 1) + "\n");
+		}
+		return sb.toString();
+	}
+
+	public static String enumerationToStringForPrint(Enumeration<?> enumObj, int level) {
+		if (enumObj == null) {
+			return null;
+		}
+		Object obj = null;
+		StringBuffer sb = new StringBuffer();
+		String prefix = "";
+		for (int i = 0; i < level * 4; i++) {
+			prefix = prefix + " ";
+		}
+		sb.append("( Enumeration ):\n");
+		while(enumObj.hasMoreElements()) {
+			obj = enumObj.nextElement();
+			sb.append(objectToStringForPrint(obj, level + 1) + "\n");
 		}
 		return sb.toString();
 	}

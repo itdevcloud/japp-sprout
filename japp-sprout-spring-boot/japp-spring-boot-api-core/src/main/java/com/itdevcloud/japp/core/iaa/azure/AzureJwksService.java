@@ -34,6 +34,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.HttpResponse;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
@@ -102,11 +103,12 @@ public class AzureJwksService implements AppFactoryComponentI{
 			// get meta data for the tenant
 			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
 			String openIdMetaData = httpResponse.getResposebody();
-
-			JsonObject obj = JsonParser.parseString(openIdMetaData).getAsJsonObject();
-
-			// get authUri
-			aadAuthUrl = obj.get("authorization_endpoint").getAsString();
+//
+//			JsonObject obj = JsonParser.parseString(openIdMetaData).getAsJsonObject();
+//			// get authUri
+//			aadAuthUrl = obj.get("authorization_endpoint").getAsString();
+			
+			aadAuthUrl = AppUtil.getValueFromJsonString(openIdMetaData, "authorization_endpoint");
 			logger.info("\ngetAadAuthUri() ..... authUrl = " + aadAuthUrl);
 
 			logger.info("getAadAuthUri() end...");

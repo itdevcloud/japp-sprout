@@ -18,6 +18,7 @@ import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
@@ -32,8 +33,11 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 	@Override
 	protected BaseResponse processRequest(BaseRequest req) {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
+		ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
+
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
 				+ txnCtx.getTransactionId() + ">...... ");
+
 
 		// =====create response object =====
 		SignedBasicAuthRequest request = (SignedBasicAuthRequest) req;
@@ -53,10 +57,10 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			// ====== business logic starts ======
 			loginId = request.getLoginId();
 			String password = request.getPassword();
-			String clientAppId = txnCtx.getApiAuthInfo().clientAppId;
-			String clientPkiKey = txnCtx.getApiAuthInfo().clientAuthKey;
-			String tokenNonce = txnCtx.getApiAuthInfo().tokenNonce;
-			String uip = txnCtx.getApiAuthInfo().clientIP;
+			String clientAppId = apiAuthInfo.clientAppId;
+			String clientPkiKey = apiAuthInfo.clientAuthKey;
+			String tokenNonce = apiAuthInfo.tokenNonce;
+			String uip = apiAuthInfo.clientIP;
 			String signature = request.getSignature();
 
 			String signedMessage = clientAppId + loginId + password + (StringUtil.isEmptyOrNull(tokenNonce)?"":tokenNonce);

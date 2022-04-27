@@ -38,18 +38,22 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
+import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.core.common.CachedHttpServletRequest;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.core.service.notification.SystemNotification;
 import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
 import com.itdevcloud.japp.se.common.security.Hasher;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -94,14 +98,20 @@ public class AuthenticationFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		HttpServletRequest originalHttpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
-
+        		
+       // logger.info("=========0000000=======originalHttpRequest============="+CommonUtil.enumerationToStringForPrint(originalHttpRequest.getParameterNames(), 0));
+		CachedHttpServletRequest httpRequest = new CachedHttpServletRequest(originalHttpRequest);
+       // logger.info("=========0000000======httpRequest============="+CommonUtil.enumerationToStringForPrint(httpRequest.getParameterNames(), 0));
+		
 		// move to SpecialCharacterFilter
 		AppUtil.initTransactionContext(httpRequest);
 
 		try {
-			logger.debug("AuthenticationFilter.doFilter() start ========>");
+			logger.debug("AuthenticationFilter.doFilter() start ========>" + httpRequest.getRequestURI());
+			ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
+			
 			String errMessage = null;
 			// App CIDR white list check begin
 			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
@@ -155,8 +165,10 @@ public class AuthenticationFilter implements Filter {
 						return;
 					}
 					
-					String nonce = AppUtil.getParaCookieHeaderValue(httpRequest, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_TOKEN_NONCE);
-					String userIp = AppUtil.getClientIp(httpRequest);
+					String nonce = apiAuthInfo.tokenNonce;
+					String userIp = apiAuthInfo.clientIP;
+					String clientAppId = apiAuthInfo.clientAppId;
+					String clientAuthKey = apiAuthInfo.clientAuthKey;
 					
 					Map<String, String> claimEqualMatchMap = new HashMap<String,String>();
 					//must be access token
@@ -185,6 +197,9 @@ public class AuthenticationFilter implements Filter {
 					//add nonce and uerip
 					iaaUser.setHashedNonce(Hasher.hashPassword(nonce));
 					iaaUser.setHashedUserIp(Hasher.hashPassword(userIp));
+					
+					iaaUser.setClientAppId(clientAppId);
+					iaaUser.setClientAuthKey(clientAuthKey);
 					
 					// Application role list check
 					if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
@@ -231,7 +246,7 @@ public class AuthenticationFilter implements Filter {
 			} else {
 
 				// skip auth
-				String loginId = request.getParameter("loginId");
+				String loginId = httpRequest.getParameter("loginId");
 
 				iaaUser = AppComponents.iaaService.getAnonymousIaaUserByLoginId(loginId);
 
@@ -244,7 +259,7 @@ public class AuthenticationFilter implements Filter {
 
 			}
 
-			chain.doFilter(request, httpResponse);// sends request to next resource
+			chain.doFilter(httpRequest, httpResponse);// sends request to next resource
 
 			Date end = new Date();
 			long endTS = end.getTime();

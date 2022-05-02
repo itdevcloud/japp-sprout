@@ -27,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.BasicCredential;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppThreadContext;
@@ -56,7 +57,6 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 	protected void doPost(HttpServletRequest httpServletRequest, HttpServletResponse response) throws IOException {
 
 		CachedHttpServletRequest request = new CachedHttpServletRequest(httpServletRequest);
-		AppUtil.initTransactionContext(request);
 		try {
 			
 			logger.debug("coreBasicAuthServlet.doPost()...start.......");
@@ -69,7 +69,7 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 			if (handlerInfo == null) {
 				errMsg = "doPost() - can get AuthProviderHandlerInfo from request!" ;
 				logger.error(errMsg);
-				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+				AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 				return ;
 			}
 			
@@ -77,7 +77,7 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 			if(basicCredential == null) {
 				String msg = "Can not get username/loginId information from request......";
 				logger.error(msg);
-				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, msg);
+				AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, msg);
 					return;
 			}
 			
@@ -85,11 +85,11 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 			String userIp = apiAuthInfo.clientIP;
 			
 			// App CIDR white list check begin
-			if (!AppComponents.commonService.matchAppIpWhiteList(request)) {
+			if (!AppComponents.commonService.matchClientAppIpWhiteList(request)) {
 				logger.error(
 						"Authorization Failed. Request IP is not in the APP's IP white list, user IP = "
 								+ userIp + ".....");
-				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+				AppUtil.setHttpResponse(response, 403, Status.ERROR_SECURITY_AUTHENTICATION,
 						"Authorization Failed. ");
 				return;
 			}
@@ -102,7 +102,7 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 							+ "' and password.....";
 					logger.error(errMsg);
 					response.setStatus(401);
-					AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+					AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 					return;
 				}
 
@@ -111,7 +111,7 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 				logger.error(errMsg);
 				logger.error(CommonUtil.getStackTrace(e));
 				response.setStatus(401);
-				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+				AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 				return;
 			}
 
@@ -139,7 +139,7 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 						+ basicCredential.getLoginId();
 				logger.error(errMsg);
 				response.setStatus(403);
-				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+				AppUtil.setHttpResponse(response, 403, Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 				return;
 			}
 			apiAuthInfo.token = token;

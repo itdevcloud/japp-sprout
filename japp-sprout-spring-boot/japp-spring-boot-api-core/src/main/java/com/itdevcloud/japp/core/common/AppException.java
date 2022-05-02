@@ -22,6 +22,9 @@ import java.io.StringWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  *
  * @author Marvin Sun
@@ -31,49 +34,41 @@ public class AppException extends RuntimeException {
 	private static final Logger logger = LogManager.getLogger(AppException.class);
 	private static final long serialVersionUID = 1L;
 
-	private String errorCode;
+	private Status status;
 
 	private Throwable nestedException;
 
 	private String stackTraceString;
 
-	public AppException(String errorCode, String message) {
-		this(errorCode, message, null);
+	public AppException(Status status) {
+		this(status, null, null);
+	}
+	public AppException(Status status,  String customizedMessage) {
+		this(status, customizedMessage, null);
 	}
 
-	public AppException(String errorCode, String message, Throwable nestedException) {
-		super(message);
-		this.errorCode = errorCode;
+	public AppException(Status status, String customizedMessage, Throwable nestedException) {
+		super(customizedMessage=(StringUtil.isEmptyOrNull(customizedMessage)?"n/a":customizedMessage.trim()));
+		this.status = (status==null?Status.NA:status);
 		this.nestedException = nestedException;
 		if (nestedException == null) {
 			stackTraceString = null;
-			logger.error("Exception occurred, message: " + message);
 		} else {
 			stackTraceString = generateStackTraceString(nestedException);
-			logger.error("Exception occurred, stack trace: " + stackTraceString);
 		}
 	}
 
-	/**
-	 * Get the error code
-	 * @return error code
-	 */
+	
+	public Status getStatus() {
+		return status;
+	}
+	public void setStatus(Status status) {
+		this.status = status;
+	}
 	public String getErrorCode() {
-		return errorCode;
+		return status.code;
 	}
 
-	/**
-	 * Get the nested exception
-	 * @return
-	 */
-	public Throwable getNestedException() {
-		return nestedException;
-	}
-
-	/**
-	 * Get the stack trace string.
-	 * @return stack trace string
-	 */
 	public String getStackTraceString() {
 		// if there's no nested exception, there's no stackTrace
 		if (nestedException == null)
@@ -81,39 +76,34 @@ public class AppException extends RuntimeException {
 		StringBuffer traceBuffer = new StringBuffer();
 		if (nestedException instanceof AppException) {
 			traceBuffer.append(((AppException) nestedException).getStackTraceString());
-			traceBuffer.append("-------- nested by:\n");
 		}
 		traceBuffer.append(stackTraceString);
 		return traceBuffer.toString();
 	}
 
-	/**
-	 * Get the message.
-	 */
 	public String getMessage() {
 		// superMsg will contain whatever String was passed into the
 		// constructor, and null otherwise.
-		String superMsg = super.getMessage();
-		// if there's no nested exception, do like we would always do
-		if (getNestedException() == null)
-			return superMsg;
 		StringBuffer buf = new StringBuffer();
-		// get the nested exception's message
-		String nestedMsg = getNestedException().getMessage();
-		if (superMsg != null)
-			buf.append(superMsg).append("\nNESTED MSG: [").append(nestedMsg).append("'");
-		else
-			buf.append(nestedMsg);
+		String superMsg = super.getMessage();
+		buf.append("Status Code: ").append(status.code);
+		buf.append(", Message: ").append(status.message);
+		if (superMsg != null) {
+			buf.append(" - " + superMsg);
+		}
+		// if there's no nested exception, do like we would always do
+		if (nestedException != null) {
+			buf.append(" - " + nestedException.getMessage());
+		}
 		return buf.toString();
 	}
 
 	public String toString() {
 		StringBuffer buf = new StringBuffer(super.toString());
-		buf.append("\nERROR KEY: ").append(errorCode);
-		buf.append("\nMESSAGE: ").append(getMessage());
+		buf.append(getMessage());
 		if (nestedException != null) {
 			buf.append("\n++++++++++++++++++++++++");
-			buf.append("\nNESTED EXCEPTION: ").append(getNestedException());
+			buf.append("\nNESTED EXCEPTION: ").append(getStackTraceString());
 			buf.append("\n------------------------");
 		}
 		return buf.toString();

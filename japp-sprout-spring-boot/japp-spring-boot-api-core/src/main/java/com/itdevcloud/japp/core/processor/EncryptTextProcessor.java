@@ -11,6 +11,7 @@ import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.EncryptTextRequest;
 import com.itdevcloud.japp.core.api.bean.EncryptTextResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -45,7 +46,7 @@ public class EncryptTextProcessor extends RequestProcessor {
 			PrivateKey privateKey = AppComponents.pkiService.getAppPrivateKey();
 			if(publicKey == null && privateKey == null) {
 				response = AppUtil.createResponse(EncryptTextResponse.class, "N/A",
-						ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "publickey and privatekey can't be both null, check code or configuration!");
+						Status.ERROR_SYSTEM_ERROR, "publickey and privatekey can't be both null, check code or configuration!");
 				return response;
 			}	
 			//encrypt by public key
@@ -57,7 +58,7 @@ public class EncryptTextProcessor extends RequestProcessor {
 		}
 		response.setEncryptedInfo(encryptedInfo);
 		response.setResponseStatus(
-				AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Successfuly Processed"));
+				AppUtil.createResponseStatus(Status.SUCCESS, "Successfuly Processed"));
 
 		logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = " + txnCtx.getTransactionId()
 		+ ">...... ");

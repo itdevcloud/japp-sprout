@@ -32,6 +32,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
@@ -60,7 +61,7 @@ public class CoreAadOidcAuthProviderHandler extends BaseAuthProviderHandler {
 		String prompt = getAadAuthPrompt(aadPrompt);
 
 		if (StringUtil.isEmptyOrNull(appCallbackUrl)) {
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "CoreAadOidcAuthProviderHandler - appCallbackUrl must be provided in the ClientAuthProvider! Check Provider configuration.");
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, "CoreAadOidcAuthProviderHandler - appCallbackUrl must be provided in the ClientAuthProvider! Check Provider configuration.");
 			return ;
 		}
 
@@ -79,7 +80,7 @@ public class CoreAadOidcAuthProviderHandler extends BaseAuthProviderHandler {
 		} catch (IOException e) {
 			e.printStackTrace();
 			logger.error("CoreAadOidcAuthProviderHandler - Can't redirect to AAD login page!", e);
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "CoreAadOidcAuthProviderHandler - "+ e.getMessage());
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, "CoreAadOidcAuthProviderHandler - "+ e.getMessage());
 			return;
 		}
 
@@ -124,7 +125,7 @@ public class CoreAadOidcAuthProviderHandler extends BaseAuthProviderHandler {
 		} catch (IOException e) {
 			e.printStackTrace();
 			logger.error("CoreAadOidcAuthProviderHandler - Can't redirect to AAD login page!", e);
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "CoreAadOidcAuthProviderHandler - " + e.getMessage());
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, "CoreAadOidcAuthProviderHandler - " + e.getMessage());
 			return;
 		}
 

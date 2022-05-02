@@ -227,9 +227,9 @@ public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 		ClientAuthInfo clientAuthInfo = new ClientAuthInfo();
 		List<ClientAuthProvider> providerList = new ArrayList<ClientAuthProvider>();
 		
-		cidrWhitelist.addCidr("127.0.0.1"); 
-		cidrWhitelist.addCidr("127.0.0.1"); 
-		cidrWhitelist.addCidr("192.168.1.0/24"); 
+		cidrWhitelist.addCidrIP("127.0.0.1"); 
+		cidrWhitelist.addCidrIP("127.0.0.1"); 
+		cidrWhitelist.addCidrIP("192.168.1.0/24"); 
 
 		clientAppInfo.setCidrWhiteList(cidrWhitelist);
 		

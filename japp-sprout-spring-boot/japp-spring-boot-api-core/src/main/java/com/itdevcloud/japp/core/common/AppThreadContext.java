@@ -16,6 +16,8 @@
  */
 package com.itdevcloud.japp.core.common;
 
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,6 +36,7 @@ public class AppThreadContext {
 	private static ThreadLocal<IaaUserI> iaaUserContext = new ThreadLocal<IaaUserI>();
 	private static ThreadLocal<TransactionContext> txContext = new ThreadLocal<TransactionContext>();
 	private static ThreadLocal<ApiAuthInfo> authContext = new ThreadLocal<ApiAuthInfo>();
+	private static ThreadLocal<Map<String, Object>> claimesContext = new ThreadLocal<Map<String, Object>>();
 
 	public static IaaUserI getIaaUser() {
 		IaaUserI user = iaaUserContext.get();
@@ -76,12 +79,26 @@ public class AppThreadContext {
 		}
 		authContext.set(authInfo);
 	}
+	
+	public static Map<String, Object> getAuthTokenClaims() {
+		Map<String, Object> claims = claimesContext.get();
+		return claims;
+	}
+
+
+	public static void setAuthTokenClaims(Map<String, Object> authTokenClaimes) {
+		if (authTokenClaimes == null) {
+			claimesContext.set(null);
+		}
+		claimesContext.set(authTokenClaimes);
+	}
 
 	public static void clean() {
 		logger.debug("clean AppThreadContext..... => start");
 		iaaUserContext.set(null);
 		txContext.set(null);
 		authContext.set(null);
+		claimesContext.set(null);
 		logger.debug("clean AppThreadContext..... <= end");
 	}
 }

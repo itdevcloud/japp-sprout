@@ -22,6 +22,7 @@ import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 
 @Component
 public class SignedBasicAuthProcessor extends RequestProcessor {
@@ -46,7 +47,7 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 
 		// ====== validate request ======
 		if (StringUtil.isEmptyOrNull(request.getLoginId()) || StringUtil.isEmptyOrNull(request.getPassword())) {
-			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
+			responseStatus = AppUtil.createResponseStatus(Status.ERROR_VALIDATION,
 					"Authentication Failed. LoginId and/or password is null.");
 			response.setResponseStatus(responseStatus);
 			return response;
@@ -57,25 +58,38 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			// ====== business logic starts ======
 			loginId = request.getLoginId();
 			String password = request.getPassword();
+			String clientPkiKey = request.getClientPkiKey();
 			String clientAppId = apiAuthInfo.clientAppId;
-			String clientPkiKey = apiAuthInfo.clientAuthKey;
-			String tokenNonce = apiAuthInfo.tokenNonce;
+			String clientAuthKey = apiAuthInfo.clientAuthKey;
+			String requestTokenNonce = request.getTokenNonce();
+			String authTokenNonce = apiAuthInfo.tokenNonce;
+			String tokenNonce = null;
 			String uip = apiAuthInfo.clientIP;
 			String signature = request.getSignature();
-
-			String signedMessage = clientAppId + loginId + password + (StringUtil.isEmptyOrNull(tokenNonce)?"":tokenNonce);
-			logger.info("signatureText=" + clientPkiKey + signedMessage + ", signature=" + signature);
-			ClientAppInfo clientAppInfo = AppComponents.clientAppInfoCache.getClientAppInfo(clientAppId);
-			if(clientAppInfo == null) {
-				String errMsg = "Authorization Failed. Error: clientAppInfo is null, check code! Client App Id = " + clientAppId + ", clientPkiKey = " + clientPkiKey;
-				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+			
+			if (StringUtil.isEmptyOrNull(requestTokenNonce) && StringUtil.isEmptyOrNull(authTokenNonce)) {
+				responseStatus = AppUtil.createResponseStatus(Status.ERROR_VALIDATION, "Authentication Failed. tokenNonce is null.");
 				response.setResponseStatus(responseStatus);
 				return response;
+			}else if(StringUtil.isEmptyOrNull(requestTokenNonce)) {
+				tokenNonce = authTokenNonce;
+			}else if(StringUtil.isEmptyOrNull(authTokenNonce)) {
+				tokenNonce = requestTokenNonce;
+			}else if(!requestTokenNonce.equals(authTokenNonce)) {
+				responseStatus = AppUtil.createResponseStatus(Status.ERROR_VALIDATION, "Authentication Failed. tokenNonce from request JSON ("+requestTokenNonce+") is different from request header/parameter/cookie (" + authTokenNonce + ")");
+				response.setResponseStatus(responseStatus);
+				return response;
+			}else {
+				tokenNonce = requestTokenNonce;
 			}
+
+			String signedMessage = clientAppId + loginId + password + tokenNonce;
+			logger.info("signatureText=" + signedMessage + ", signature=" + signature);
+			ClientAppInfo clientAppInfo = AppComponents.clientAppInfoCache.getClientAppInfo(clientAppId);
 			ClientPKI clientPKI = clientAppInfo.getClientPKI(clientPkiKey);
 			if(clientPKI == null) {
 				String errMsg = "Authorization Failed. Error: clientAuthProvider is null, check code! Client App Id = " + clientAppId + ", clientPkiKey = " + clientPkiKey;
-				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+				responseStatus = AppUtil.createResponseStatus(Status.ERROR_SECURITY, errMsg);
 				response.setResponseStatus(responseStatus);
 				return response;
 			}
@@ -84,7 +98,7 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 				String errMsg = "Authentication Failed. Signature verification failed: loginId = '" + loginId
 						+ "'.....";
 				logger.error(errMsg);
-				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, errMsg);
+				responseStatus = AppUtil.createResponseStatus(Status.ERROR_VALIDATION, errMsg);
 				response.setResponseStatus(responseStatus);
 				return response;
 			}
@@ -95,7 +109,7 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			if (iaaUser == null) {
 				logger.error("Authentication Failed. Can not retrive user by loginId '" + loginId
 						+ "' and/or password.....");
-				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+				responseStatus = AppUtil.createResponseStatus(Status.ERROR_SECURITY_AUTHENTICATION,
 						"Authentication Failed. Can not retrive user by loginId '" + loginId
 								+ "' and/or password.....");
 				response.setResponseStatus(responseStatus);
@@ -105,6 +119,9 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			// issue new JWT token;
 			String hashedNonce = StringUtil.isEmptyOrNull(tokenNonce) ? null : Hasher.hashPassword(tokenNonce);
 			String hashedUip = StringUtil.isEmptyOrNull(uip) ? null : Hasher.hashPassword(uip);
+			
+			iaaUser.setClientAppId(clientAppId);
+			iaaUser.setClientAuthKey(null);
 
 			iaaUser.setHashedNonce(hashedNonce);
 			iaaUser.setHashedUserIp(hashedUip);
@@ -112,13 +129,13 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error("JWT Token can not be created for login Id '" + loginId);
-				responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR,
+				responseStatus = AppUtil.createResponseStatus(Status.ERROR_SYSTEM_ERROR,
 						"JWT Token can not be created for login Id '" + iaaUser.getLoginId() + "', username = "
 								+ loginId);
 				response.setResponseStatus(responseStatus);
 				return response;
 			}
-			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Login Process Success.");
+			responseStatus = AppUtil.createResponseStatus(Status.SUCCESS, "Login Process Success.");
 
 			response.setResponseStatus(responseStatus);
 			response.setJwt(token);
@@ -128,7 +145,7 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			return response;
 		} catch (Exception e) {
 			logger.error(CommonUtil.getStackTrace(e));
-			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR,
+			responseStatus = AppUtil.createResponseStatus(Status.ERROR_SYSTEM_ERROR,
 					e.getMessage());
 			response.setResponseStatus(responseStatus);
 			return response;

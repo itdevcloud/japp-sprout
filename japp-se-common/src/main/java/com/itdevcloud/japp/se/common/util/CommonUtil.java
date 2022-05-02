@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -383,5 +384,60 @@ public class CommonUtil {
 		}
 		return;
 	}
+	
+	public static boolean haveSameValue (boolean ignoreNullOrEmpty, boolean ingoreCaseForString, Object ...objects) {
+		if(objects == null) {
+			return false;
+		}
+		List<Object> notNullObjList = new ArrayList<Object>();
+		for (Object obj: objects) {
+			if(obj != null) {
+				if (obj instanceof String) {
+					if(!"".equals(((String)obj).trim())){
+						notNullObjList.add(obj);
+					}
+				}else {
+					notNullObjList.add(obj);
+				}
+			}
+		}
+		if(notNullObjList.size() == 0) {
+			//all are null or empty
+			return true;
+		}
+		if(!ignoreNullOrEmpty) {
+			if(notNullObjList.size() > 0 && notNullObjList.size() < objects.length ) {
+				//there are both null and not null values
+				return false;
+			}
+		}
+		Object obj0 = notNullObjList.get(0);
+		String str0 = null;
+		if(obj0 instanceof String) {
+			str0 = (String)obj0;
+		}
+		for(int i = 1; i < notNullObjList.size(); i++) {
+			Object tmpObj = notNullObjList.get(i);
+			if(str0 != null && tmpObj instanceof String) {
+				String tmpStr = (String)tmpObj;
+				if(ingoreCaseForString) {
+					if(!str0.equalsIgnoreCase(tmpStr)) {
+						return false;
+					}
+				}else {
+					if(!str0.equals(tmpStr)) {
+						return false;
+					}
+				}
+			}else {
+				if(!obj0.equals(tmpObj)) {
+					return false;
+				}
+			}
+		}
+		//means the first element is equals to all others
+		return true;
+	}
 
+	
 }

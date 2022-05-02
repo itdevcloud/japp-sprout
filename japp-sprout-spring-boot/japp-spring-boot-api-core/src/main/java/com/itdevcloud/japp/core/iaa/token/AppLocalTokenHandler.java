@@ -58,15 +58,6 @@ public class AppLocalTokenHandler implements TokenHandlerI {
 	public void init() {
 	}
 
-	@Override
-	public boolean isValidToken(String token, Map<String, String> claimEqualMatchMap, boolean ingoreNullInToken, String... args ) {
-		return TokenHandlerI.isValidTokenDefault(token, claimEqualMatchMap, ingoreNullInToken, args );
-	}
-
-	@Override
-	public IaaUserI getIaaUser(String token) {
-		return TokenHandlerI.getIaaUserFromeTokenDefault(token);
-	}
 	
 	@Override
 	public String issueToken(IaaUserI iaaUser, String tokenType, Key privateKey, int expireMinutes, Map<String, Object> customClaimMap) {
@@ -77,9 +68,35 @@ public class AppLocalTokenHandler implements TokenHandlerI {
 
 	@Override
 	public String getAccessToken(String token) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Override
+	public Map<String, Object> parseTokenClaims(String token) {
+		return TokenHandlerI.parseTokenClaimsDefault(token);
+	}
+
+	@Override
+	public Map<String, Object> isValidTokenByPublicKey(String token, PublicKey publicKey) {
+		return TokenHandlerI.isValidTokenByPublicKeyDefault(token, publicKey);
+	}
+
+
+	@Override
+	public IaaUserI getIaaUserBasedOnToken(String token) {
+		return TokenHandlerI.getIaaUserBaseOnTokenDefault(token);
+	}
+
+	@Override
+	public Map<String, Object> parseTokenHeaders(String token) {
+		return TokenHandlerI.parseTokenHeadersDefault(token);
+	}
+
+	@Override
+	public Map<String, Object> isValidToken(String token, Map<String, Object> claimEqualMatchMap,
+			boolean ingoreNullInToken, String... args) {
+		// TODO Auto-generated method stub
+		return TokenHandlerI.isValidTokenDefault(token, claimEqualMatchMap, ingoreNullInToken, args);
+	}
 	
 }

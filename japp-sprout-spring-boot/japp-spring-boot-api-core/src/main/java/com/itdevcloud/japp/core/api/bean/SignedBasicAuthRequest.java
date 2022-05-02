@@ -31,7 +31,6 @@ public class SignedBasicAuthRequest extends BaseRequest {
 
 	private String loginId;
 	private String password;
-	private String tokenNonce;
 	private String clientPkiKey;
 	private String signature;
 	
@@ -52,12 +51,6 @@ public class SignedBasicAuthRequest extends BaseRequest {
 	}
 	public void setSignature(String signature) {
 		this.signature = signature;
-	}
-	public String getTokenNonce() {
-		return tokenNonce;
-	}
-	public void setTokenNonce(String tokenNonce) {
-		this.tokenNonce = tokenNonce;
 	}
 	public String getClientPkiKey() {
 		return clientPkiKey;

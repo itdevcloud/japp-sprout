@@ -30,6 +30,7 @@ import com.itdevcloud.japp.core.api.bean.FindReferenceCodeRequest;
 import com.itdevcloud.japp.core.api.bean.FindReferenceCodeResponse;
 import com.itdevcloud.japp.core.api.vo.ReferenceCode;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
@@ -64,7 +65,7 @@ public class FindReferenceCodeProcessor extends RequestProcessor {
 			codeList = AppComponents.referenceCodeService.getReferenceCodeListByEntityType(null);
 			response.setReferenceCodeList(codeList);
 			response.setResponseStatus(
-					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+					AppUtil.createResponseStatus(Status.SUCCESS, "Command Processed"));
 			return response;
 
 		}
@@ -73,7 +74,7 @@ public class FindReferenceCodeProcessor extends RequestProcessor {
 			codeList.add(code);
 			response.setReferenceCodeList(codeList);
 			response.setResponseStatus(
-					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+					AppUtil.createResponseStatus(Status.SUCCESS, "Command Processed"));
 			return response;
 		} else if (!StringUtil.isEmptyOrNull(req.getType())) {
 			if (!StringUtil.isEmptyOrNull(req.getCode())) {
@@ -81,31 +82,31 @@ public class FindReferenceCodeProcessor extends RequestProcessor {
 				codeList.add(code);
 				response.setReferenceCodeList(codeList);
 				response.setResponseStatus(
-						AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+						AppUtil.createResponseStatus(Status.SUCCESS, "Command Processed"));
 			} else {
 				codeList = AppComponents.referenceCodeService.getReferenceCodeListByEntityType(req.getType());
 				response.setReferenceCodeList(codeList);
 				response.setResponseStatus(
-						AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+						AppUtil.createResponseStatus(Status.SUCCESS, "Command Processed"));
 				return response;
 			}
 		} else if ( req.getParentId() != null ) {
 			codeList = AppComponents.referenceCodeService.getChildrenReferenceCodeListByParentId(req.getParentId());
 			response.setReferenceCodeList(codeList);
 			response.setResponseStatus(
-					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+					AppUtil.createResponseStatus(Status.SUCCESS, "Command Processed"));
 
 		} else if (!StringUtil.isEmptyOrNull(req.getParentType())) {
 			codeList = AppComponents.referenceCodeService.getChildrenReferenceCodeListByParentCode(req.getParentType(),
 					req.getParentCode());
 			response.setReferenceCodeList(codeList);
 			response.setResponseStatus(
-					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+					AppUtil.createResponseStatus(Status.SUCCESS, "Command Processed"));
 
 		}else {
 
 			response.setResponseStatus(
-					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "Request Content Not Valid!"));
+					AppUtil.createResponseStatus(Status.ERROR_VALIDATION, "Request Content Not Valid!"));
 		}
 		logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = " + txnCtx.getTransactionId()
 		+ ">...... ");

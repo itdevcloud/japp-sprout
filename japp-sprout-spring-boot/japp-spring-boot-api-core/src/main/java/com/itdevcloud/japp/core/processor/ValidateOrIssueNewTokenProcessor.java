@@ -12,6 +12,7 @@ import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenRequest;
 import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -47,7 +48,7 @@ public class ValidateOrIssueNewTokenProcessor extends RequestProcessor {
 		String newTokenType = req.getNewTokenType();
 		String currentTokenIssuer = req.getCurrentTokenIssuer();
 		
-		Map<String, String> expectedClaims = new HashMap<String, String>();
+		Map<String, Object> expectedClaims = new HashMap<String, Object>();
 		if (!StringUtil.isEmptyOrNull(currentTokenUserIp)) {
 			expectedClaims.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, Hasher.hashPassword(currentTokenUserIp));
 		}else {
@@ -61,9 +62,9 @@ public class ValidateOrIssueNewTokenProcessor extends RequestProcessor {
 
 		String[] args = null;
 		
-		boolean isValid = AppComponents.jwtService.isValidToken(currentToken, expectedClaims, true, args);
+		Map<String, Object> claims = AppComponents.jwtService.isValidToken(currentToken, expectedClaims, true, args);
 		
-		if(isValid) {
+		if(claims != null) {
 			response.setIsValidToken(true);
 		}else {
 			response.setIsValidToken(false);
@@ -73,12 +74,12 @@ public class ValidateOrIssueNewTokenProcessor extends RequestProcessor {
 				TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(newTokenType) ||
 				TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(newTokenType)) {
 			//issue new token
-			IaaUserI iaaUser = AppComponents.jwtService.getIaaUser(currentToken);
+			IaaUserI iaaUser = AppComponents.jwtService.getIaaUserBasedOnToken(currentToken);
 					newToken = AppComponents.jwtService.issueToken(iaaUser, newTokenType, null);
 		}
 		response.setNewToken(newToken);
 		response.setResponseStatus(
-				AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+				AppUtil.createResponseStatus(Status.SUCCESS, "Command Processed"));
 
 		logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = " + txnCtx.getTransactionId()
 		+ ">...... ");

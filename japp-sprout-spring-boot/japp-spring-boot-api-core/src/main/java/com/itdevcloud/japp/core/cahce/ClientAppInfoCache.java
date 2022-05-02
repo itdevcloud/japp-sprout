@@ -133,16 +133,46 @@ public class ClientAppInfoCache extends RefreshableCache {
 			ClientAuthInfo clientAuthInfo = appInfo.getClientAuthInfo();
 			ClientPkiInfo clientPkiInfo = appInfo.getClientPkiInfo();
 			if(StringUtil.isEmptyOrNull(clientAppId) || clientAuthInfo == null || clientPkiInfo == null) {
-				errorStr = errorStr + "clientAppId, clientAuthInfo and/or clientPkiInfo is null or empty for List("+ i + ")! \n";
-			}
-			List<ClientAuthProvider> providerList = clientAuthInfo.getClientAuthProviderList();
-			if(providerList == null || providerList.isEmpty()) {
-				errorStr = errorStr + "clientAppId, clientAuthInfo and/or clientPkiInfo is null or empty for List("+ i + ")! \n";
+				errorStr = errorStr + "clientAppId, clientAuthInfo and/or clientPkiInfo is null or empty in ClientAppInfo List("+ i + ")! ";
 				return errorStr;
 			}
+			//validate provider info
+			List<ClientAuthProvider> providerList = clientAuthInfo.getClientAuthProviderList();
+			if(providerList == null || providerList.isEmpty()) {
+				errorStr = errorStr + "clientAppId, clientAuthInfo and/or clientPkiInfo is null or empty in ClientAppInfo List("+ i + ")! \n";
+				return errorStr;
+			}
+			int defaultCount = 0;
 			for (ClientAuthProvider provider: providerList) {
+				String providerId = (provider==null?null:provider.getAuthProviderId());
 				if(!AppComponents.commonService.isSupportedAuthProvider(provider.getAuthProviderId())) {
-					errorStr = errorStr + "authProviderId is not supported for List("+ i + ")! \n";
+					errorStr = errorStr + "authProviderId (" + providerId + ")  is not supported in ClientAppInfo List["+ i + "]! ";
+					return errorStr;
+				}
+				if(provider.getIsDefault()) {
+					defaultCount++;
+				}
+			}
+			if(defaultCount != 1) {
+				errorStr = errorStr + "there is no or more than one default authProviderId defined, check configuration! \n";
+				return errorStr;
+			}
+			//validate pkiInfo
+			List<ClientPKI> pkiList = clientPkiInfo.getClientPkiList();
+			if(pkiList != null) {
+				defaultCount = 0;
+				for (ClientPKI clientPKI: pkiList) {
+					String pkiKey = (clientPKI==null?null:clientPKI.getClientPkiKey());
+					if(StringUtil.isEmptyOrNull(pkiKey)) {
+						errorStr = errorStr + "ClientPkiKey is empty or null for clientPKI - ID (" + clientPKI.getId() + ")  in ClientAppInfo List["+ i + "]! ";
+						return errorStr;
+					}
+					if(clientPKI.getIsDefault()) {
+						defaultCount++;
+					}
+				}
+				if(defaultCount != 1) {
+					errorStr = errorStr + "there is no or more than one default ClientPKI defined, check configuration! in ClientAppInfo List["+ i + "]! ";;
 					return errorStr;
 				}
 			}
@@ -172,7 +202,17 @@ public class ClientAppInfoCache extends RefreshableCache {
 		}
 		return null;
 	}
-	
+
+	public String getDefaultClientAuthKey(String clientAppId) {
+		ClientAppInfo clientAppInfo = getClientAppInfo(clientAppId);
+		if(clientAppInfo == null ) {
+			return null;
+		}
+		ClientAuthProvider provider = clientAppInfo.getClientAuthProvider(null);
+		String clientAuthKey = (provider==null?null:provider.getClientAuthKey());
+		return clientAuthKey;
+	}
+
 	public ClientAuthProvider getClientAuthProvider(String clientAppId, String clientAuthKey) {
 		ClientAppInfo clientAppInfo = getClientAppInfo(clientAppId);
 		if(clientAppInfo == null ) {
@@ -180,6 +220,16 @@ public class ClientAppInfoCache extends RefreshableCache {
 		}
 		ClientAuthProvider provider = clientAppInfo.getClientAuthProvider(clientAuthKey);
 		return provider;
+	}
+	
+	public String getDefaultClientPkiKey(String clientAppId) {
+		ClientAppInfo clientAppInfo = getClientAppInfo(clientAppId);
+		if(clientAppInfo == null ) {
+			return null;
+		}
+		 ClientPKI clientPKI = clientAppInfo.getClientPKI(null);
+		String clientPkiKey = (clientPKI==null?null:clientPKI.getClientPkiKey());
+		return clientPkiKey;
 	}
 	
 	public ClientPKI getClientPKI(String clientAppId, String clientPkiKey) {
@@ -200,6 +250,18 @@ public class ClientAppInfoCache extends RefreshableCache {
 		return appSet;
 	}
 
+	public boolean isValidlClientAppId(String clientAppId) {
+		Set <ClientAppInfo> appInfoSet = getAllClientAppInfo();
+		if(appInfoSet == null || StringUtil.isEmptyOrNull(clientAppId)) {
+			return false;
+		}
+		for (ClientAppInfo appInfo: appInfoSet) {
+			if(clientAppId.equalsIgnoreCase(appInfo.getClientAppId())) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 
 }

@@ -17,6 +17,7 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 
 @Component
 public class SignTextProcessor extends RequestProcessor {
@@ -43,7 +44,7 @@ public class SignTextProcessor extends RequestProcessor {
 		String signature = SecurityUtil.sign(privateKey, text);
 		response.setSignature(signature);
 
-		responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "PKI Sign Process Success.");
+		responseStatus = AppUtil.createResponseStatus(Status.SUCCESS, "PKI Sign Process Success.");
 
 		response.setResponseStatus(responseStatus);
 

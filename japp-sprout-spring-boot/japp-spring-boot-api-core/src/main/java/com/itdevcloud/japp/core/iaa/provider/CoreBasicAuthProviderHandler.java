@@ -39,6 +39,7 @@ import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.ClientCallBackType;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.TokenTransferType;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.CommonService;
@@ -93,7 +94,7 @@ public class CoreBasicAuthProviderHandler extends BaseAuthProviderHandler {
 			inputStream = null;
 		} catch (Exception e){
 			e.printStackTrace();
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION,
 					"Authorization Failed. Error: " + e);
 		}finally {
 			if (inputStream != null) {
@@ -126,7 +127,7 @@ public class CoreBasicAuthProviderHandler extends BaseAuthProviderHandler {
 			out = null;
 		} catch (Exception e1) {
 			e1.printStackTrace();
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION,
 					"Authorization Failed. Error: " + e1);
 		} finally {
 			if(out != null) {
@@ -165,7 +166,7 @@ public class CoreBasicAuthProviderHandler extends BaseAuthProviderHandler {
 		} catch (IOException e) {
 			e.printStackTrace();
 			logger.error("Can't redirect to AAD login page!", e);
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, e.getMessage());
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, e.getMessage());
 			return;
 		}
 

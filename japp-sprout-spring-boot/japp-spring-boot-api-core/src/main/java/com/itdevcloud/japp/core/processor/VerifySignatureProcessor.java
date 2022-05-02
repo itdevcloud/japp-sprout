@@ -16,6 +16,7 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 
 @Component
 public class VerifySignatureProcessor extends RequestProcessor {
@@ -43,7 +44,7 @@ public class VerifySignatureProcessor extends RequestProcessor {
 		boolean isValid = SecurityUtil.verifySignature(publicKey, signature, text);
 		response.setIsValid(isValid);
 
-		responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "PKI Verify Signature Process Success.");
+		responseStatus = AppUtil.createResponseStatus(Status.SUCCESS, "PKI Verify Signature Process Success.");
 
 		response.setResponseStatus(responseStatus);
 

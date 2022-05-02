@@ -35,6 +35,7 @@ import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
@@ -57,7 +58,7 @@ public abstract class BaseAuthProviderHandler implements Serializable{
 		if (request == null || response == null) {
 			errMsg = "getValidatedHandlerInfo() - request and/or response can not be null!" ;
 			logger.error(errMsg);
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 			return null;
 		}
 		//TransactionContext txContext = AppThreadContext.getTransactionContext();
@@ -71,7 +72,7 @@ public abstract class BaseAuthProviderHandler implements Serializable{
 		if (StringUtil.isEmptyOrNull(tokenNonce)) {
 			errMsg = "getValidatedHandlerInfo() - tokenNonce must be provided!";
 			logger.error(errMsg);
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 			return null;
 		}
 		ClientAuthProvider authProvider = AppComponents.clientAppInfoCache.getClientAuthProvider(clientAppId, clientAuthKey);
@@ -79,7 +80,7 @@ public abstract class BaseAuthProviderHandler implements Serializable{
 		if (authProvider == null) {
 			errMsg = "getValidatedHandlerInfo() - can not retrieve ClientAuthProvider! clientAppId = " + clientAppId + ", clientAuthKey = " + clientAuthKey;
 			logger.error(errMsg);
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMsg);
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 			return null;
 		}
 		
@@ -107,7 +108,7 @@ public abstract class BaseAuthProviderHandler implements Serializable{
 		}else if (AppConstant.IDENTITY_PROVIDER_CORE_BASIC.equalsIgnoreCase(authProviderId)) {
 			handler =  AppFactory.getInstance(CoreBasicAuthProviderHandler.class);
 		}else {
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "AuthProviderId is not supported at this time, check code or configuration! authProviderId = " + authProviderId );
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, "AuthProviderId is not supported at this time, check code or configuration! authProviderId = " + authProviderId );
 			return null;
 		}
 		handler.handlerInfo = handlerInfo;

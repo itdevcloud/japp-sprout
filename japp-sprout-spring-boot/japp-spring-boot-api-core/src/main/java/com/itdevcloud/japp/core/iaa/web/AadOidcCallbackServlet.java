@@ -27,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
@@ -71,17 +72,17 @@ public class AadOidcCallbackServlet extends javax.servlet.http.HttpServlet {
 			if (idToken == null || idToken.equals("")) {
 				logger.error(
 						"aadOidcCallbackServlet.doPost() - Authorization Failed. code E501. can not receive id_token from AAD response....");
-				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+				AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION,
 						"Authorization Failed. ");
 				return;
 			}
 			// verify JWT from AAD;
 			logger.debug("aadOidcCallbackServlet.doPost() - verify idToken token=========" );
 			TokenHandlerI aadIdTokenHandler = AppFactory.getTokenHandler(AadIdTokenHandler.class.getSimpleName());
-			if (!aadIdTokenHandler.isValidToken(idToken, null, true, null)) {
+			if (aadIdTokenHandler.isValidToken(idToken, null, true, null) == null) {
 				logger.error(
 						"aadOidcCallbackServlet.doPost() - Authorization Failed. id_token from AAD is not valid....");
-				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+				AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION,
 						"Authorization Failed. ");
 				return;
 			}
@@ -108,18 +109,18 @@ public class AadOidcCallbackServlet extends javax.servlet.http.HttpServlet {
 			logger.debug("aadOidcCallbackServlet.doPost() - retrieve userInfo for Authorization==============");
 			IaaUserI iaaUser = null;
 			try {
-				iaaUser = aadIdTokenHandler.getIaaUser(idToken);
+				iaaUser = aadIdTokenHandler.getIaaUserBasedOnToken(idToken);
 				logger.debug("aadOidcCallbackServlet.doPost() - IaaUser: " + iaaUser);
 				if (iaaUser == null) {
 					logger.error("Authentication / Authorization Failed - can't retrieve user ......");
-					AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+					AppUtil.setHttpResponse(response, 403, Status.ERROR_SECURITY_AUTHENTICATION,
 							"Authentication / Authorization Failed.");
 					return;
 				}
 			} catch (Throwable t) {
 				logger.error("Authentication / Authorization Failed - can't retrieve user ......" 
 						+ "\n" + CommonUtil.getStackTrace(t));
-				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+				AppUtil.setHttpResponse(response, 403, Status.ERROR_SECURITY_AUTHENTICATION,
 						"Authorization Failed. ");
 				return;
 			}
@@ -127,7 +128,7 @@ public class AadOidcCallbackServlet extends javax.servlet.http.HttpServlet {
 			// Application role list check
 			if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
 				logger.error("Authorization Failed - requestor's is not on the APP's role list" + ".....");
-				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+				AppUtil.setHttpResponse(response, 403, Status.ERROR_SECURITY_AUTHENTICATION,
 						"Authorization Failed. ");
 				return;
 			}
@@ -147,7 +148,7 @@ public class AadOidcCallbackServlet extends javax.servlet.http.HttpServlet {
 				logger.error(
 						"AadAuthCallbackServlet.doPost() - Authorization Failed. Token can not be created for login Id '"
 								+ loginId + "'......");
-				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+				AppUtil.setHttpResponse(response, 403, Status.ERROR_SECURITY_AUTHENTICATION,
 						"Authorization Failed. ");
 				return;
 			}

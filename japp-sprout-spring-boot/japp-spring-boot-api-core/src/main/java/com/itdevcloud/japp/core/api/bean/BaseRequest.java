@@ -36,6 +36,7 @@ public class BaseRequest implements Serializable, AppFactoryComponentI {
 	private String command = AppUtil.getCorrespondingCommand(this);
 	private String clientAppId;
 	private String clientTxId;
+	private String tokenNonce;
 	
 	public String getCommand() {
 		if(StringUtil.isEmptyOrNull(this.command )) {
@@ -65,6 +66,14 @@ public class BaseRequest implements Serializable, AppFactoryComponentI {
 
 	public void setClientTxId(String clientTxId) {
 		this.clientTxId = clientTxId;
+	}
+
+	public String getTokenNonce() {
+		return tokenNonce;
+	}
+
+	public void setTokenNonce(String tokenNonce) {
+		this.tokenNonce = tokenNonce;
 	}
 
 

@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.ConfigFactory;
@@ -120,7 +121,7 @@ public class EmailService implements AppFactoryComponentI {
 	public void sendEmail(String subject, String content, String toAddresses, boolean async, boolean waitForResponse)
 			throws EmailException {
 		if (StringUtil.isEmptyOrNull(toAddresses)) {
-			throw new EmailException("301", "sendEmail()...toAddresses is empty or null.....no email will be sent...!!!");
+			throw new EmailException(Status.ERROR_VALIDATION.code, "sendEmail()...toAddresses is empty or null.....no email will be sent...!!!");
 		}
 		EmailAddress fromAddr = new EmailAddress(systemEmailFromAddr);
 		List<EmailAddress> toAddrList = getEmailAddresses(toAddresses);
@@ -157,7 +158,7 @@ public class EmailService implements AppFactoryComponentI {
 			String toAddresses, String ccAddresses, String bccAddresses, List<EmailAttachment> attachments,
 			boolean async, boolean waitForResponse) throws EmailException {
 		if (StringUtil.isEmptyOrNull(toAddresses)) {
-			throw new EmailException("401", "sendEmail()...toAddresses is empty or null.....no email will be sent...!!!");
+			throw new EmailException(Status.ERROR_VALIDATION.code, "sendEmail()...toAddresses is empty or null.....no email will be sent...!!!");
 		}
 
 		List<EmailAddress> toAddrList = getEmailAddresses(toAddresses);
@@ -223,12 +224,12 @@ public class EmailService implements AppFactoryComponentI {
 				try {
 					String response = future.get();
 					if (!response.equalsIgnoreCase("Success")) {
-						throw new EmailException("800", response);
+						throw new EmailException(Status.ERROR_SYSTEM_ERROR.code, response);
 					}
 					logger.debug("Send email using async method - response = " + response);
 				} catch (Throwable t) {
 					logger.error(CommonUtil.getStackTrace(t));
-					throw new EmailException("900", "Getting Email Response Failed: \n" + t.getMessage());
+					throw new EmailException(Status.ERROR_SYSTEM_ERROR.code, "Getting Email Response Failed: \n" + t.getMessage());
 				}
 				logger.debug("Send email using async method - end......");
 			} else {
@@ -269,13 +270,13 @@ public class EmailService implements AppFactoryComponentI {
 
 		// Validation
 		if (StringUtil.isEmptyOrNull(contentType) || StringUtil.isEmptyOrNull(content)) {
-			throw new EmailException("505", "contentType and/or content are null or empty.......!");
+			throw new EmailException(Status.ERROR_VALIDATION.code, "contentType and/or content are null or empty.......!");
 		}
 		if (toAddrList == null || toAddrList.isEmpty()) {
-			throw new EmailException("505", "toAddress List is null or empty.......!");
+			throw new EmailException(Status.ERROR_VALIDATION.code, "toAddress List is null or empty.......!");
 		}
 		if (!isValidAttachments(attachments)) {
-			throw new EmailException("506", "attachment is not valid: " + attachments);
+			throw new EmailException(Status.ERROR_VALIDATION.code, "attachment is not valid: " + attachments);
 		}
 
 		// Template
@@ -286,15 +287,15 @@ public class EmailService implements AppFactoryComponentI {
 				content = FreeMarkerTemplateUtils.processTemplateIntoString(freemarkerConfig.getTemplate(template),
 						templateArgs);
 			} catch (TemplateNotFoundException e) {
-				throw new EmailException("511", "Template not found: " + template + ", error=" + e.getMessage());
+				throw new EmailException(Status.ERROR_SYSTEM_ERROR.code, "Template not found: " + template + ", error=" + e.getMessage());
 			} catch (MalformedTemplateNameException e) {
-				throw new EmailException("512", "Malformed template name: " + template + ", error=" + e.getMessage());
+				throw new EmailException(Status.ERROR_SYSTEM_ERROR.code, "Malformed template name: " + template + ", error=" + e.getMessage());
 			} catch (ParseException e) {
-				throw new EmailException("513", "Template parsing error: " + template + ", error=" + e.getMessage());
+				throw new EmailException(Status.ERROR_SYSTEM_ERROR.code, "Template parsing error: " + template + ", error=" + e.getMessage());
 			} catch (IOException e) {
-				throw new EmailException("514", "Template IO error: " + template + ", error=" + e.getMessage());
+				throw new EmailException(Status.ERROR_SYSTEM_ERROR.code, "Template IO error: " + template + ", error=" + e.getMessage());
 			} catch (TemplateException e) {
-				throw new EmailException("515", "Template error: " + template + ", error=" + e.getMessage());
+				throw new EmailException(Status.ERROR_SYSTEM_ERROR.code, "Template error: " + template + ", error=" + e.getMessage());
 			}
 		}
 
@@ -382,11 +383,11 @@ public class EmailService implements AppFactoryComponentI {
 			}
 			File tmpFile = new File(fileName);
 			if (!tmpFile.exists()) {
-				throw new EmailException(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "Can't find this file:" + fileName);
+				throw new EmailException(Status.ERROR_VALIDATION.code, "Can't find this file:" + fileName);
 			}
 			long len = tmpFile.length();
 			if (len >= maxFileSizeBtyes) {
-				throw new EmailException(ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
+				throw new EmailException(Status.ERROR_VALIDATION.code,
 						"File exceeds maximum size(" + maxFileSizeBtyes + ") :" + fileName + "( size = " + len + " )");
 			}
 			if (StringUtil.isEmptyOrNull(fileContentType)) {

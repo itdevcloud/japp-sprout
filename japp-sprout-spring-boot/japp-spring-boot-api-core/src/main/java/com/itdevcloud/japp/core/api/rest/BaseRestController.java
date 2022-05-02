@@ -33,8 +33,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
-import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.processor.RequestProcessor;
@@ -77,7 +78,7 @@ public abstract class BaseRestController {
 			if(enabledCommandSet.contains("all")) {
 				return null;
 			}
-			T response = AppUtil.createResponse(responseClass, "N/A", ResponseStatus.STATUS_CODE_WARN_NOACTION,
+			T response = AppUtil.createResponse(responseClass, "N/A", Status.NA,
 					"command '" + command + "' is not enabled!");
 			return response;
 		}
@@ -85,27 +86,40 @@ public abstract class BaseRestController {
 	}
 	
 	public <O extends BaseResponse, I extends BaseRequest> O processRequest(I request, Class<O> responseClass) {
-		
-		logger.debug("processRequest() - start ===>");
-		if (request == null) {
+		try {
+			logger.debug("processRequest() - start ===>");
+			if (request == null) {
+				O response = AppUtil.createResponse(responseClass, "N/A",
+						Status.ERROR_VALIDATION, " request parameter is null!");
+				return response;
+			}
+			String requestSimpleName = request.getClass().getSimpleName();
+	
+			RequestProcessor requestProcessor = AppFactory.getRequestProcessor(requestSimpleName);
+			if (requestProcessor == null) {
+				O response = AppUtil.createResponse(responseClass, "N/A",
+						Status.ERROR_VALIDATION, "processor not found for request: '" + requestSimpleName
+							+ "'....");
+				return response;
+			}
+	
+			O response = requestProcessor.process(request, responseClass);
+	
+			logger.debug("processRequest() - end <=== request = '" + requestSimpleName + "'");
+			return response;
+		} catch (AppException ae) {
+			ae.printStackTrace();
+			logger.error(ae);
 			O response = AppUtil.createResponse(responseClass, "N/A",
-					ResponseStatus.STATUS_CODE_ERROR_VALIDATION, " request parameter is null!");
+					ae.getStatus(), ae.getMessage());
+			return response;
+		} catch (Throwable t) {
+			t.printStackTrace();
+			logger.error(t);
+			O response = AppUtil.createResponse(responseClass, "N/A",
+					Status.ERROR_SYSTEM_ERROR, t.getMessage());
 			return response;
 		}
-		String requestSimpleName = request.getClass().getSimpleName();
-
-		RequestProcessor requestProcessor = AppFactory.getRequestProcessor(requestSimpleName);
-		if (requestProcessor == null) {
-			O response = AppUtil.createResponse(responseClass, "N/A",
-					ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "processor not found for request: '" + requestSimpleName
-						+ "'....");
-			return response;
-		}
-
-		O response = requestProcessor.process(request, responseClass);
-
-		logger.debug("processRequest() - end <=== request = '" + requestSimpleName + "'");
-		return response;
 	}
 
 }

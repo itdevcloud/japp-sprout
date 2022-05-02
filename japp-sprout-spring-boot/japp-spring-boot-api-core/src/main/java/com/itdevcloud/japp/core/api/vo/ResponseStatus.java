@@ -35,27 +35,11 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
 public class ResponseStatus implements Serializable {
-
-	public static final String STATUS_CODE_SUCCESS = "SUCCESS";
-	public static final String STATUS_CODE_NA = "N/A";
-	public static final String STATUS_CODE_ERROR_SYSTEM_ERROR = "E0001";
-	public static final String STATUS_CODE_ERROR_MAINTENANCE_MODE = "E0002";
-	public static final String STATUS_CODE_ERROR_VALIDATION = "E0100";
-	public static final String STATUS_CODE_ERROR_INVALID_CODE = "E0101";
-	public static final String STATUS_CODE_ERROR_SECURITY = "E0300";
-	public static final String STATUS_CODE_ERROR_SECURITY_INVALID_TOKEN = "E0301";
-	public static final String STATUS_CODE_ERROR_SECURITY_2FACTOR = "E0302";
-	public static final String STATUS_CODE_ERROR_SECURITY_NO_VERIFICATION_CODE = "E0303";
-	public static final String STATUS_CODE_ERROR_SECURITY_EXCEED_RETRY_COUNT = "E0304";
-	public static final String STATUS_CODE_ERROR_SECURITY_VERIFICATION_TYPE_UNSUPPORTED = "E0305";
-	public static final String STATUS_CODE_ERROR_SECURITY_NOT_AUTHORIZED = "E0306";
 	
-	public static final String STATUS_CODE_WARN_NOACTION = "W0001";
-
 	private static final long serialVersionUID = 1L;
 	private static Map<String, String> preDefinedStatusMessageMap;
 	private static final String STATUS_CODE_PREFIX = "status.code.";
-	
+
 	static {
 		init();
 	}
@@ -75,35 +59,88 @@ public class ResponseStatus implements Serializable {
 		}
 	}
 
-	private String statusCode;
-	private String statusMessage;
+	public static enum Status {
+		SUCCESS(),
+	    NA(),
+	    ERROR_SYSTEM_ERROR(),
+	    ERROR_VALIDATION(),
+	    ERROR_SECURITY(),
+	    ERROR_SECURITY_INVALID_TOKEN(),
+	    ERROR_SECURITY_AUTHENTICATION(),
+	    ERROR_SECURITY_AUTHORIZATION(),
+	    WARN_NO_ACTION()
+	    ;
+
+//		SUCCESS("SUCCESS", "Success"),
+//	    NA("NA", "N/A"),
+//	    ERROR_SYSTEM_ERROR("E0001", "System Error"),
+//	    ERROR_VALIDATION("E0100", "General Validation Error"),
+//	    ERROR_SECURITY("E0300", "General Security Error"),
+//	    ERROR_SECURITY_INVALID_TOKEN("E0301", "Validation Error"),
+//	    ERROR_SECURITY_AUTHENTICATION("E0302", "Authentication Error"),
+//	    ERROR_SECURITY_AUTHORIZATION("E0303", "Authorization Error"),
+//	    WARN_NO_ACTION("W1000", "Warning: No Action")
+//	    ;
+
+	    public final String code;
+	    public final String message;
+	    
+	    Status() {
+	    	String tmpStr = preDefinedStatusMessageMap.get(this.name());
+	    	if(StringUtil.isEmptyOrNull(tmpStr)) {
+	    		throw new RuntimeException("status-code property not defined properly, no value found for: " + this.name());
+	    	}
+	    	String[] strArr = tmpStr.split(",");
+	    	if(StringUtil.isEmptyOrNull(strArr[0])) {
+	    		throw new RuntimeException("status-code property not defined properly, no error code found for: " + this.name());
+	    	}
+	    	
+	    	this.code = strArr[0].trim().toUpperCase();
+	    	if(strArr.length<2 || StringUtil.isEmptyOrNull(strArr[1])) {
+	    		this.message = "n/a";
+	    	}else {
+	    		this.message = strArr[1].trim();
+	    	}
+	    }
+//	    Status(final String code, final String message) {
+//	        this.code = StringUtil.isEmptyOrNull(code)?"NA":code.trim().toUpperCase();
+//	        this.message = StringUtil.isEmptyOrNull(code)?"N/A":code.trim();
+//	    }
+	    public String toString() {
+	        return code + "-" + message;
+	    }
+	}
+
+	
+    private Status status;
+	private String customizedMessage;
 	private List<ResponseStatusItem> responseStatusItems;
 
 
-	public ResponseStatus(String statusCode, String statusMessage) {
+	public ResponseStatus(Status status, String customizedMessage) {
 		super();
-		if(StringUtil.isEmptyOrNull(statusCode)) {
-			statusCode = "CODE-IS-NULL";
-		}
-		if(StringUtil.isEmptyOrNull(statusMessage)) {
-			statusMessage = "not provided.";
-		}
-		this.statusCode = statusCode.trim().toUpperCase();
-		String preDefinedMsg = preDefinedStatusMessageMap.get(this.statusCode);
-		if(!StringUtil.isEmptyOrNull(preDefinedMsg)) {
-			statusMessage = preDefinedMsg + "; Transaction Message: " + statusMessage;
+		this.status = status==null?Status.NA:status;
+		if(StringUtil.isEmptyOrNull(customizedMessage)) {
+			customizedMessage = "customizaed message: n/a";
 		}else {
-			statusMessage = "Status Code is not defined in the status-code property file, fix it! " + "Transaction Message: " + statusMessage;
+			this.customizedMessage = customizedMessage;
 		}
-		this.statusMessage = statusMessage;
 	}
 
-	public String getStatusCode() {
-		return statusCode;
+	public Status getStatus() {
+		return status;
 	}
 
-	public String getStatusMessage() {
-		return statusMessage;
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public String getCustomizedMessage() {
+		return customizedMessage;
+	}
+
+	public void setCustomizedMessage(String customizedMessage) {
+		this.customizedMessage = customizedMessage;
 	}
 
 
@@ -125,4 +162,16 @@ public class ResponseStatus implements Serializable {
 		responseStatusItems.add(responseStatusItem);
 	}
 
+	@Override
+	public String toString() {
+		return "ResponseStatus [status=" + status + ", customizedMessage=" + customizedMessage
+				+ ", responseStatusItems=" + responseStatusItems + "]";
+	}
+
+	public static void main(String[] args) {
+		ResponseStatus responseStatus = new ResponseStatus(null,null);
+		responseStatus = new ResponseStatus(ResponseStatus.Status.ERROR_SECURITY_INVALID_TOKEN,"test.....");
+		System.out.println("ResponseStatus = " + responseStatus);
+		
+	}
 }

@@ -25,6 +25,7 @@ import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.EchoRequest;
 import com.itdevcloud.japp.core.api.bean.EchoResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -50,7 +51,7 @@ public class EchoProcessor extends RequestProcessor {
 
 		response.setMessage(req.getMessage());
 		response.setResponseStatus(
-				AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+				AppUtil.createResponseStatus(Status.SUCCESS, "Command Processed"));
 
 		logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = " + txnCtx.getTransactionId()
 		+ ">...... ");

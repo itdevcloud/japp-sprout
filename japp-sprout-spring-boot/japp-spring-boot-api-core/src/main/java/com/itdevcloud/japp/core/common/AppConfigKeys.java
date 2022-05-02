@@ -93,7 +93,9 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_PROCESSOR_EMPTY_TARGET_ROLE_ALLOWED = "jappcore.iaa.processor.empty.target.role.allowed";
 	public static final String JAPPCORE_IAA_DESKTOP_LOGIN_CALLBACK_URL = "jappcore.iaa.auth.desktop.callback.url";
 	public static final String JAPPCORE_IAA_AAD_REDIRECT_URL =  "jappcore.iaa.aad.redirect.url";
-	
+
+	public static final String JAPPCORE_IAA_TOKEN_PROVIDER =  "jappcore.iaa.token.provider";
+
 	public static final String JAPPCORE_FRONTEND_UI_FRAMEWORK = "jappcore.frontend.ui.framework";
 	public static final String JAPPCORE_FRONTEND_UI_ORIGIN = "jappcore.frontend.ui.origin";
 	public static final String JAPPCORE_FRONTEND_UI_POST_SIGNOUT_PAGE = "jappcore.frontend.ui.post.signout.page";

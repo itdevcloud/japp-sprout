@@ -31,6 +31,7 @@ import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppException;
@@ -88,7 +89,7 @@ public class IaaService implements AppFactoryComponentI {
 		if (StringUtil.isEmptyOrNull(loginId) || StringUtil.isEmptyOrNull(password)) {
 			String err = "loginByLoginIdPassword() - The login and/or password is null or empty. check code!";
 			logger.error(err);
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, err);
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
 		}
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
 
@@ -110,11 +111,11 @@ public class IaaService implements AppFactoryComponentI {
 		}
 	}
 	
-	public IaaUserI loginByToken(String token, Map<String, String> claimEqualMatchMap, boolean ignoreNullInToken, String... args) {
+	public IaaUserI loginByToken(String token, Map<String, Object> claimEqualMatchMap, boolean ignoreNullInToken, String... args) {
 		if (StringUtil.isEmptyOrNull(token)) {
 			String err = "loginByToken() - The token is null or empty. check code!";
 			logger.error(err);
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, err);
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
 		}
 		IaaUserI iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token, claimEqualMatchMap, ignoreNullInToken, args);
 		return iaaUser;
@@ -124,7 +125,7 @@ public class IaaService implements AppFactoryComponentI {
 		if (StringUtil.isEmptyOrNull(uid)) {
 			String err = "getIaaUserBySystemUid() - The user (uid: " + uid + ") is null or empty. check code!";
 			logger.error(err);
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, err);
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
 		}
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
 		IaaUserI user = AppComponents.iaaUserCache.getIaaUserBySystemUid(uid);
@@ -144,7 +145,7 @@ public class IaaService implements AppFactoryComponentI {
 		if (StringUtil.isEmptyOrNull(loginId)) {
 			String err = "getIaaUserFromRepositoryByLoginId() - The user (loginId: " + loginId + ") is null or empty. check code!";
 			logger.error(err);
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, err);
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
 		}
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
 		IaaUserI user = helper.getIaaUserFromRepositoryByLoginId(loginId, args);
@@ -158,17 +159,17 @@ public class IaaService implements AppFactoryComponentI {
 		
 	}
 
-	public IaaUserI validateTokenAndRetrieveIaaUser(String token, Map<String, String> claimEqualMatchMap, boolean ignoreNullInToken, String... args) {
+	public IaaUserI validateTokenAndRetrieveIaaUser(String token, Map<String, Object> claimEqualMatchMap, boolean ignoreNullInToken, String... args) {
 		
 		if (StringUtil.isEmptyOrNull(token)) {
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "token is null!");
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, "token is null!");
 		}
 		IaaUserI iaaUser = null;
-		boolean isValidToken = AppComponents.jwtService.isValidToken(token, claimEqualMatchMap, ignoreNullInToken, args);
-		if(!isValidToken) {
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "Invalid Token!");
+		Map<String, Object> claims = AppComponents.jwtService.isValidToken(token, claimEqualMatchMap, ignoreNullInToken, args);
+		if(claims == null) {
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, "Invalid Token!");
 		}
-		iaaUser = AppComponents.jwtService.getIaaUser(token);
+		iaaUser = AppComponents.jwtService.getIaaUserBasedOnToken(token);
 		
 		AppComponents.iaaUserCache.addIaaUser(iaaUser);
 		AppThreadContext.setIaaUser(iaaUser);

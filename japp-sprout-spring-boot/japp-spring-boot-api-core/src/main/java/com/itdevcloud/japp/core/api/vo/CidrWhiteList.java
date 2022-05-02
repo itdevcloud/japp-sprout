@@ -33,40 +33,40 @@ public class CidrWhiteList implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
-	private List<String> cidrWhiteList;
+	private List<String> ipWhiteList;
 	
-	public void addCidr(String cidr) {
-		if(this.cidrWhiteList == null) {
-			this.cidrWhiteList = new ArrayList<String>();
+	public void addCidrIP(String cidrIP) {
+		if(this.ipWhiteList == null) {
+			this.ipWhiteList = new ArrayList<String>();
 		}
-		if(StringUtil.isEmptyOrNull(cidr)) {
+		if(StringUtil.isEmptyOrNull(cidrIP)) {
 			return;
 		}
-		this.cidrWhiteList.add(cidr);
-		Collections.sort(this.cidrWhiteList);
+		this.ipWhiteList.add(cidrIP);
+		Collections.sort(this.ipWhiteList);
 		return;
 	}
-	public List<String> getCidrWhiteList() {
-		if(this.cidrWhiteList == null) {
-			this.cidrWhiteList = new ArrayList<String>();
+	public List<String> getIpWhiteList() {
+		if(this.ipWhiteList == null) {
+			this.ipWhiteList = new ArrayList<String>();
 		}
 		List<String> list = new ArrayList<String>();
-		list.addAll(this.cidrWhiteList);
+		list.addAll(this.ipWhiteList);
 		Collections.sort(list);
 		return list;
 	}
 
-	public void setCidrWhiteList(List<String> cidrList) {
-		this.cidrWhiteList =  new ArrayList<String>();
+	public void setIpWhiteList(List<String> cidrList) {
+		this.ipWhiteList =  new ArrayList<String>();
 		if(cidrList != null) {
-			this.cidrWhiteList.addAll(cidrList);
-			Collections.sort(this.cidrWhiteList);
+			this.ipWhiteList.addAll(cidrList);
+			Collections.sort(this.ipWhiteList);
 		}
 	}
 
 	@Override
 	public String toString() {
-		return "ClientAuthInfo [cidrWhiteList=" + cidrWhiteList + "]";
+		return "CidrWhiteList [ipWhiteList=" + ipWhiteList + "]";
 	}
 
 	

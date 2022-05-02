@@ -26,6 +26,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
@@ -58,10 +59,10 @@ public class LogoutServlet extends javax.servlet.http.HttpServlet {
 		logger.debug("logout get service =======111==================");
 
 		// App CIDR white list check begin
-		if (!AppComponents.commonService.matchAppIpWhiteList(request)) {
+		if (!AppComponents.commonService.matchClientAppIpWhiteList(request)) {
 			logger.error(
 					"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = " + AppUtil.getClientIp(request) + ".....");
-			AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+			AppUtil.setHttpResponse(response, 403, Status.ERROR_SECURITY_AUTHORIZATION,
 					"Authorization Failed. code E209");
 			return;
 		}

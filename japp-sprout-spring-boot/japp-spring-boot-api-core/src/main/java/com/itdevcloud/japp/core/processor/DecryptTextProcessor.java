@@ -11,6 +11,7 @@ import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.DecryptTextRequest;
 import com.itdevcloud.japp.core.api.bean.DecryptTextResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -37,7 +38,7 @@ public class DecryptTextProcessor extends RequestProcessor {
 		EncryptedInfo encryptedInfo = request.getEncryptedInfo();
 		if(encryptedInfo == null) {
 			response = AppUtil
-					.createResponse(DecryptTextResponse.class, "N/A", ResponseStatus.STATUS_CODE_ERROR_VALIDATION, " encryptedInfo is not provided");
+					.createResponse(DecryptTextResponse.class, "N/A", Status.ERROR_VALIDATION, " encryptedInfo is not provided");
 			return response;
 		}
 		
@@ -46,7 +47,7 @@ public class DecryptTextProcessor extends RequestProcessor {
 			PrivateKey privateKey = AppComponents.pkiService.getAppPrivateKey();
 			if(publicKey == null && privateKey == null) {
 				response = AppUtil.createResponse(DecryptTextResponse.class, "N/A",
-						ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "publickey and privatekey can't be both null, check code or configuration!");
+						Status.ERROR_SYSTEM_ERROR, "publickey and privatekey can't be both null, check code or configuration!");
 				return response;
 			}	
 			decryptedText = SecurityUtil.decryptAsym(encryptedInfo.getEncryptedText(), privateKey, publicKey);
@@ -55,7 +56,7 @@ public class DecryptTextProcessor extends RequestProcessor {
 		}
 		response.setDecryptedText(decryptedText);
 		response.setResponseStatus(
-				AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Successfuly Processed"));
+				AppUtil.createResponseStatus(Status.SUCCESS, "Successfuly Processed"));
 
 		logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = " + txnCtx.getTransactionId()
 		+ ">...... ");

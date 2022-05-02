@@ -41,7 +41,7 @@ public class ApiAuthInfo implements Serializable{
 	@Override
 	public String toString() {
 		return "ApiAuthInfo [clientAppId=" + clientAppId + ", clientAuthKey=" + clientAuthKey + ", tokenNonce="
-				+ tokenNonce + ", clientIP=" + clientIP + ", clientHost=" + clientHost + ", token=" + token
+				+ tokenNonce + ", clientIP=" + clientIP + ", clientHost=" + clientHost + ", token=" + (token==null?null:"*")
 				+ ", useCoreAppIdAsClientAppId=" + useCoreAppIdAsClientAppId + "]";
 	}
 	

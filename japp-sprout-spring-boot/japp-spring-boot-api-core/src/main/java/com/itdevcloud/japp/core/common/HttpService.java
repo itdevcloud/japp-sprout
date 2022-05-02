@@ -38,6 +38,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -124,7 +125,7 @@ public class HttpService implements AppFactoryComponentI {
 			log.info("\nSending 'GET' request to URL : " + url);
 			log.info("Response Code : " + responseCode);
 			if (responseCode != 200) {
-				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR,
+				throw new AppException(Status.ERROR_SYSTEM_ERROR,
 						"doGet: " + urlStr + ", return Respone code: " + responseCode);
 			}
 

@@ -139,7 +139,7 @@ public class Verify2ndFactorServlet extends javax.servlet.http.HttpServlet {
 //						int expireMins = ConfigFactory.appConfigService
 //								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
 //						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
-//						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_SUCCESS, err);
+//						AppUtil.setHttpResponse(httpResponse, 200, Status.SUCCESS, err);
 //					} else {
 //						String err = "2nd factor verification failed, verification code in request = "
 //								+ secondFactorValueFromReq;
@@ -177,7 +177,7 @@ public class Verify2ndFactorServlet extends javax.servlet.http.HttpServlet {
 //						int expireMins = ConfigFactory.appConfigService
 //								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
 //						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
-//						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_SUCCESS, err);
+//						AppUtil.setHttpResponse(httpResponse, 200, Status.SUCCESS, err);
 //					} else {
 //						String err = "2nd factor verification failed, verification code in request = "
 //								+ secondFactorValueFromReq;

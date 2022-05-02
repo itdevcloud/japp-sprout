@@ -52,7 +52,7 @@ import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.api.vo.ClientPKI;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.ClientCallBackType;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo.TokenTransferType;
-import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
@@ -95,8 +95,8 @@ public class CommonService implements AppFactoryComponentI {
 			} else {
 				logger.info("Authentication Failed. code E901. User '" + loginId + "' can't access the application due to maintenance mode.......");
 				httpResponse.setStatus(403);
-				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_MAINTENANCE_MODE,
-						"Authorization Failed. code E901");
+				AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION,
+						"In Maintenance Mode");
 				return true;
 			}
 		}else {
@@ -104,90 +104,57 @@ public class CommonService implements AppFactoryComponentI {
 		}
 
 	}
-	
-//	public List<String> getApplicationCidrWhiteList() {
-//		String whitelist = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST);
-//		if(StringUtil.isEmptyOrNull(whitelist)) {
-//			return null;
-//		}
-//		String[]  wlArr = whitelist.split(";");
-//		List<String> wlist = new ArrayList<String>();
-//		for(String cidr: wlArr) {
-//			if(!StringUtil.isEmptyOrNull(cidr)) {
-//				wlist.add(cidr.trim());
-//			}
-//		}
-//		return (wlist.isEmpty()?null:wlist);
-//	}
-	
-
 	public boolean matchUserIpWhiteList(HttpServletRequest httpRequest, IaaUserI iaaUser) {
 		if(httpRequest == null || iaaUser == null) {
-			logger.error("userIpWhiteListCheck() - httpRequest and/or iaaUser is null, return false.....");
+			logger.error("matchUserIpWhiteList() - httpRequest and/or iaaUser is null, return false.....");
 			return false;
 		}
-		List<String> whiteList = iaaUser.getCidrWhiteList();
-		return matchUserIpWhiteList (httpRequest, whiteList);
-	}
-
-	public boolean matchUserIpWhiteList(HttpServletRequest httpRequest, List<String> whiteList) {
-		// CIDR white list check begin
-		if(httpRequest == null) {
-			logger.error("userIpWhiteListCheck() - httpRequest is null, return false.....");
-			return false;
-		}
+		
 		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_CIDR_USER_WHITELIST_ENABLED)) {
-			boolean isIpValid = false;
-			if (whiteList == null || whiteList.isEmpty()) {
-				isIpValid = true;
-			} else {
-				for (String entry : whiteList) {
-					if (new IpAddressMatcher(entry).matches(httpRequest)) {
-						isIpValid = true;
-						break;
-					}
-				}
-			}
-			if (!isIpValid) {
-				logger.error(
-						"request IP is not on the IP white list, IP = " + AppUtil.getClientIp(httpRequest) + ", User whiteList = " + whiteList
-								+ ".....");
-				return false;
-			}
+			List<String> whiteList = iaaUser.getCidrWhiteList();
+			return validateIp(httpRequest, whiteList);
 		}
 		return true;
-
 	}
-	
 
-	public boolean matchAppIpWhiteList(HttpServletRequest request) {
+
+	public boolean matchClientAppIpWhiteList(HttpServletRequest request) {
 		// CIDR white list check begin
 		if(request == null ) {
-			logger.error("matchAppIpWhiteList() - httpRequest is null, return false.....");
+			logger.error("matchClientAppIpWhiteList() - httpRequest is null, return false.....");
 			return false;
 		}
 		ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
-		
 		ClientAppInfo clientAppInfo = AppComponents.clientAppInfoCache.getClientAppInfo(apiAuthInfo.clientAppId);
 		if(clientAppInfo == null) {
-			logger.error("matchAppIpWhiteList() - can not get ClientAppInfo, clientAppId = " + apiAuthInfo.clientAppId);
+			logger.error("matchClientAppIpWhiteList() - can not get ClientAppInfo, clientAppId = " + apiAuthInfo.clientAppId);
 			return false;
 			
 		}
-		String clientIP = AppUtil.getClientIp(request);
-		List<String> whiteList = (clientAppInfo.getCidrWhiteList()==null?null:clientAppInfo.getCidrWhiteList().getCidrWhiteList());
+		List<String> whiteList = (clientAppInfo.getCidrWhiteList()==null?null:clientAppInfo.getCidrWhiteList().getIpWhiteList());
+		return validateIp(request, whiteList);
+	}
+
+	public boolean validateIp(HttpServletRequest request, List<String> whiteList) {
+		// CIDR white list check begin
+		if(request == null ) {
+			logger.error("validateIp() - httpRequest is null, return false.....");
+			return false;
+		}
+		if(whiteList == null || whiteList.isEmpty()) {
+			logger.error("validateIp() - whiteList is null or empty, return false.....");
+			return false;
+		}
+		ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
+		String clientIP = apiAuthInfo.clientIP;
 		boolean isIpValid = false;
-		if (whiteList == null || whiteList.isEmpty()) {
-			isIpValid = true;
-		} else {
-			for (String entry : whiteList) {
-				if(StringUtil.isEmptyOrNull(entry)) {
-					continue;
-				}
-				if (new IpAddressMatcher(entry).matches(request) || entry.equals(clientIP)) {
-					isIpValid = true;
-					break;
-				}
+		for (String entry : whiteList) {
+			if(StringUtil.isEmptyOrNull(entry)) {
+				continue;
+			}else if(entry.trim().equalsIgnoreCase("any") || entry.trim().equalsIgnoreCase("*") ||
+					 new IpAddressMatcher(entry).matches(request) || entry.equals(clientIP)) {
+				isIpValid = true;
+				break;
 			}
 		}
 		if (!isIpValid) {
@@ -198,7 +165,7 @@ public class CommonService implements AppFactoryComponentI {
 		}
 		return true;
 	}
-
+	
 
 	public boolean matchAppRoleList(IaaUserI iaaUser) {
 		if(iaaUser == null ) {
@@ -310,7 +277,7 @@ public class CommonService implements AppFactoryComponentI {
 			}
 		}
 		CidrWhiteList cidrWL = new CidrWhiteList();
-		cidrWL.setCidrWhiteList(cidrWhiteList);
+		cidrWL.setIpWhiteList(cidrWhiteList);
 		
 		ClientAppInfo clientAppInfo = new ClientAppInfo();
 		clientAppInfo.setId(1L);
@@ -390,14 +357,14 @@ public class CommonService implements AppFactoryComponentI {
 
 		ClientAppInfo clientAppInfo = AppComponents.clientAppInfoCache.getClientAppInfo(apiAuthInfo.clientAppId);
 		if(clientAppInfo == null) {
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-					"Authorization Failed. Error: clientAppInfo is null, check code! Client App Id = " + apiAuthInfo.clientAppId + ", clientAuthKey = " + apiAuthInfo.clientAuthKey);
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY,
+					"clientAppInfo is null, check code! Client App Id = " + apiAuthInfo.clientAppId + ", clientAuthKey = " + apiAuthInfo.clientAuthKey);
 			return;
 		}
 		ClientAuthProvider clientAuthProvider = clientAppInfo.getClientAuthProvider(apiAuthInfo.clientAuthKey);
 		if(clientAuthProvider == null) {
-			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-					"Authorization Failed. Error: clientAuthProvider is null, check code! Client App Id = " + apiAuthInfo.clientAppId + ", clientAuthKey = " + apiAuthInfo.clientAuthKey);
+			AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY,
+					"clientAuthProvider is null, check code! Client App Id = " + apiAuthInfo.clientAppId + ", clientAuthKey = " + apiAuthInfo.clientAuthKey);
 			return;
 		}
 		
@@ -467,47 +434,115 @@ public class CommonService implements AppFactoryComponentI {
 	}
 	
 	
-	public ApiAuthInfo getApiAuthInfo(HttpServletRequest request)  {
+	public void setValidatedAuthTokenClaimsAndApiAuthInfoContext(HttpServletRequest request)  {
 
 		String errMsg = null;
 		if (request == null ) {
-			errMsg = "getApiAuthInfo() - request can not be null!" ;
+			errMsg = "setValidatedAuthTokenClaimsAndApiAuthInfoContext() - request can not be null!" ;
 			logger.error(errMsg);
-			throw new RuntimeException(errMsg);
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
 		String clientAppId = null;
+		String jsonRequestClientAppId = null;
+		String tokenClientAppId = null;
+		String paraClientAppId = null;
+
 		String clientAuthKey = null;
+		String jsonRequestClientAuthKey = null;
+		String tokenClientAuthKey = null;
+		String paraClientAuthKey = null;
+		
 		String tokenNonce =null;
+		String jsonRequestTokenNonce =null;
+		String paraTokenNonce =null;
+
 		boolean useCoreAppIdAsClientAppId = false;
-		//get from token first
+		
+		String requestBodyStr = AppUtil.getHttpRequestJsonBody(request);
+		
+		//set  claims context first
+		Map<String, Object> tokenClaims = null;
 		String token = AppUtil.getJwtTokenFromRequest(request);
 		if(!StringUtil.isEmptyOrNull(token)) {
-			Map<String, Object> claims = AppUtil.parseJwtClaims(token);
-			clientAppId = (claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE)==null?null:""+claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE));
-			clientAuthKey = (claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUTH_KEY)==null?null:""+claims.get(TokenHandlerI.JWT_CLAIM_KEY_AUTH_KEY));
-		}
-		if(StringUtil.isEmptyOrNull(clientAppId)) {
-			//get from para/cookie etc.
-			clientAppId = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_APP_ID);
-			clientAuthKey = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_AUTH_KEY);
-		}
-		tokenNonce = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_TOKEN_NONCE);
-		
-		if (StringUtil.isEmptyOrNull(clientAppId)) {
-			//try to get from request body json string
-			String requestBodyStr = AppUtil.getHttpRequestJsonBody(request);
-			if (!StringUtil.isEmptyOrNull(requestBodyStr)) {
-				clientAppId = AppUtil.getValueFromJsonString(requestBodyStr, "clientAppId");
-				clientAuthKey = AppUtil.getValueFromJsonString(requestBodyStr, "clientAuthKey");
+			tokenClaims = AppComponents.jwtService.parseTokenClaims(token);
+			if(tokenClaims == null) {
+				//token is not valid
+				token = null;
+				AppThreadContext.setAuthTokenClaims(null);
+				tokenClientAppId = null;
+				tokenClientAuthKey = null;
+			}else {
+				AppThreadContext.setAuthTokenClaims(tokenClaims);
+				tokenClientAppId = (tokenClaims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE)==null?null:""+tokenClaims.get(TokenHandlerI.JWT_CLAIM_KEY_AUDIENCE));
+				tokenClientAuthKey = (tokenClaims.get(TokenHandlerI.JWT_CLAIM_KEY_AUTH_KEY)==null?null:""+tokenClaims.get(TokenHandlerI.JWT_CLAIM_KEY_AUTH_KEY));
 			}
+		}else {
+			token = null;
+			AppThreadContext.setAuthTokenClaims(null);
+			tokenClientAppId = null;
+			tokenClientAuthKey = null;
 		}
+		//get from parameter/query string/cookie etc.
+		paraClientAppId = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_APP_ID);
+		paraClientAuthKey = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_CLIENT_AUTH_KEY);
+		paraTokenNonce = AppUtil.getParaCookieHeaderValue(request, AppConstant.HTTP_AUTHORIZATION_ARG_NAME_TOKEN_NONCE);
+
+		//try to get from request body json string
+		if (!StringUtil.isEmptyOrNull(requestBodyStr)) {
+			jsonRequestClientAppId = AppUtil.getValueFromJsonString(requestBodyStr, "clientAppId");
+			jsonRequestClientAuthKey = AppUtil.getValueFromJsonString(requestBodyStr, "clientAuthKey");
+			jsonRequestTokenNonce = AppUtil.getValueFromJsonString(requestBodyStr, "tokenNonce");
+		}
+		
+		if(!CommonUtil.haveSameValue(true, true, jsonRequestClientAppId, tokenClientAppId, paraClientAppId)) {
+			errMsg = "setValidatedAuthTokenClaimsAndApiAuthInfoContext() - CleintAppId come from request body, request header/cookie/query and token are different! " 
+			+ "tokenClientAppId = " + tokenClientAppId
+			+ ", paraClientAppId = " + paraClientAppId
+			+ ", jsonRequestClientAppId = " + jsonRequestClientAppId;
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_VALIDATION, errMsg);
+		}
+		
+		if(!CommonUtil.haveSameValue(true, true, jsonRequestClientAppId, tokenClientAppId, paraClientAppId)) {
+			errMsg = "setValidatedAuthTokenClaimsAndApiAuthInfoContext() - clientAuthKey come from request body, request header/cookie/query and token are different! " 
+			+ "tokenClientAuthKey = " + tokenClientAuthKey
+			+ ", paraClientAuthKey = " + paraClientAuthKey
+			+ ", jsonRequestClientAuthKey = " + jsonRequestClientAuthKey;
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_VALIDATION, errMsg);
+		}
+		
+		if(!CommonUtil.haveSameValue(true, true, jsonRequestTokenNonce, paraTokenNonce)) {
+			errMsg = "setValidatedAuthTokenClaimsAndApiAuthInfoContext() - tokenNonce come from request body, request header/cookie/query and token are different! " 
+			+ "paraTokenNonce = " + paraTokenNonce
+			+ ", jsonRequestTokenNonce = " + jsonRequestTokenNonce;
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_VALIDATION, errMsg);
+		}
+		
+		clientAppId = StringUtil.isEmptyOrNull(jsonRequestClientAppId)? (StringUtil.isEmptyOrNull(tokenClientAppId)?paraClientAppId:tokenClientAppId):jsonRequestClientAppId;
+		clientAuthKey = StringUtil.isEmptyOrNull(jsonRequestClientAuthKey)? (StringUtil.isEmptyOrNull(tokenClientAuthKey)?paraClientAuthKey:tokenClientAuthKey):jsonRequestClientAuthKey;
+		tokenNonce = StringUtil.isEmptyOrNull(jsonRequestTokenNonce)? paraTokenNonce :jsonRequestTokenNonce;
+		
+		
 		if (StringUtil.isEmptyOrNull(clientAppId)) {
 			//default to core app, refer to CommonService.getCoreAppInfo()
 			clientAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
-			clientAuthKey = null;
+			clientAuthKey = AppComponents.clientAppInfoCache.getDefaultClientPkiKey(clientAppId);
 			useCoreAppIdAsClientAppId = true;
 		}
+		
+		ClientAppInfo clientAppInfo = AppComponents.clientAppInfoCache.getClientAppInfo(clientAppId);
+		if(clientAppInfo == null) {
+			errMsg = "setValidatedAuthTokenClaimsAndApiAuthInfoContext() - clientAppId (" + clientAppId + ") is not supported!" ;
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_VALIDATION, errMsg);
+			
+		}
 
+		//clientAppId and ClientAuthKey won't be null
+		//token nonce could be null
+		
 		String host = AppUtil.getClientHost(request);
 		host = (StringUtil.isEmptyOrNull(host) ? "n/a" : host);
 		
@@ -517,11 +552,13 @@ public class CommonService implements AppFactoryComponentI {
 		ApiAuthInfo authInfo = new ApiAuthInfo();
 		authInfo.clientAppId = clientAppId;
 		authInfo.clientAuthKey = clientAuthKey;
+		authInfo.token = token;
 		authInfo.tokenNonce = tokenNonce;
 		authInfo.clientIP = ip;
 		authInfo.clientHost = host;
 		authInfo.useCoreAppIdAsClientAppId = useCoreAppIdAsClientAppId;
-		return authInfo;
+		AppThreadContext.setApiAuthInfo(authInfo); 
+		return;
 	}
 
 

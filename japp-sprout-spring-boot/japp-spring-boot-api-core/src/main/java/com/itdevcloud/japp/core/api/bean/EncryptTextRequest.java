@@ -40,12 +40,6 @@ public class  EncryptTextRequest extends BaseRequest {
 		this.clearText = clearText;
 	}
 
-//	public String getEncodedSymmetricKey() {
-//		return encodedSymmetricKey;
-//	}
-//	public void setEncodedSymmetricKey(String encodedSymmetricKey) {
-//		this.encodedSymmetricKey = encodedSymmetricKey;
-//	}
 	public boolean isSymmetric() {
 		return symmetric;
 	}

@@ -33,7 +33,6 @@ public class  BasicAuthRequest extends BaseRequest {
 
 	private String loginId;
 	private String password;
-	private String tokenNonce;
 	
 	
 	public String getLoginId() {
@@ -48,13 +47,5 @@ public class  BasicAuthRequest extends BaseRequest {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public String getTokenNonce() {
-		return tokenNonce;
-	}
-	public void setTokenNonce(String tokenNonce) {
-		this.tokenNonce = tokenNonce;
-	}
-	
-
 
 }

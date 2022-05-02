@@ -19,8 +19,6 @@ package com.itdevcloud.japp.core.common;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.sql.Timestamp;
@@ -28,14 +26,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -52,16 +44,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
-import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.BasicCredential;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.Jwts;
 
 /**
  *
@@ -100,10 +87,10 @@ public class AppUtil {
 	}
 
 
-	public static BaseResponse createBaseResponse(String status, String message) {
+	public static BaseResponse createBaseResponse(Status status, String customizedMessage) {
 
 		BaseResponse response = new BaseResponse();
-		ResponseStatus responseStatus = createResponseStatus(status, message);
+		ResponseStatus responseStatus = createResponseStatus(status, customizedMessage);
 
 		response.setResponseStatus(responseStatus);
 
@@ -115,12 +102,12 @@ public class AppUtil {
 		return response;
 	}
 
-	public static <T extends BaseResponse> T createResponse(Class<T> responseClass, String command, String status, String message) {
+	public static <T extends BaseResponse> T createResponse(Class<T> responseClass, String command, Status status, String customizedMessage) {
 
 		T response = AppFactory.getInstance(responseClass);
 		response.setCommand(command);
 
-		ResponseStatus responseStatus = createResponseStatus(status, message);
+		ResponseStatus responseStatus = createResponseStatus(status, customizedMessage);
 
 		response.setResponseStatus(responseStatus);
 
@@ -133,9 +120,9 @@ public class AppUtil {
 	}
 
 
-	public static ResponseStatus createResponseStatus(String status, String message) {
+	public static ResponseStatus createResponseStatus(Status status, String customizedMessage) {
 
-		ResponseStatus responseStatus = new ResponseStatus(status, message);
+		ResponseStatus responseStatus = new ResponseStatus(status, customizedMessage);
 
 		return responseStatus;
 	}
@@ -164,35 +151,6 @@ public class AppUtil {
 		}
 		return GsonDeepCopy(sourceObj, (Class<T>) sourceObj.getClass());
 	}
-
-
-
-
-//	public static String getQuestionMarks1(List list) {
-//		if (list == null || list.size() == 0) {
-//			return null;
-//		}
-//
-//		StringBuilder result = new StringBuilder("?");
-//		int size = list.size() - 1;
-//		for (int i = 0; i < size; i++) {
-//			result.append(", ?");
-//		}
-//		return result.toString();
-//	}
-//
-//	public static String getIdentifier1(int count) {
-//		String result = null;
-//		if (count < 10) {
-//			result = "000" + count;
-//		} else if (count < 100) {
-//			result = "00" + count;
-//		} else if (count < 1000) {
-//			result = "0" + count;
-//		}
-//
-//		return result;
-//	}
 
 	public static String getSpringActiveProfile() {
 		if (StringUtil.isEmptyOrNull(springActiveProfile)) {
@@ -298,24 +256,6 @@ public class AppUtil {
 		}
 	}
 
-//	public static String parseHttpCodeAuthString(ServletRequest request) {
-//		if (request == null || !(request instanceof HttpServletRequest)) {
-//			logger.error(
-//					"parseHttpCodeAuthString() - request is null or not instanceof HttpServletRequest, return null... ");
-//			return null;
-//		}
-//		HttpServletRequest httpRequest = (HttpServletRequest) request;
-//		String code;
-//		try {
-//			code = httpRequest.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-//		} catch (IOException e) {
-//			logger.error(CommonUtil.getStackTrace(e));
-//			return null;
-//		}
-//		// logger.debug("verification code = " + code);
-//		return code;
-//	}
-
 	public static String getClientHost(HttpServletRequest request) {
 
 		String remoteHost = null;
@@ -357,12 +297,8 @@ public class AppUtil {
 
 	}
 
-	public static void setHttpResponse(HttpServletResponse httpResponse, int httpStatus, String statusCode,
-			String message) {
-		if (StringUtil.isEmptyOrNull(statusCode)) {
-			statusCode = "" + httpStatus;
-		}
-		BaseResponse jappBaseResponse = AppUtil.createResponse(BaseResponse.class, null, statusCode, message);
+	public static void setHttpResponse(HttpServletResponse httpResponse, int httpStatus, Status status, String customizedMessage) {
+		BaseResponse jappBaseResponse = AppUtil.createResponse(BaseResponse.class, null, status, customizedMessage);
 		Gson gson = new GsonBuilder().serializeNulls().create();
 		String jsonResponseStr = gson.toJson(jappBaseResponse);
 
@@ -397,84 +333,6 @@ public class AppUtil {
 
 	}
 
-//	public static SecondFactorInfo getSecondFactorInfoFromToken(String jwtToken) {
-//		SecondFactorInfo secondFactorInfo = new SecondFactorInfo();
-//		Map<String, Object> claims = parseJwtClaims(jwtToken);
-//		if (claims == null) {
-//			return null;
-//		}
-//		String tmpV = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED);
-//		// logger.debug("getSecondFactorInfoFromToken() - tmpV = " + tmpV);
-//		boolean isVerified = Boolean.valueOf(StringUtil.isEmptyOrNull(tmpV) ? "false" : tmpV);
-//
-//		String type = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE);
-//		String value = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE);
-//
-//		// logger.error("hashed 2nd factor value in token (1) - " + value);
-//
-//		tmpV = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT);
-//		int retryCount = Integer.valueOf((NumberUtils.isCreatable(tmpV) ? tmpV : "0"));
-//
-//		secondFactorInfo.setVerified(isVerified);
-//		secondFactorInfo.setType(StringUtil.isEmptyOrNull(type) ? AppConstant.IAA_2NDFACTOR_TYPE_NONE : type);
-//		secondFactorInfo.setValue(value);
-//		secondFactorInfo.setRetryCount(retryCount);
-//		return secondFactorInfo;
-//	}
-
-	public static Map<String, Object> parseJwtClaims(String jwtToken) {
-		try {
-			if (jwtToken == null || jwtToken.trim().isEmpty()) {
-				return null;
-			}
-			int idx = jwtToken.lastIndexOf('.');
-			String tokenWithoutSignature = jwtToken.substring(0, idx + 1);
-
-			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().parseClaimsJwt(tokenWithoutSignature);
-			Claims claims = jwtWithoutSignature.getBody();
-
-			Set<String> keySet = claims.keySet();
-			if (keySet == null || keySet.isEmpty()) {
-				return null;
-			}
-			Map<String, Object> map = new HashMap<String, Object>();
-			for (String key : keySet) {
-				map.put(key, claims.get(key));
-			}
-			return map;
-
-		} catch (Exception e) {
-			logger.error(CommonUtil.getStackTrace(e));
-			return null;
-		}
-
-	}
-
-	public static String getSubjectFromJwt(String jwtToken) {
-		try {
-			if (jwtToken == null || jwtToken.trim().isEmpty()) {
-				return null;
-			}
-			int idx = jwtToken.lastIndexOf('.');
-			String tokenWithoutSignature = jwtToken.substring(0, idx + 1);
-
-			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().parseClaimsJwt(tokenWithoutSignature);
-			Claims claims = jwtWithoutSignature.getBody();
-
-			String subject = claims.getSubject();
-			logger.info("subject ====== " + subject);
-			if (claims.containsKey("upn")) {
-				String upn = (String) claims.get("upn");
-				logger.info("convert subject to upn ====== " + upn);
-				subject = (String) claims.get("upn");
-			}
-			return subject;
-
-		} catch (Exception e) {
-			logger.error(CommonUtil.getStackTrace(e));
-			return null;
-		}
-	}
 	public static String getHttpRequestJsonBody (HttpServletRequest request) {
 		logger.debug("getHttpRequestJsonBody()...start........");
 		if (request == null) {
@@ -534,32 +392,25 @@ public class AppUtil {
 
 
 	public static void initTransactionContext(HttpServletRequest request) {
+		TransactionContext txnCtx = new TransactionContext();
+		String txId = UUID.randomUUID().toString();
+		// for log4j2
+		ThreadContext.put(AppConstant.CONTEXT_KEY_JAPPCORE_TX_ID, txId);
+
 		logger.debug("initTransactionContext()...init transaction context....begin....");
 		String errMsg = null;
 		if (request == null ) {
 			errMsg = "initTransactionContext() - request can not be null!" ;
 			logger.error(errMsg);
-			throw new RuntimeException(errMsg);
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
-		
-		//used during authentication process
-		ApiAuthInfo authInfo = AppComponents.commonService.getApiAuthInfo(request);
-		AppThreadContext.setApiAuthInfo(authInfo);
+		AppComponents.commonService.setValidatedAuthTokenClaimsAndApiAuthInfoContext(request);	
 		
 		//used during processing request
-		TransactionContext txnCtx = new TransactionContext();
-		String txId = UUID.randomUUID().toString();
 
 		txnCtx.setTransactionId(txId);
 		txnCtx.setRequestReceivedTimeStamp(new Timestamp(new Date().getTime()));
 		txnCtx.setServerTimezoneId(TimeZone.getDefault().getID());
-		
-//		String clientAppId = authInfo.useCoreAppIdAsClientAppId?null:authInfo.clientAppId;
-//		txnCtx.setClientAppId(clientAppId);
-//		txnCtx.setClientIP(authInfo==null?null:authInfo.clientIP);
-//		txnCtx.setClientHost(authInfo==null?null:authInfo.clientHost);
-//		txnCtx.setToken(authInfo==null?null:authInfo.token);
-//		txnCtx.setTokenNonce(authInfo==null?null:authInfo.tokenNonce);
 		
 		// for request processor
 		AppThreadContext.setTransactionContext(txnCtx);
@@ -567,7 +418,7 @@ public class AppUtil {
 		// for log4j2
 		ThreadContext.put(AppConstant.CONTEXT_KEY_JAPPCORE_TX_ID, txId);
 		
-		logger.debug("initTransactionContext()...init transaction context...end.....\ntxnCtx = " + txnCtx + "\nauthInfo = " + authInfo);
+		logger.debug("initTransactionContext()...init transaction context...end.....\ntxnCtx = " + txnCtx + "\nauthInfo = " + AppThreadContext.getApiAuthInfo());
 		
 	}
 

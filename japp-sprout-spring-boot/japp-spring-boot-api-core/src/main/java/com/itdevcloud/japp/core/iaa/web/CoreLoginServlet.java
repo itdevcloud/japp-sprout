@@ -26,6 +26,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -55,10 +56,10 @@ public class CoreLoginServlet extends javax.servlet.http.HttpServlet {
 		//AppUtil.initTransactionContext(request);
 
 		// App CIDR white list check begin
-		if (!AppComponents.commonService.matchAppIpWhiteList(request)) {
+		if (!AppComponents.commonService.matchClientAppIpWhiteList(request)) {
 			logger.error("Authorization Failed. Request IP is not on the App's IP white list, user IP = "
 					+ AppUtil.getClientIp(request) + ".....");
-			AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, "Authorization Failed.");
+			AppUtil.setHttpResponse(response, 403, Status.ERROR_SECURITY_AUTHENTICATION, "Authorization Failed.");
 			return;
 		}
 

@@ -19,14 +19,17 @@ package com.itdevcloud.japp.core.iaa.azure;
 import java.security.Key;
 import java.security.PublicKey;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
 import javax.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
-import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.core.common.JJwtTokenUtil;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.security.Hasher;
@@ -34,9 +37,6 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureException;
 
 /**
  *
@@ -53,26 +53,21 @@ public class AadIdTokenHandler implements TokenHandlerI {
 	}
 
 	@Override
-	public boolean isValidToken(String token, Map<String, String> claimEqualMatchMap, boolean ingoreNullInToken, String... args) {
+	public Map<String, Object> isValidToken(String token, Map<String, Object> claimEqualMatchMap, boolean ingoreNullInToken, String... args) {
 		try {
-			if (token == null || token.trim().isEmpty()) {
-				return false;
+			Header header = JJwtTokenUtil.parseJJwtHeaders(token);
+			if (header == null) {
+				return null;
 			}
-			int idx = token.lastIndexOf('.');
-			String tokenWithoutSignature = token.substring(0, idx + 1);
-
-			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().parseClaimsJwt(tokenWithoutSignature);
-			Header header = jwtWithoutSignature.getHeader();
-			Claims claims = jwtWithoutSignature.getBody();
-
 			String kid = (header.containsKey("kid") ? (String) header.get("kid") : null);
 			String x5t = (header.containsKey("x5t") ? (String) header.get("xt5") : null);
 			PublicKey publicKey = AppComponents.aadJwksCache.getAadPublicKey(kid, x5t);
-			boolean isValid = AppComponents.jwtService.isValidTokenByPublicKey(token, publicKey);
+			
+			Claims claims = JJwtTokenUtil.isValidJJwtTokenByPublicKey(token, publicKey);
 
-			if (!isValid) {
-				logger.error("idToken is not Valid..........");
-				return false;
+			if (claims == null) {
+				logger.error("token is not Valid..........");
+				return null;
 			}
 			String aud = claims.getAudience();
 			Date nbf = claims.getNotBefore();
@@ -82,63 +77,47 @@ public class AadIdTokenHandler implements TokenHandlerI {
 
 			if (clientId == null || !clientId.equals(aud)) {
 				logger.error("idToken aud claim is not valid.....");
-				return false;
+				return null;
 			}
 			if (exp == null || now.after(exp)) {
 				logger.error("idToken exp claim is not valid......");
-				return false;
+				return null;
 			}
 			if (nbf == null || now.before(nbf)) {
 				logger.error("idToken nbf claim is not valid.....");
-				return false;
+				return null;
 			}
-			return true;
+			Set<String> keySet = claims.keySet();
+			if (keySet == null || keySet.isEmpty()) {
+				logger.error("isValidTokenByPublicKey()......no claim found in the token!");
+				return null;
+			}
+			Map<String, Object> map = new HashMap<String, Object>();
+			for (String key : keySet) {
+				map.put(key, claims.get(key));
+			}
+			return map;
 
-		} catch (SignatureException e) {
+		} catch (Exception e) {
+			logger.error("token is not Valid......Error: " + e);
 			logger.error(e);
-			return false;
+			return null;
 		}
 
 	}
 
 	@Override
-	public IaaUserI getIaaUser(String token) {
+	public IaaUserI getIaaUserBasedOnToken(String token) {
 		try {
 			if (token == null || token.trim().isEmpty()) {
 				return null;
 			}
-			Map<String, Object> claims = AppUtil.parseJwtClaims(token);
-//			IaaUserI iaaUser = new DefaultIaaUser();
-//
-//			String aud = "" + claims.get(JWT_CLAIM_KEY_AUDIENCE);
-//			String nbf = "" + claims.get(JWT_CLAIM_KEY_NOT_BEFORE);
-//			String exp = "" + claims.get(JWT_CLAIM_KEY_EXPIRE);
-//			String name = "" + claims.get(JWT_CLAIM_KEY_NAME);
+			Map<String, Object> claims = JJwtTokenUtil.parseJwtClaims(token);
 			String email = "" + claims.get(JWT_CLAIM_KEY_EMAIL);
-//			String phone = "" + claims.get(JWT_CLAIM_KEY_PHONE);
-//			String iss = "" + claims.get(JWT_CLAIM_KEY_ISSUER);
-//			String busRoles = "" + claims.get(JWT_CLAIM_KEY_BUS_ROLES);
-//			String appRoles = "" + claims.get(JWT_CLAIM_KEY_APP_ROLES);
-//			String authGroups = "" + claims.get(JWT_CLAIM_KEY_AUTH_GROUPS);
-//			String mfaStatus = "" + claims.get(JWT_CLAIM_KEY_MFA_STATUS);
-//			String idp = "" + claims.get(JWT_CLAIM_KEY_IDENTITY_PROVIDER);
 			String sub = "" + claims.get(JWT_CLAIM_KEY_SUBJECT);
 			String upn = "" + claims.get(JWT_CLAIM_KEY_AAD_USERNAME);
 			String nonce = "" + claims.get(JWT_CLAIM_KEY_AAD_NONCE);
-//			String uid = "" + claims.get(JWT_CLAIM_KEY_UID);
 
-//			iaaUser.setEmail(email);
-//			iaaUser.setName(name);
-//			iaaUser.setBusinessRoles(null);
-//			iaaUser.setApplicationRoles(null);
-//			iaaUser.setAuthGroups(null);
-//			iaaUser.setPhone(phone);
-//			iaaUser.setApplicationId(aud);
-//			iaaUser.setIdentityProvider(idp);
-//			iaaUser.setSystemUid(uid);
-//			iaaUser.setUserType(authGroups);
-//			iaaUser.setMfaStatus(mfaStatus);
-			
 			String loginId = null;
 			logger.info("subject: " + sub + ", upn=" + upn + "......");
 			if (!StringUtil.isEmptyOrNull(upn) && (upn.indexOf("@") != -1)) {
@@ -156,7 +135,7 @@ public class AadIdTokenHandler implements TokenHandlerI {
 			}
 			return iaaUser;
 
-		} catch (SignatureException e) {
+		} catch (Exception e) {
 			logger.error(e);
 			return null;
 		}
@@ -176,5 +155,24 @@ public class AadIdTokenHandler implements TokenHandlerI {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public Map<String, Object> parseTokenHeaders(String token) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> parseTokenClaims(String token) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> isValidTokenByPublicKey(String token, PublicKey publicKey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 }

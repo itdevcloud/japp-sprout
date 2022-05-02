@@ -40,11 +40,6 @@ import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureException;
 /**
  *
  * @author Marvin Sun
@@ -53,32 +48,48 @@ import io.jsonwebtoken.SignatureException;
 
 @Component
 public class JwtService implements AppFactoryComponentI {
+	
 	private static final Logger logger = LogManager.getLogger(JwtService.class);
-
+	private TokenHandlerI coreTokenHandler = null;
 
 	@PostConstruct
 	public void init() {
 	}
 
 	public TokenHandlerI getTokenHandler() {
-
-		String handlerName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME);
-		TokenHandlerI tokenHandler = AppFactory.getTokenHandler(handlerName);
-		if(tokenHandler == null) {
-			logger.error("Can't find access token handler by name: " + handlerName + ", check configuration file! JappApiLocalTokenHandler instead......... ");
-			tokenHandler = AppFactory.getTokenHandler(AppLocalTokenHandler.class.getSimpleName());
+		if(coreTokenHandler == null) {
+			String handlerName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME);
+			coreTokenHandler = AppFactory.getTokenHandler(handlerName);
+			if(coreTokenHandler == null) {
+				logger.error("Can't find access token handler by name: " + handlerName + ", check configuration file! JappApiLocalTokenHandler instead......... ");
+				coreTokenHandler = AppFactory.getTokenHandler(AppLocalTokenHandler.class.getSimpleName());
+			}
 		}
-		return tokenHandler;
+		return coreTokenHandler;
 	}
 	
-	public boolean isValidToken(String token, Map<String, String> claimEqualMatchMap, boolean ingoreNullInToken, String... args ) {
+	public Map<String, Object> parseTokenHeaders(String token) {
+		TokenHandlerI tokenHandler = getTokenHandler();
+		return tokenHandler.parseTokenHeaders(token);
+	}
+	public Map<String, Object> parseTokenClaims(String token) {
+		TokenHandlerI tokenHandler = getTokenHandler();
+		return tokenHandler.parseTokenClaims(token);
+	}
+	
+	public String getAccessToken(String token) {
+		TokenHandlerI tokenHandler = getTokenHandler();
+		return tokenHandler.getAccessToken(token);
+	}
+	
+	public Map<String, Object> isValidToken(String token, Map<String, Object> claimEqualMatchMap, boolean ingoreNullInToken, String... args ) {
 		TokenHandlerI tokenHandler = getTokenHandler();
 		return tokenHandler.isValidToken(token, claimEqualMatchMap, ingoreNullInToken, args );
 	}
 	
-	public IaaUserI getIaaUser(String token) {
+	public IaaUserI getIaaUserBasedOnToken(String token) {
 		TokenHandlerI tokenHandler = getTokenHandler();
-		return tokenHandler.getIaaUser(token);
+		return tokenHandler.getIaaUserBasedOnToken(token);
 	}
 
 	public String issueToken(IaaUserI iaaUser, String tokenType, Map<String, Object> customClaimMap) {
@@ -95,35 +106,16 @@ public class JwtService implements AppFactoryComponentI {
 		return tokenHandler.issueToken(iaaUser, tokenType, privateKey, -1, customClaimMap);
 	}
 	
-	
-	public boolean isValidTokenByPublicKey(String token, PublicKey publicKey) {
-		logger.debug("isValidTokenByPublicKey.............begin....");
-		if (token == null || publicKey == null) {
-			return false;
-		}
-		try {
-			Jws<Claims> jwts = Jwts.parser().setSigningKey(publicKey).parseClaimsJws(token);
-			Claims claims = jwts.getBody();
-			String subject = claims.getSubject();
-			logger.info("subject ====== " + subject);
-			if (claims.containsKey("upn")) {
-				String upn = (String) claims.get("upn");
-				logger.info("convert subject to upn ====== " + upn);
-				subject = (String) claims.get("upn");
-			}
-			//AppThreadContext.setTokenSubject(subject);
-			return true;
-		} catch (SignatureException e) {
-			logger.error(e);
-			return false;
-		}
+	public Map<String, Object>  isValidTokenByPublicKey(String token, PublicKey publicKey) {
+		TokenHandlerI tokenHandler = getTokenHandler();
+		return tokenHandler.isValidTokenByPublicKey(token, publicKey);
 
 	}
 
-	public boolean isValidTokenByCertificate(String token, InputStream certificate) {
-		logger.debug("isValidTokenByCertificate.............begin....");
+	public Map<String, Object> isValidTokenByCertificate(String token, InputStream certificate) {
 		if (token == null || certificate == null) {
-			return false;
+			logger.error("isValidTokenByCertificate() - token and/or certificate is null ..........");
+			return null;
 		}
 		BufferedInputStream bis = new BufferedInputStream(certificate);
 		CertificateFactory cf = null;
@@ -132,7 +124,7 @@ public class JwtService implements AppFactoryComponentI {
 		try {
 			while (bis.available() <= 0) {
 				logger.error("invalid x509 certificate..............");
-				return false;
+				return null;
 			}
 			cf = CertificateFactory.getInstance("X.509");
 			cert = cf.generateCertificate(bis);
@@ -143,17 +135,18 @@ public class JwtService implements AppFactoryComponentI {
 			certificate = null;
 
 		} catch (IOException e1) {
+			logger.error("can not load x509 certificate.....Error: " + e1);
 			logger.error(e1);
-			return false;
+			return null;
 		} catch (CertificateException e) {
+			logger.error("can not load x509 certificate......Error: " + e);
 			logger.error(e);
-			return false;
+			return null;
 		}
 		
 //		logger.debug("Certificate===========" + cert.toString());
 		PublicKey publicKey = cert.getPublicKey();
 //		logger.debug("pubic key===========" + publicKey.toString());
-
 		return isValidTokenByPublicKey(token, publicKey);
 
 	}

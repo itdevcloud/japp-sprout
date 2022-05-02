@@ -33,7 +33,9 @@ import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -76,32 +78,23 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 			logger.info("RequestProcessor process begin,  LoginId = '" + getLoginId() + "', TransactionContext = " + txnCtx + "......");
 			if (request == null) {
 				response = AppUtil.createResponse(responseClass, "N/A",
-						ResponseStatus.STATUS_CODE_ERROR_VALIDATION, " request parameter is null!");
+						Status.ERROR_VALIDATION, " request parameter is null!");
 				return response;
 			}
 			//check role
 			if(!AppComponents.iaaService.isAccessAllowed(getTargetRole(responseClass))) {
 				String simpleName = this.getClass().getSimpleName();
 				T commandResponse = AppUtil
-						.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_ERROR_SECURITY_NOT_AUTHORIZED, getLoginId() + " not authorized: " + simpleName);
+						.createResponse(responseClass, request.getCommand(), Status.ERROR_SECURITY_AUTHORIZATION, getLoginId() + " not authorized: " + simpleName);
 				response = commandResponse;
 				return response;
 		    }
-			//check clientAppId in context and in request
-			ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
-			if(!apiAuthInfo.clientAppId.equalsIgnoreCase(request.getClientAppId())){
-				logger.error("ClientAppId in Tx Context (" + apiAuthInfo.clientAppId + ") is different fron clientAppId in request (" + request.getClientAppId() + ") !");
-				String simpleName = this.getClass().getSimpleName();
-				T commandResponse = AppUtil
-						.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_ERROR_VALIDATION, apiAuthInfo.clientAppId + " not same as clientAppId in request: " + request.getClientAppId());
-				response = commandResponse;
-				return response;
-			}
+			
 			response = (T) processRequest(request);
 			if(response == null) {
 				String simpleName = this.getClass().getSimpleName();
 				T commandResponse = AppUtil
-						.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_NA, simpleName + " returns null response object");
+						.createResponse(responseClass, request.getCommand(), Status.ERROR_SYSTEM_ERROR, simpleName + " returns null response object");
 				response = commandResponse;
 			}
 			response.populateReuqstInfo(request);
@@ -109,11 +102,20 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 			long endTS = System.currentTimeMillis();
 			logger.info("RequestProcessor process end - total time = " + (endTS - startTS) + " millis. LoginId = '" + getLoginId() + "', TransactionContext = " + txnCtx + "......");
 
-		} catch (Throwable t) {
+		} catch (AppException ae) {
+			ae.printStackTrace();
+			logger.error(ae.getMessage());
+			T commandResponse = AppUtil
+					.createResponse(responseClass, request.getCommand(), ae.getStatus(), ae.getMessage());
+			response = commandResponse;
+			if(request != null) {
+				response.populateReuqstInfo(request);
+			}
+		}  catch (Throwable t) {
 			t.printStackTrace();
 			logger.error(t.getMessage(), t);
 			T commandResponse = AppUtil
-					.createResponse(responseClass, request.getCommand(), ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, t.getMessage());
+					.createResponse(responseClass, request.getCommand(), Status.ERROR_SYSTEM_ERROR, t.getMessage());
 			response = commandResponse;
 			if(request != null) {
 				response.populateReuqstInfo(request);

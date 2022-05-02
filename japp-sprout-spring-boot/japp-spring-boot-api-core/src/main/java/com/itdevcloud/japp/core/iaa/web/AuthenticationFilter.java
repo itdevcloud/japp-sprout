@@ -40,6 +40,7 @@ import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
@@ -53,28 +54,15 @@ import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.core.service.notification.SystemNotification;
 import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
 import com.itdevcloud.japp.se.common.security.Hasher;
-import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
+import io.jsonwebtoken.Claims;
+
 /**
- * This Servlet Filter provides the support for verifying that each incoming
- * http request includes a valid JWT and it is a valid request.
- * <p>
- * First, this filter checks CIDR whitelist of this application. Then it checks
- * whether the JWT in each http request's header is valid or not. If this is a
- * valid token, then it will check whether this is an authorized user or not.
- * Finally, this filter will check CIDR whitelist of the user. If this request
- * passes all checks, that means this user is an authorized user. the filter
- * will continue to process the request, otherwise, it will return 401 or 403
- * Error to the client.
- * <p>
- * This Filter's url pattern is "/${apiroot}/api/*". All requests with url
- * beginning with "api" will trigger this filter. If you need a api service to
- * bypass this filter, define this api's url not starting with "api".
- * <p>
+ * This Servlet Filter applies to all requests to the application.
+ * 
  * This Filter logs the total processing time. If it is too long, a performance
  * alert/warning will be sent.
- * 
  * 
  * @author Marvin Sun
  * @since 1.0.0
@@ -97,28 +85,30 @@ public class AuthenticationFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
-
-		HttpServletRequest originalHttpRequest = (HttpServletRequest) request;
-		HttpServletResponse httpResponse = (HttpServletResponse) response;
-        		
-       // logger.info("=========0000000=======originalHttpRequest============="+CommonUtil.enumerationToStringForPrint(originalHttpRequest.getParameterNames(), 0));
-		CachedHttpServletRequest httpRequest = new CachedHttpServletRequest(originalHttpRequest);
-       // logger.info("=========0000000======httpRequest============="+CommonUtil.enumerationToStringForPrint(httpRequest.getParameterNames(), 0));
 		
-		// move to SpecialCharacterFilter
-		AppUtil.initTransactionContext(httpRequest);
-
+		CachedHttpServletRequest httpRequest = null;
+		HttpServletResponse httpResponse = null;
+		
 		try {
+			HttpServletRequest originalHttpRequest = (HttpServletRequest) request;
+			httpResponse = (HttpServletResponse) response;
+	        
+			//this cached class enables multi-times request body reading		
+			httpRequest = new CachedHttpServletRequest(originalHttpRequest);
+			
+			AppUtil.initTransactionContext(httpRequest);
+
 			logger.debug("AuthenticationFilter.doFilter() start ========>" + httpRequest.getRequestURI());
 			ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
+			Map<String, Object> authTokenClaims = AppThreadContext.getAuthTokenClaims();
 			
 			String errMessage = null;
 			// App CIDR white list check begin
-			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
-				errMessage = "Authorization Failed. Request IP is not in the APP's IP white list, user IP = "
-						+ AppUtil.getClientIp(httpRequest) + ".....";
+			if (!AppComponents.commonService.matchClientAppIpWhiteList(httpRequest)) {
+				errMessage = "Request IP is not in the client app's IP white list, user IP = "
+						+ apiAuthInfo.clientIP + ".....";
 				logger.error(errMessage);
-				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
+				AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
 				return;
 			}
 			long startTS = System.currentTimeMillis();
@@ -156,85 +146,72 @@ public class AuthenticationFilter implements Filter {
 			if (!(isExcluded || (!enableAuth
 					&& !AppConstant.JAPPCORE_SPRING_ACTIVE_PROFILE_PROD.equalsIgnoreCase(activeProfile)))) {
 				// verify JWT from a header,
-				String token = AppUtil.getJwtTokenFromRequest(httpRequest);
-				try {
-					if (StringUtil.isEmptyOrNull(token)) {
-						errMessage = "Authorization Failed. Token is null.....";
-						logger.error(errMessage);
-						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
-						return;
-					}
-					
-					String nonce = apiAuthInfo.tokenNonce;
-					String userIp = apiAuthInfo.clientIP;
-					String clientAppId = apiAuthInfo.clientAppId;
-					String clientAuthKey = apiAuthInfo.clientAuthKey;
-					
-					Map<String, String> claimEqualMatchMap = new HashMap<String,String>();
-					//must be access token
-					claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_TOKEN_TYPE, TokenHandlerI.TYPE_ACCESS_TOKEN);
-					
-					//Force to check nonce and ip if token has them as claims
-					if (!StringUtil.isEmptyOrNull(userIp)) {
-						claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, Hasher.hashPassword(userIp));
-					}else {
-						claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, null);
-					}
-					if (!StringUtil.isEmptyOrNull(nonce)) {
-						claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_NONCE, Hasher.hashPassword(nonce));
-					}else {
-						claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_NONCE, null);
-					}
-					//if token doesn't has nonce or IP, ignore them
-					iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token, claimEqualMatchMap, true);
-					if (iaaUser == null) {
-						errMessage = "Authorization Failed. Can not retrieve iaaUser";
-						logger.error(errMessage);
-						httpResponse.setStatus(403);
-						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
-						return;
-					}
-					//add nonce and uerip
-					iaaUser.setHashedNonce(Hasher.hashPassword(nonce));
-					iaaUser.setHashedUserIp(Hasher.hashPassword(userIp));
-					
-					iaaUser.setClientAppId(clientAppId);
-					iaaUser.setClientAuthKey(clientAuthKey);
-					
-					// Application role list check
-					if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
-						errMessage = "Authorization Failed. Requestor's role does not match APP role list";
-						logger.error(errMessage);
-						httpResponse.setStatus(403);
-						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
-						return;
-					}
-					// CIDR white list check begin
-					if (!AppComponents.commonService.matchUserIpWhiteList(httpRequest, iaaUser)) {
-						errMessage = "Authorization Failed. Requestor's IP does not on user's IP white list. user loginId: '" 
-									+ iaaUser.getLoginId() + "', IP = " + AppUtil.getClientIp(httpRequest);
-						logger.error(errMessage);
-						httpResponse.setStatus(403);
-						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errMessage);
-						return;
-					}
-					// handle maintenance mode
-					if (AppComponents.commonService.inMaintenanceMode(httpResponse, iaaUser.getLoginId())) {
-						return;
-					}
-				} catch (AppException e) {
-					String errStr = "AuthenticationFilter process request failed: " + e.getMessage();
-					logger.error(errStr);
-					AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, errStr);
+				if (authTokenClaims == null) {
+					errMessage = "Token is null or not valid.....";
+					logger.error(errMessage);
+					AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
 					return;
 				}
-				// SecondFactorInfo secondFactorInfo =
-				// AppUtil.getSecondFactorInfoFromToken(token);
-				// String newToken = AppComponents.iaaService.issueToken(iaaUser,
-				// secondFactorInfo);
-				// httpResponse.addHeader("Token", newToken);
-//				 httpResponse.addHeader("Access-Control-Allow-Origin",
-//				 authParameters.getAngularOrigin());
+				//initial context does NOT verify token signature if it find there is auth token in header
+				String token = apiAuthInfo.token;
+				String nonce = apiAuthInfo.tokenNonce;
+				String userIp = apiAuthInfo.clientIP;
+				String clientAppId = apiAuthInfo.clientAppId;
+				String clientAuthKey = apiAuthInfo.clientAuthKey;
+				
+				Map<String, Object> claimEqualMatchMap = new HashMap<String, Object>();
+				//must be access token
+				claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_TOKEN_TYPE, TokenHandlerI.TYPE_ACCESS_TOKEN);
+				
+				//Force to check nonce and ip if token has them as claims
+				if (!StringUtil.isEmptyOrNull(userIp)) {
+					claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, Hasher.hashPassword(userIp));
+				}else {
+					claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, null);
+				}
+				if (!StringUtil.isEmptyOrNull(nonce)) {
+					claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_NONCE, Hasher.hashPassword(nonce));
+				}else {
+					claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_NONCE, null);
+				}
+				//if token doesn't has nonce or IP, ignore them
+				iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token, claimEqualMatchMap, true);
+				if (iaaUser == null) {
+					errMessage = "Authorization Failed. Can not retrieve iaaUser";
+					logger.error(errMessage);
+					httpResponse.setStatus(403);
+					AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
+					return;
+				}
+				//add nonce and uerip
+				iaaUser.setHashedNonce(Hasher.hashPassword(nonce));
+				iaaUser.setHashedUserIp(Hasher.hashPassword(userIp));
+				
+				iaaUser.setClientAppId(clientAppId);
+				iaaUser.setClientAuthKey(clientAuthKey);
+				
+				// Application role list check
+				if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
+					errMessage = "Requestor's role does not match APP role list";
+					logger.error(errMessage);
+					httpResponse.setStatus(403);
+					AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
+					return;
+				}
+				// CIDR white list check begin
+				if (!AppComponents.commonService.matchUserIpWhiteList(httpRequest, iaaUser)) {
+					errMessage = "Requestor's IP does not on user's IP white list. user loginId: '" 
+								+ iaaUser.getLoginId() + "', IP = " + AppUtil.getClientIp(httpRequest);
+					logger.error(errMessage);
+					httpResponse.setStatus(403);
+					AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
+					return;
+				}
+				// handle maintenance mode
+				if (AppComponents.commonService.inMaintenanceMode(httpResponse, iaaUser.getLoginId())) {
+					return;
+				}
+			
 				httpResponse.addHeader("Access-Control-Allow-Headers",
 						"X-Requested-With,Origin,Content-Type, Accept, Token");
 				httpResponse.addHeader("Access-Control-Expose-Headers", "Token");
@@ -290,6 +267,18 @@ public class AuthenticationFilter implements Filter {
 				AppComponents.systemNotifyService.addNotification(sn);
 			}
 			logger.info(infoStr);
+		} catch (AppException ae) {
+			String errStr = "AuthenticationFilter process request failed: ResponseStatus:" + ae.getMessage();
+			logger.error(errStr);
+			AppUtil.setHttpResponse(httpResponse, 403, ae.getStatus(), errStr);
+			return;
+			
+		} catch (Throwable t) {
+			String errStr = "AuthenticationFilter process request failed: " + t.getMessage();
+			logger.error(errStr);
+			AppUtil.setHttpResponse(httpResponse, 500, Status.ERROR_SYSTEM_ERROR, errStr);
+			return;
+			
 		} finally{
 			AppUtil.clearTransactionContext();
 		}

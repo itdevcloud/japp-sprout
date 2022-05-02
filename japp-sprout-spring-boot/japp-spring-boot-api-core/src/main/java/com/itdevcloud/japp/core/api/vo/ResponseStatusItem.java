@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.itdevcloud.japp.se.common.service.PropertyManager;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 
 /**
  *
@@ -79,6 +80,11 @@ public class ResponseStatusItem implements Serializable {
 			this.itemProperties = new HashMap<String, String>();
 		}
 		this.itemProperties.put(key, value);
+	}
+
+	@Override
+	public String toString() {
+		return "ResponseStatusItem [itemCode=" + itemCode + ", itemMessage=" + itemMessage + CommonUtil.mapToStringForPrint(itemProperties, 0) + "]";
 	}
 
 }

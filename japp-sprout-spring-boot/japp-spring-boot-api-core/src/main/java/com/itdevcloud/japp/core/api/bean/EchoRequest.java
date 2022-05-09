@@ -39,6 +39,11 @@ public class EchoRequest extends BaseRequest {
 		this.message = message;
 	}
 
+	@Override
+	public String toString() {
+		return "EchoRequest [message=" + message + ", Super =" + super.toString() + "] ";
+	}
+
 
 
 

@@ -46,6 +46,10 @@ public class  EncryptTextRequest extends BaseRequest {
 	public void setSymmetric(boolean symmetric) {
 		this.symmetric = symmetric;
 	}
+	@Override
+	public String toString() {
+		return "EncryptTextRequest [clearText=" + clearText + ", symmetric=" + symmetric + ", Super =" + super.toString() + "] ";
+	}
 
 
 

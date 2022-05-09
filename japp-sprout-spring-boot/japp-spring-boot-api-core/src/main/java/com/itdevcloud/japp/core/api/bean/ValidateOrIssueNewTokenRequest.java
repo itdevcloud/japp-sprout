@@ -23,6 +23,8 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 
 @Component
 public class  ValidateOrIssueNewTokenRequest extends BaseRequest {
@@ -63,6 +65,12 @@ public class  ValidateOrIssueNewTokenRequest extends BaseRequest {
 	}
 	public void setNewTokenType(String newTokenType) {
 		this.newTokenType = newTokenType;
+	}
+	@Override
+	public String toString() {
+		return "ValidateOrIssueNewTokenRequest [currentToken=" + (StringUtil.isEmptyOrNull(currentToken)?null:"*") + ", currentTokenNonce="
+				+ currentTokenNonce + ", currentTokenIssuer=" + currentTokenIssuer + ", currentTokenUserIP="
+				+ currentTokenUserIP + ", newTokenType=" + newTokenType + ", Super =" + super.toString() + "] ";
 	}
 
 

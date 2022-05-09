@@ -50,9 +50,9 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  */
 
 @WebServlet(name = "logoutServlet", urlPatterns = "/logout")
-public class LogoutServlet extends javax.servlet.http.HttpServlet {
+public class CoreLogoutServlet extends javax.servlet.http.HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private static final Logger logger = LogManager.getLogger(LogoutServlet.class);
+	private static final Logger logger = LogManager.getLogger(CoreLogoutServlet.class);
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {

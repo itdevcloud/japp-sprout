@@ -24,6 +24,8 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 
 @Component
 public class ValidateOrIssueNewTokenResponse extends BaseResponse {
@@ -48,6 +50,12 @@ public class ValidateOrIssueNewTokenResponse extends BaseResponse {
 
 	public void setNewToken(String newToken) {
 		this.newToken = newToken;
+	}
+
+	@Override
+	public String toString() {
+		return "ValidateOrIssueNewTokenResponse [isValidToken=" + isValidToken + ", newToken=" + (StringUtil.isEmptyOrNull(newToken)?null:"*")
+				+ ", Super =" + super.toString() + "] ";
 	}
 
 

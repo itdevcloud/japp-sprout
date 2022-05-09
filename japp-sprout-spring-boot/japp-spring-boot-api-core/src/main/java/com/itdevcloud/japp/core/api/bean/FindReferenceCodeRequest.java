@@ -73,6 +73,11 @@ public class FindReferenceCodeRequest extends BaseRequest {
 	public void setParentCode(String parentCode) {
 		this.parentCode = parentCode;
 	}
+	@Override
+	public String toString() {
+		return "FindReferenceCodeRequest [Id=" + Id + ", type=" + type + ", code=" + code + ", parentId=" + parentId
+				+ ", parentType=" + parentType + ", parentCode=" + parentCode + ", Super =" + super.toString() + "] ";
+	}
 
 
 }

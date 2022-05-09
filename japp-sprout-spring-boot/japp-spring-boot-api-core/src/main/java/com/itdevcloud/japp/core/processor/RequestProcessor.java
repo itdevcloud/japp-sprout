@@ -42,6 +42,7 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ProcessorTargetRoleUtil;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public abstract class RequestProcessor implements AppFactoryComponentI {
 
@@ -61,11 +62,15 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 		return iaaUser;
 	}
 	
-	public <T extends BaseResponse> String getTargetRole(Class<T> responseClass) {
-		if(responseClass == null) {
+	public String getTargetRole(String classSimpleName) {
+		if(StringUtil.isEmptyOrNull(classSimpleName) ) {
 			return null;
 		}
-		String command = AppUtil.getCorrespondingCommand(responseClass.getSimpleName());
+		String command = AppUtil.getCorrespondingCommand(classSimpleName);
+		if(StringUtil.isEmptyOrNull(command)) {
+			String errMsg = "getTargetRole() - can not get command from classSimpleName = " + classSimpleName;
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
+		}
 		String processorName = command + AppUtil.PROCESSOR_POSTFIX;
 		return ProcessorTargetRoleUtil.getTargetRole(processorName);
 	}
@@ -82,7 +87,7 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 				return response;
 			}
 			//check role
-			if(!AppComponents.iaaService.isAccessAllowed(getTargetRole(responseClass))) {
+			if(!AppComponents.iaaService.isAccessAllowed(getTargetRole(request.getClass().getSimpleName()))) {
 				String simpleName = this.getClass().getSimpleName();
 				T commandResponse = AppUtil
 						.createResponse(responseClass, request.getCommand(), Status.ERROR_SECURITY_AUTHORIZATION, getLoginId() + " not authorized: " + simpleName);

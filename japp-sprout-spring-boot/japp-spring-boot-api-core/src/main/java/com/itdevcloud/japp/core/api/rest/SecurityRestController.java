@@ -32,6 +32,8 @@ import com.itdevcloud.japp.core.api.bean.SignTextResponse;
 import com.itdevcloud.japp.core.api.bean.VerifySignatureRequest;
 import com.itdevcloud.japp.core.api.bean.VerifySignatureResponse;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppConstant;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -43,6 +45,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RestController
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT
 		+ "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+@SecurityRequirement(name = AppConstant.JAPPCORE_OPENAPI_CORE_SECURITY_SCHEMA_NAME)
 public class SecurityRestController extends BaseRestController {
 
 	@Operation(summary = "Encrypt Text Request", description = "Encrypt Text", tags = { "Core-Security" }, security = {
@@ -58,8 +61,7 @@ public class SecurityRestController extends BaseRestController {
 		return response;
 	}
 
-	@Operation(summary = "Decrypt Text Request", description = "Decrypt Text", tags = { "Core-Security" }, security = {
-			@SecurityRequirement(name = "core-bear-jwt") })
+	@Operation(summary = "Decrypt Text Request", description = "Decrypt Text", tags = { "Core-Security" })
 
 	@PostMapping("/api/core/decryption")
 	DecryptTextResponse decryptText(@RequestBody DecryptTextRequest request) {
@@ -71,8 +73,7 @@ public class SecurityRestController extends BaseRestController {
 		return response;
 	}
 
-	@Operation(summary = "Sign Text Request", description = "Sign Text", tags = { "Core-Security" }, security = {
-			@SecurityRequirement(name = "core-bear-jwt") })
+	@Operation(summary = "Sign Text Request", description = "Sign Text", tags = { "Core-Security" })
 
 	@PostMapping("/api/core/sign")
 	SignTextResponse signText(@RequestBody SignTextRequest request) {
@@ -84,8 +85,7 @@ public class SecurityRestController extends BaseRestController {
 		return response;
 	}
 
-	@Operation(summary = "Verify Signature Request", description = "Verify Signature Text", tags = { "Core-Security" }, security = {
-			@SecurityRequirement(name = "core-bear-jwt") })
+	@Operation(summary = "Verify Signature Request", description = "Verify Signature Text", tags = { "Core-Security" })
 
 	@PostMapping("/api/core/signatureVerification")
 	VerifySignatureResponse signatureVerification(@RequestBody VerifySignatureRequest request) {

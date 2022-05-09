@@ -25,6 +25,8 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
+import io.netty.util.internal.StringUtil;
+
 
 @Component
 public class  BasicAuthRequest extends BaseRequest {
@@ -33,6 +35,7 @@ public class  BasicAuthRequest extends BaseRequest {
 
 	private String loginId;
 	private String password;
+	//Base Request defines toekn nonce
 	
 	
 	public String getLoginId() {
@@ -47,5 +50,11 @@ public class  BasicAuthRequest extends BaseRequest {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	
+	@Override
+	public String toString() {
+		return "BasicAuthRequest [loginId=" + loginId + ", password=" + (StringUtil.isNullOrEmpty(password)?null:"*") + ", Super =" + super.toString() + "] ";
+	}
 
+	
 }

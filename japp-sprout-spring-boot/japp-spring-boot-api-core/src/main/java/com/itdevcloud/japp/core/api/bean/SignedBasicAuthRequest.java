@@ -24,6 +24,8 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 @Component
 public class SignedBasicAuthRequest extends BaseRequest {
 
@@ -57,6 +59,11 @@ public class SignedBasicAuthRequest extends BaseRequest {
 	}
 	public void setClientPkiKey(String clientPkiKey) {
 		this.clientPkiKey = clientPkiKey;
+	}
+	@Override
+	public String toString() {
+		return "SignedBasicAuthRequest [loginId=" + loginId + ", password=" + (StringUtil.isEmptyOrNull(password)?null:"*") + ", clientPkiKey="
+				+ clientPkiKey + ", signature=" + signature + ", Super =" + super.toString() + "] ";
 	}
 	
 

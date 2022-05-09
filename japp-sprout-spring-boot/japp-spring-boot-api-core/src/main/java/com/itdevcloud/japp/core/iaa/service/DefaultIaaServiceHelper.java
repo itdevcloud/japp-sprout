@@ -40,6 +40,7 @@ import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.se.common.util.FileUtil;
@@ -150,8 +151,9 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 	@Override
 	public List<ClientAppInfo> getClientAppInfoList() {
 		List<ClientAppInfo> appInfoList = new ArrayList<ClientAppInfo>();
-		
-		Map<String, String> fnMap = FileUtil.getFileListingInClassPath(FileUtil.class, "client", false, null);
+		String env = AppUtil.getSpringActiveProfile();
+		String path = "client/" + env;
+		Map<String, String> fnMap = FileUtil.getFileListingInClassPath(FileUtil.class, path, false, null);
 		Set<String> simpleNameSet = fnMap.keySet();
 		
 		for(String fn: simpleNameSet) {
@@ -159,7 +161,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 			InputStream inputStream = null;
 			StringBuilder sb = new StringBuilder();
 			try {
-				inputStream = ClientAuthInfo.class.getResourceAsStream("/client/" + fn);
+				inputStream = ClientAuthInfo.class.getResourceAsStream("/" + path + "/" + fn);
 				if (inputStream == null) {
 					throw new Exception("can not load " + fn + ", check code!.......");
 				}

@@ -77,6 +77,11 @@ public class BaseRequest implements Serializable, AppFactoryComponentI {
 	}
 
 
+	@Override
+	public String toString() {
+		return "BaseRequest [command=" + command + ", clientAppId=" + clientAppId + ", clientTxId=" + clientTxId
+				+ ", tokenNonce=" + tokenNonce + "]";
+	}
 
 
 

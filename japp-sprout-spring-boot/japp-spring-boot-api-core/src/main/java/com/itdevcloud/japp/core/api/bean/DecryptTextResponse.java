@@ -40,6 +40,11 @@ public class DecryptTextResponse extends BaseResponse {
 		this.decryptedText = decryptedText;
 	}
 
+	@Override
+	public String toString() {
+		return "DecryptTextResponse [decryptedText=" + decryptedText + ", Super =" + super.toString() + "] ";
+	}
+
 
 
 }

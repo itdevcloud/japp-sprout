@@ -38,5 +38,10 @@ public class GetCertificateRequest extends BaseRequest {
 		this.insertLineSeparator = insertLineSeparator;
 	}
 
+	@Override
+	public String toString() {
+		return "GetCertificateRequest [insertLineSeparator=" + insertLineSeparator + ", Super =" + super.toString() + "] ";
+	}
+
 
 }

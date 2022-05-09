@@ -50,6 +50,7 @@ public class AppConstant {
 	public static final String JAPPCORE_SPRING_ACTIVE_PROFILE_PROD = "PROD";
 	public static final String JAPPCORE_CLIENT_APP_ID = "CoreApp";
 	public static final String JAPPCORE_CLIENT_APP_NAME = "CoreApp";
+	public static final String JAPPCORE_OPENAPI_CORE_SECURITY_SCHEMA_NAME = "core-bear-jwt";
 
 	public static final String ASYNC_EXECUTOR_REJECT_POLICY_DEFAULT = "default";
 	public static final String ASYNC_EXECUTOR_REJECT_POLICY_CALLERRUN = "callerrun";

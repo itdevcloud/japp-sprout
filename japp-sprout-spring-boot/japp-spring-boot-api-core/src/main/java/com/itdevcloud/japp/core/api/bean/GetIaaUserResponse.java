@@ -45,6 +45,11 @@ public class GetIaaUserResponse extends BaseResponse {
 		this.iaaUser = iaaUser;
 	}
 
+	@Override
+	public String toString() {
+		return "GetIaaUserResponse [iaaUser=" + iaaUser + ", Super =" + super.toString() + "] ";
+	}
+
 
 
 

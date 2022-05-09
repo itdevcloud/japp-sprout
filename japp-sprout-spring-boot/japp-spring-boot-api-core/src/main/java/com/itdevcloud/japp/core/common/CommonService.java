@@ -503,7 +503,7 @@ public class CommonService implements AppFactoryComponentI {
 			throw new AppException(Status.ERROR_VALIDATION, errMsg);
 		}
 		
-		if(!CommonUtil.haveSameValue(true, true, jsonRequestClientAppId, tokenClientAppId, paraClientAppId)) {
+		if(!CommonUtil.haveSameValue(true, true, jsonRequestClientAuthKey, tokenClientAuthKey, paraClientAuthKey)) {
 			errMsg = "setValidatedAuthTokenClaimsAndApiAuthInfoContext() - clientAuthKey come from request body, request header/cookie/query and token are different! " 
 			+ "tokenClientAuthKey = " + tokenClientAuthKey
 			+ ", paraClientAuthKey = " + paraClientAuthKey
@@ -541,7 +541,7 @@ public class CommonService implements AppFactoryComponentI {
 		}
 
 		//clientAppId and ClientAuthKey won't be null
-		//token nonce could be null
+		//token and token nonce could be null
 		
 		String host = AppUtil.getClientHost(request);
 		host = (StringUtil.isEmptyOrNull(host) ? "n/a" : host);

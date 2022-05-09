@@ -29,6 +29,8 @@ import com.itdevcloud.japp.core.api.bean.GetCertificateResponse;
 import com.itdevcloud.japp.core.api.bean.GetPublicKeyRequest;
 import com.itdevcloud.japp.core.api.bean.GetPublicKeyResponse;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppConstant;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -40,13 +42,13 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+@SecurityRequirement(name = AppConstant.JAPPCORE_OPENAPI_CORE_SECURITY_SCHEMA_NAME)
 public class PkiRestController extends BaseRestController {
 
 	
     @Operation(summary = "Get Public Key", 
     		   description = "Get Public Key, the Public Key can be used to validate token issued by the application.", 
-    		   tags = { "Core-Security" },
-   			   security = {@SecurityRequirement(name = "core-bear-jwt")})
+    		   tags = { "Core-Security" })
     
 	@PostMapping("/api/core/publickey")
 	GetPublicKeyResponse getPublicKey(@RequestBody GetPublicKeyRequest request) {
@@ -60,8 +62,7 @@ public class PkiRestController extends BaseRestController {
 
     @Operation(summary = "Get Certificate", 
  		   description = "Get Certificate, the Certificate can be used to validate token issued by the application.", 
- 		   tags = { "Core-Security" },
-			   security = {@SecurityRequirement(name = "core-bear-jwt")})
+ 		   tags = { "Core-Security" })
  
 	@PostMapping("/api/core/certificate")
     GetCertificateResponse getCertificate(@RequestBody GetCertificateRequest request) {

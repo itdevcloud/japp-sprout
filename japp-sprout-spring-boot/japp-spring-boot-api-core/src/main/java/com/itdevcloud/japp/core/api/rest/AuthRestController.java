@@ -33,6 +33,7 @@ import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenRequest;
 import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,6 +47,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RestController
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT
 		+ "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+@SecurityRequirement(name = AppConstant.JAPPCORE_OPENAPI_CORE_SECURITY_SCHEMA_NAME)
 public class AuthRestController extends BaseRestController {
 
 
@@ -78,7 +80,7 @@ public class AuthRestController extends BaseRestController {
 	}
 
 	@Operation(summary = "Validate or Issue New Token", description = "Validate Token issued by this application or partners, Generate new Token if newToken Tyoe is not null", tags = {
-			"Core-Auth" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
+			"Core-Auth" })
 
 	@PostMapping("/api/core/tokenvalidation")
 	ValidateOrIssueNewTokenResponse validateorIssueNewToken(@RequestBody ValidateOrIssueNewTokenRequest request) {

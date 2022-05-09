@@ -23,6 +23,8 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 @Component
 public class SignedBasicAuthResponse extends BaseResponse {
 
@@ -36,6 +38,11 @@ public class SignedBasicAuthResponse extends BaseResponse {
 
 	public void setJwt(String jwt) {
 		this.jwt = jwt;
+	}
+
+	@Override
+	public String toString() {
+		return "SignedBasicAuthResponse [jwt=" + (StringUtil.isEmptyOrNull(jwt)?null:"*") + ", Super =" + super.toString() + "] ";
 	}
 
 

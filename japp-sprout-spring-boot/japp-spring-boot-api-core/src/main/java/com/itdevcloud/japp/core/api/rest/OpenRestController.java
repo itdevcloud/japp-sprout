@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.itdevcloud.japp.core.api.bean.EchoRequest;
 import com.itdevcloud.japp.core.api.bean.EchoResponse;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppConstant;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -48,11 +49,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT+ "}")
-
+@SecurityRequirement(name = AppConstant.JAPPCORE_OPENAPI_CORE_SECURITY_SCHEMA_NAME)
 public class OpenRestController extends BaseRestController {
 
 	@Operation(summary = "Echo a request", description = "Echo back a request. This service could be used as health check porpuse", tags = {
-			"Core-Open" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
+			"Core-Open" })
 
 	@RequestMapping(value = "/open/core/echo", method=RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	EchoResponse echo(@RequestBody EchoRequest request) {
@@ -65,7 +66,7 @@ public class OpenRestController extends BaseRestController {
 	}
 
 	@Operation(summary = "Load Transfer Token To Client Script", description = "Load Transfer Token To Client Script", tags = {
-			"Core-Open" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
+			"Core-Open" })
 
 	@RequestMapping(value="/open/core/transfer_token_to_client_script", method=RequestMethod.GET)
 	String getTransferTokenToClientScript() {
@@ -100,7 +101,7 @@ public class OpenRestController extends BaseRestController {
 	}
 
 	@Operation(summary = "Load Transfer Token To Client Style", description = "Load Transfer Token To Client Style", tags = {
-	"Core-Open" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
+	"Core-Open" })
 
 @RequestMapping(value="/open/core/transfer_token_to_client_style", method=RequestMethod.GET)
 String getTransferTokenToClientStyle() {
@@ -135,7 +136,7 @@ return sb.toString();
 }
 
 	@Operation(summary = "Load Online Login Error Script", description = "Load Online Login Error Script", tags = {
-			"Core-Open" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
+			"Core-Open" })
 
 	@RequestMapping(value="/open/core/online_login_error_script", method=RequestMethod.GET)
 	public String getOnlineLoginErrorScript() {

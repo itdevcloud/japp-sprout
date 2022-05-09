@@ -23,6 +23,8 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 @Component
 public class GetCertificateResponse extends BaseResponse {
 
@@ -41,6 +43,10 @@ public class GetCertificateResponse extends BaseResponse {
 	}
 	public void setType(String type) {
 		this.type = type;
+	}
+	@Override
+	public String toString() {
+		return "GetCertificateResponse [certificate=" + (StringUtil.isEmptyOrNull(certificate)?null:"*") + ", type=" + type + ", Super =" + super.toString() + "] ";
 	}
 
 

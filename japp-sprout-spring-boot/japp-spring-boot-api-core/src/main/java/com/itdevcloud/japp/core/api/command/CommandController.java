@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,14 +28,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppConstant;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 /**
  * Spring restful controller for the command based (or 'RPC' style) API service
- * This style is convenient for internal communication. for external APIs, 
- * they can be published separately by using different style. e.g. real REATful style
+ * This style may be convenient for internal communication. for external APIs
  *
  * Command based restful api services are leverage following naming conventions:
  *  - Command can be provided by using query string or embedded in the json request string.
@@ -53,19 +54,19 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}")
+@SecurityRequirement(name = AppConstant.JAPPCORE_OPENAPI_CORE_SECURITY_SCHEMA_NAME)
 public class CommandController extends BaseCommandController {
 
-	private static final Logger logger = LogManager.getLogger(CommandController.class);
+	//private static final Logger logger = LogManager.getLogger(CommandController.class);
 	
-	
-    @Operation(summary = "Json based RPC style API", 
- 		   description = "Json based RPC style API, mainly for internal use. Request and Reponse are dynamic, refer to corresponding Request and Response Bean Definition.", 
- 		   tags = { "RPC style Command API" },
-			   security = {@SecurityRequirement(name = "${jappcore.openapi.security.requirement.name}")})
+   
+	@Operation(summary = "Json based RPC style API", 
+	   description = "Json based RPC style API, mainly for internal use. Request and Reponse are dynamic, refer to corresponding Request and Response Bean Definition.", 
+	   tags = { "RPC style Command API" })
  
 	@PostMapping("/api/core/cmd")
 	public String process(@RequestParam("cmd") Optional<String> command, @RequestBody(required = false) String jsonRequestString) {
-		logger.debug("CommandController.process() - start......");
+		//logger.debug("CommandController.process() - start......");
 		String cmd = command.isPresent()?command.get():null;
 		return processCommand(cmd, jsonRequestString);
 	}

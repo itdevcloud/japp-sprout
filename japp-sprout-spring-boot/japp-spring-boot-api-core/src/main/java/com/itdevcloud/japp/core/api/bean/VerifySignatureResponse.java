@@ -15,6 +15,11 @@ public class VerifySignatureResponse extends BaseResponse {
 	public void setIsValid(boolean isValid) {
 		this.isValid = isValid;
 	}
+
+	@Override
+	public String toString() {
+		return "VerifySignatureResponse [isValid=" + isValid + ", Super =" + super.toString() + "] ";
+	}
 	
 
 

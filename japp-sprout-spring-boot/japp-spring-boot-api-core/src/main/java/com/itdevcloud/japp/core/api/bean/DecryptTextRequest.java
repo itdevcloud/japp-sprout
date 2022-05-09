@@ -41,6 +41,11 @@ public class  DecryptTextRequest extends BaseRequest {
 		this.encryptedInfo = encryptedInfo;
 	}
 
+	@Override
+	public String toString() {
+		return "DecryptTextRequest [encryptedInfo=" + encryptedInfo + ", Super =" + super.toString() + "] ";
+	}
+
 
 
 }

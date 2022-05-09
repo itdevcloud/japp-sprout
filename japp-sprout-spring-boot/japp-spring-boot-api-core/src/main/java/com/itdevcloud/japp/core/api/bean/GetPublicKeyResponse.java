@@ -23,6 +23,8 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 @Component
 public class GetPublicKeyResponse extends BaseResponse {
 
@@ -51,6 +53,11 @@ public class GetPublicKeyResponse extends BaseResponse {
 	}
 	public void setFormat(String format) {
 		this.format = format;
+	}
+	@Override
+	public String toString() {
+		return "GetPublicKeyResponse [publicKey=" + (StringUtil.isEmptyOrNull(publicKey)?null:"*") + ", algorithm=" + algorithm + ", format=" + format
+				+ ", Super =" + super.toString() + "] ";
 	}
 
 

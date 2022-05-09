@@ -38,6 +38,11 @@ public class GetIaaUserRequest extends BaseRequest {
 		this.systemUid = systemUid;
 	}
 
+	@Override
+	public String toString() {
+		return "GetIaaUserRequest [systemUid=" + systemUid + ", Super =" + super.toString() + "] ";
+	}
+
 
 
 }

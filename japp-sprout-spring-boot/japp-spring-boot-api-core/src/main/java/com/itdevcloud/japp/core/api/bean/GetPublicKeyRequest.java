@@ -39,6 +39,11 @@ public class GetPublicKeyRequest extends BaseRequest {
 		this.insertLineSeparator = insertLineSeparator;
 	}
 
+	@Override
+	public String toString() {
+		return "GetPublicKeyRequest [insertLineSeparator=" + insertLineSeparator + ", Super =" + super.toString() + "] ";
+	}
+
 
 	
 }

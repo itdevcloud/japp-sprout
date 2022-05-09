@@ -17,7 +17,7 @@
 package com.itdevcloud.japp.core.api.command;
 
 /**
- * provides centralized command process controller.
+ * provides centralized command process (RPC style) controller.
  *
  * @author Marvin Sun
  * @since 1.0.0
@@ -58,7 +58,7 @@ public abstract class BaseCommandController {
 		try {
 	    	if(!commandControllerEnabled) {
 				BaseResponse response = AppUtil.createResponse(BaseResponse.class, "N/A",
-						Status.WARN_NO_ACTION, "command controller is not enabled!");
+						Status.WARN_NO_ACTION, "command (RPC Style) controller is not enabled!");
 				return toJsonResponse(response);
 			}
 	    	
@@ -81,52 +81,48 @@ public abstract class BaseCommandController {
 							Status.ERROR_VALIDATION,
 							"there is no request bean defined for command <" + command + ">");
 					return toJsonResponse(response);
-				}	// call processor
+				}	
+				// call processor
 				logger.info("processCommand() - start ===>>> command = '" + command + "'" + ", jsonRequest = \n" + jsonRequest);
 				BaseResponse response = processRequest(request);
+				String jsonResponse = toJsonResponse(response);
 				logger.info("processCommand() - end <<<=== command = '" + command + "'");
 	
-				return toJsonResponse(response);
+				return jsonResponse;
 	
 			}
 			//json string is not null from here
 			jsonRequest = handleNullForDeserialization(jsonRequest);
 			String cmd = getCommandFromJsonString(jsonRequest);
-			if(StringUtil.isEmptyOrNull(command)) {
-				command = cmd;
-			}else {
-				if(cmd != null && !cmd.equalsIgnoreCase(command)) {
-					BaseResponse response = AppUtil.createResponse(BaseResponse.class, command,
-							Status.ERROR_VALIDATION, "Command provided in query Parameter <" + command + "> does not match command provided in JSON request <" + cmd + "> !");
-					return toJsonResponse(response);
-	
-				}
-			}
-	
-			logger.info("processCommand() - start ===>>> command = '" + command + "'" + ", jsonRequest = \n" + jsonRequest);
-			if (StringUtil.isEmptyOrNull(command) ) {
+			
+			if(StringUtil.isEmptyOrNull(command) && StringUtil.isEmptyOrNull(cmd)) {
 				BaseResponse response = AppUtil.createResponse(BaseResponse.class, "N/A",
-						Status.ERROR_VALIDATION, "Request must be Json String and command must be provided through query paraneter or inside JSON request!");
-
+						Status.ERROR_VALIDATION, "command must be provided through query paraneter or inside JSON request!");
+				return toJsonResponse(response);
+			}else if (StringUtil.isEmptyOrNull(command)) {
+				command = cmd;
+			}else if (StringUtil.isEmptyOrNull(cmd)) {
+				cmd = command;
+			}
+			//command and cmd are not null from here
+			if(!command.equalsIgnoreCase(cmd)) {
+				BaseResponse response = AppUtil.createResponse(BaseResponse.class, command,
+						Status.ERROR_VALIDATION, "Command provided in query Parameter <" + command + "> does not match command provided in JSON request <" + cmd + "> !");
 				return toJsonResponse(response);
 			}
-			//command is not null from here
+	
 			request = toRequest(command, jsonRequest);
 
 			if (request == null) {
 				BaseResponse response = AppUtil.createResponse(BaseResponse.class, command,
 						Status.ERROR_VALIDATION,
 						"can not initialize request instance for command: '" + command + "', check command  or json request string. ");
-
 				return toJsonResponse(response);
 			}
 
+			logger.info("processCommand() - start ===>>> command = '" + command + "'" + ", jsonRequest = \n" + jsonRequest);
 			// call processor
 			BaseResponse response = processRequest(request);
-			//make sure command is set
-			response.setCommand(command);
-			response.setClientTxId(request.getClientTxId());
-			
 			String jsonResponse = toJsonResponse(response);
 			logger.info("processCommand() - end <<<=== command = '" + command + "'");
 			//logger.debug("processCommand().....process end <==  command = '" + command + "'" + ", jsonResponse = \n" + jsonResponse);
@@ -135,13 +131,13 @@ public abstract class BaseCommandController {
 
 		} catch (AppException ae) {
 			ae.printStackTrace();
-			logger.error(ae);
+			logger.error("processCommand()......" + ae);
 			BaseResponse response = AppUtil
 					.createResponse(BaseResponse.class, command, ae.getStatus(), ae.getMessage());
 			return toJsonResponse(response);
 		} catch (Throwable t) {
 			t.printStackTrace();
-			logger.error(t);
+			logger.error("processCommand()......" + t);
 			BaseResponse response = AppUtil
 					.createResponse(BaseResponse.class, command, Status.ERROR_SYSTEM_ERROR, t.getMessage());
 			return toJsonResponse(response);
@@ -163,12 +159,12 @@ public abstract class BaseCommandController {
 	}
 	
 	private BaseResponse processRequest(BaseRequest request) {
-		logger.debug("processRequest() - start ...");
+		//logger.debug("processRequest() - start ...");
 		if (request == null) {
 			//should not goes into here anyway
 			BaseResponse response = AppUtil.createResponse(BaseResponse.class, "N/A",
 					Status.ERROR_VALIDATION,
-					"Request parameter is null, check code!");
+					"processRequest()......Request parameter is null, check code!");
 			return response;
 		}
 		String requestSimpleName = request.getClass().getSimpleName();
@@ -178,7 +174,7 @@ public abstract class BaseCommandController {
 		if (commandInfo == null) {
 			response = AppUtil.createResponse(BaseResponse.class, request.getCommand(),
 					Status.ERROR_VALIDATION,
-					" processor not found for request: '" + requestSimpleName
+					"processRequest()......processor not found for the request: '" + requestSimpleName
 					+ "'....");
 			return response;
 		}
@@ -186,14 +182,14 @@ public abstract class BaseCommandController {
 		if (requestProcessor == null) {
 			response = AppUtil.createResponse(BaseResponse.class, request.getCommand(),
 					Status.ERROR_VALIDATION,
-					"processor not found for request: '" + requestSimpleName
+					"processRequest()......processor not found for the request: '" + requestSimpleName
 					+ "'....");
 			return response;
 		}
 
 		response = requestProcessor.process(request, BaseResponse.class);
 
-		logger.debug("processRequest() - end ... request = '" + requestSimpleName + "'");
+		//logger.debug("processRequest() - end ... request = '" + requestSimpleName + "'");
 		return response;
 	}
 
@@ -224,8 +220,9 @@ public abstract class BaseCommandController {
 			cmd = (jsonElement==null?null:jsonElement.getAsString());
 			return cmd;
 		}catch(Throwable t) {
-			logger.error(CommonUtil.getStackTrace(t));
-			return null;
+			String errMsg = "getCommandFromJsonString()......can not get coomand from json request string. can not parse json string!";
+			logger.error(errMsg + "\n" + CommonUtil.getStackTrace(t));
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
 
 	}

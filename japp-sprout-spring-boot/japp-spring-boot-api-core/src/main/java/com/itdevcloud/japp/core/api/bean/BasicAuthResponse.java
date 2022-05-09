@@ -25,6 +25,8 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
+import io.netty.util.internal.StringUtil;
+
 
 @Component
 public class BasicAuthResponse extends BaseResponse {
@@ -39,6 +41,11 @@ public class BasicAuthResponse extends BaseResponse {
 
 	public void setJwt(String jwt) {
 		this.jwt = jwt;
+	}
+
+	@Override
+	public String toString() {
+		return "BasicAuthResponse [jwt=" + (StringUtil.isNullOrEmpty(jwt)?null:"*") + ", Super =" + super.toString() + "] ";
 	}
 
 

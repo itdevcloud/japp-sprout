@@ -33,6 +33,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.se.common.service.PropertyManager;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
@@ -70,7 +71,7 @@ public class ProcessorTargetRoleUtil implements Serializable {
 			}
 			targetRoleMap.put(processorName.toUpperCase(), targetRole);
 		}
-		logger.info("ProcessorTargetRoleUtil.init() - end........");
+		logger.info("ProcessorTargetRoleUtil.init() - end........targetRoleMap = " + CommonUtil.mapToStringForPrint(targetRoleMap, 0));
 	}
 
 
@@ -79,6 +80,7 @@ public class ProcessorTargetRoleUtil implements Serializable {
 			return null;
 		}
 		String role = targetRoleMap.get(processorSimpleName.trim().toUpperCase());
+		logger.debug("getTargetRole() - processorSimpleName = " + processorSimpleName + ", targetRole = " + role);
 		return role;
 	}
 	public static Set<String> getProcessorNameSet() {

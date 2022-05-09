@@ -103,4 +103,10 @@ public class BaseResponse implements Serializable, AppFactoryComponentI {
 		this.clientTxId = clientTxId;
 	}
 
+	@Override
+	public String toString() {
+		return "BaseResponse [responseStatus=" + responseStatus + ", command=" + command + ", clientAppId="
+				+ clientAppId + ", clientTxId=" + clientTxId + ", serverTxId=" + serverTxId + "]";
+	}
+
 }

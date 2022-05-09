@@ -152,6 +152,17 @@ public class AppUtil {
 		return GsonDeepCopy(sourceObj, (Class<T>) sourceObj.getClass());
 	}
 
+	public static String getPropertyFileName(String baseName, String suffix){
+		if (StringUtil.isEmptyOrNull(baseName)) {
+			String errMsg = "getPropertyFileName().....baseName is null or empty, check code!";
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
+		}
+		String env = getSpringActiveProfile();
+		String fileName = baseName + "-" + env + (StringUtil.isEmptyOrNull(suffix)?"":("." + suffix.trim()));
+		logger.debug("getPropertyFileName().....getPropertyFileName = " + fileName);
+		return fileName;
+	}
+
 	public static String getSpringActiveProfile() {
 		if (StringUtil.isEmptyOrNull(springActiveProfile)) {
 			String env = System.getenv("spring.profiles.active");

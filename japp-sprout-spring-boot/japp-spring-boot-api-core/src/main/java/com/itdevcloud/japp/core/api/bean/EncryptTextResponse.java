@@ -42,5 +42,10 @@ public class EncryptTextResponse extends BaseResponse {
 		this.encryptedInfo = encryptedInfo;
 	}
 
+	@Override
+	public String toString() {
+		return "EncryptTextResponse [encryptedInfo=" + encryptedInfo + ", Super =" + super.toString() + "] ";
+	}
+
 
 }

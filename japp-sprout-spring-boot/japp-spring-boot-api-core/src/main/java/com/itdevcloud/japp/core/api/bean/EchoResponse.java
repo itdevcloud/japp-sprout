@@ -38,5 +38,10 @@ public class EchoResponse extends BaseResponse {
 		this.message = message;
 	}
 
+	@Override
+	public String toString() {
+		return "EchoResponse [message=" + message + ", Super =" + super.toString() + "] ";
+	}
+
 
 }

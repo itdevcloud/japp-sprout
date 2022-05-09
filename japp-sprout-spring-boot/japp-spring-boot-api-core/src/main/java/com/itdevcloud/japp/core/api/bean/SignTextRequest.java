@@ -15,6 +15,11 @@ public class  SignTextRequest extends BaseRequest {
 	public void setText(String text) {
 		this.text = text;
 	}
+
+	@Override
+	public String toString() {
+		return "SignTextRequest [text=" + text + ", Super =" + super.toString() + "] ";
+	}
 	
 
 }

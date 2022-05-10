@@ -33,19 +33,19 @@ public class BasicAuthResponse extends BaseResponse {
 
 	private static final long serialVersionUID = 1L;
 
-	private String jwt;
+	private String token;
 
-	public String getJwt() {
-		return jwt;
+	public String getToken() {
+		return token;
 	}
 
-	public void setJwt(String jwt) {
-		this.jwt = jwt;
+	public void setToken(String token) {
+		this.token = token;
 	}
 
 	@Override
 	public String toString() {
-		return "BasicAuthResponse [jwt=" + (StringUtil.isNullOrEmpty(jwt)?null:"*") + ", Super =" + super.toString() + "] ";
+		return "BasicAuthResponse [token=" + (StringUtil.isNullOrEmpty(token)?null:"*") + ", Super =" + super.toString() + "] ";
 	}
 
 

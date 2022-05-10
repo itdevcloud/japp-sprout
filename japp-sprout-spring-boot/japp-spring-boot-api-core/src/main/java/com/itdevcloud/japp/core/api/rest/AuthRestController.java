@@ -29,6 +29,8 @@ import com.itdevcloud.japp.core.api.bean.BasicAuthRequest;
 import com.itdevcloud.japp.core.api.bean.BasicAuthResponse;
 import com.itdevcloud.japp.core.api.bean.SignedBasicAuthRequest;
 import com.itdevcloud.japp.core.api.bean.SignedBasicAuthResponse;
+import com.itdevcloud.japp.core.api.bean.TokenAuthRequest;
+import com.itdevcloud.japp.core.api.bean.TokenAuthResponse;
 import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenRequest;
 import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
@@ -50,7 +52,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @SecurityRequirement(name = AppConstant.JAPPCORE_OPENAPI_CORE_SECURITY_SCHEMA_NAME)
 public class AuthRestController extends BaseRestController {
 
-
 	@Operation(summary = "Basic Auth Service", description = "Autheticate User by LoginId and Passwrod", tags = {
 			"Core-Auth" })
 
@@ -65,8 +66,8 @@ public class AuthRestController extends BaseRestController {
 	}
 
 	@Operation(summary = "Signed Basic Auth Service", description = "2-factor authentication: basic + certificate", tags = {
-	"Core-Auth" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
-	
+			"Core-Auth" }, security = { @SecurityRequirement(name = "core-bear-jwt") })
+
 	@PostMapping("/open/core/signedauth")
 	SignedBasicAuthResponse signedBasicAuth(@RequestBody SignedBasicAuthRequest request) {
 
@@ -79,11 +80,24 @@ public class AuthRestController extends BaseRestController {
 		return response;
 	}
 
+	@Operation(summary = "Token Based Auth Service", description = "Validate Token (refresh, ID or access token issued by this application and Issue Access Token", tags = {
+			"Core-Auth" })
+
+	@PostMapping("/open/core/tokenauth")
+	TokenAuthResponse tokenAuth(@RequestBody TokenAuthRequest request) {
+		TokenAuthResponse response = null;
+		if ((response = checkIsEnabled(TokenAuthResponse.class)) != null) {
+			return response;
+		}
+		response = processRequest(request, TokenAuthResponse.class);
+		return response;
+	}
+
 	@Operation(summary = "Validate or Issue New Token", description = "Validate Token issued by this application or partners, Generate new Token if newToken Tyoe is not null", tags = {
 			"Core-Auth" })
 
 	@PostMapping("/api/core/tokenvalidation")
-	ValidateOrIssueNewTokenResponse validateorIssueNewToken(@RequestBody ValidateOrIssueNewTokenRequest request) {
+	ValidateOrIssueNewTokenResponse validateOrIssueNewToken(@RequestBody ValidateOrIssueNewTokenRequest request) {
 		ValidateOrIssueNewTokenResponse response = null;
 		if ((response = checkIsEnabled(ValidateOrIssueNewTokenResponse.class)) != null) {
 			return response;

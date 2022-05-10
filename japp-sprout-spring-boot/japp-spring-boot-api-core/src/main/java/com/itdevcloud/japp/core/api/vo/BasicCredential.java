@@ -18,9 +18,6 @@ package com.itdevcloud.japp.core.api.vo;
 
 import java.io.Serializable;
 
-import com.itdevcloud.japp.core.common.AppConstant;
-import com.itdevcloud.japp.se.common.util.StringUtil;
-
 /**
  *
  * @author Marvin Sun

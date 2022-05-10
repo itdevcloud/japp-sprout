@@ -76,13 +76,17 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST = "jappcore.iaa.cidr.application.whitelist";
 	public static final String JAPPCORE_IAA_CIDR_SYSTEMUSER_WHITELIST = "jappcore.iaa.cidr.whitelist.systemuser";
 	public static final String JAPPCORE_IAA_API_AUTH_ENABLED = "jappcore.iaa.japp.api.auth.enabled";
-	public static final String JAPPCORE_IAA_API_RENEW_ACCESS_TOKEN_ENABLED = "jappcore.iaa.api.renew.access.token.enabled";
+	public static final String JAPPCORE_IAA_API_AUTO_RENEW_ACCESS_TOKEN_ENABLED = "jappcore.iaa.api.autorenew.access.token.enabled";
 	public static final String JAPPCORE_IAA_TOKEN_ACCESS_EXPIRATION_LENGTH = "jappcore.iaa.token.access.expiration.length.mins";
 	public static final String JAPPCORE_IAA_TOKEN_REFRESH_EXPIRATION_LENGTH = "jappcore.iaa.token.refresh.expiration.length.mins";
 	public static final String JAPPCORE_IAA_TOKEN_IDTOKEN_EXPIRATION_LENGTH = "jappcore.iaa.token.idtoken.expiration.length.mins";
 	public static final String JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH = "jappcore.iaa.token.verify.expiration.length";
 	public static final String JAPPCORE_IAA_TOKEN_ISSUE_ISS = "jappcore.iaa.token.issue.iss";
 	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_AUD = "jappcore.iaa.token.validate.aud";
+	public static final String JAPPCORE_IAA_TOKEN_VALIDATION_IGNORE_NULL_IN_TOKEN = "jappcore.iaa.token.validation.ignorenullintoken";
+	public static final String JAPPCORE_IAA_TOKEN_ENFORCE_TOKEN_NONCE = "jappcore.iaa.token.enforce.toekn.nonce";
+	public static final String JAPPCORE_IAA_TOKEN_ENFORCE_TOKEN_IP = "jappcore.iaa.token.enforce.toekn.ip";
+
 	public static final String JAPPCORE_IAA_SUPPORTED_AUTH_PROVIDERS = "jappcore.iaa.supported.auth.providers";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLECHECK_ENABLED = "jappcore.iaa.application.rolecheck.enabled";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLE_LIST = "jappcore.iaa.application.rolelist";

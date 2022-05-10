@@ -31,14 +31,20 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppFactory;
+import com.itdevcloud.japp.core.common.AppThreadContext;
+import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.iaa.token.AppLocalTokenHandler;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
+import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  *
@@ -77,11 +83,6 @@ public class JwtService implements AppFactoryComponentI {
 		return tokenHandler.parseTokenClaims(token);
 	}
 	
-	public String getAccessToken(String token) {
-		TokenHandlerI tokenHandler = getTokenHandler();
-		return tokenHandler.getAccessToken(token);
-	}
-	
 	public Map<String, Object> isValidToken(String token, Map<String, Object> claimEqualMatchMap, boolean ingoreNullInToken, String... args ) {
 		TokenHandlerI tokenHandler = getTokenHandler();
 		return tokenHandler.isValidToken(token, claimEqualMatchMap, ingoreNullInToken, args );
@@ -93,6 +94,10 @@ public class JwtService implements AppFactoryComponentI {
 	}
 
 	public String issueToken(IaaUserI iaaUser, String tokenType, Map<String, Object> customClaimMap) {
+		if(iaaUser == null) {
+			String errMsg = "issueToken()......iaaUser is null in the request!";
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
+		}
 		TokenHandlerI tokenHandler = getTokenHandler();
 		Key privateKey = AppComponents.pkiService.getAppPrivateKey();
 		//default is refresh token
@@ -102,6 +107,13 @@ public class JwtService implements AppFactoryComponentI {
 				  !TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(tokenType) &&
 				  !TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType)) {
 			tokenType = TokenHandlerI.TYPE_REFRESH_TOKEN;
+		}
+		//clear nonce and uip if not enforced
+		if(!AppUtil.isEnforceTokenIp()) {
+			iaaUser.setHashedUserIp(null);
+		}
+		if(!AppUtil.isEnforceTokenNonce()) {
+			iaaUser.setHashedNonce(null);
 		}
 		return tokenHandler.issueToken(iaaUser, tokenType, privateKey, -1, customClaimMap);
 	}
@@ -114,8 +126,8 @@ public class JwtService implements AppFactoryComponentI {
 
 	public Map<String, Object> isValidTokenByCertificate(String token, InputStream certificate) {
 		if (token == null || certificate == null) {
-			logger.error("isValidTokenByCertificate() - token and/or certificate is null ..........");
-			return null;
+			String errMsg = "isValidTokenByCertificate()......token or certificate is null/empty in the request!";
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
 		BufferedInputStream bis = new BufferedInputStream(certificate);
 		CertificateFactory cf = null;
@@ -151,6 +163,4 @@ public class JwtService implements AppFactoryComponentI {
 
 	}
 	
-
-
 }

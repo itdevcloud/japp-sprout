@@ -44,7 +44,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
+import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.BasicCredential;
+import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
@@ -363,7 +365,7 @@ public class AppUtil {
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("getHttpRequestJsonBody()...end....with Error, json read: " + sBuffer.toString());
-//			logger.error("getHttpRequestJsonBody().......with Error: " + e);
+			logger.error(e);
 			return null;
 		} finally{
 			if(reader != null) {
@@ -376,7 +378,7 @@ public class AppUtil {
 			}
 		}
 		String jsonStr = sBuffer.toString();
-		logger.debug("getHttpRequestJsonBody()......end......JSON Read: " + jsonStr);
+		//logger.debug("getHttpRequestJsonBody()......end......JSON Read: " + jsonStr);
 		return jsonStr;
 	}
 
@@ -488,4 +490,44 @@ public class AppUtil {
         
         return basicCredential;
     }
+
+	public static boolean isEnforceTokenIp() {
+		ClientAppInfo clientAppInfo = getClientAppInfo();
+		boolean enforceTokenIp = clientAppInfo.getEnforceTokenIP();
+		return enforceTokenIp;
+	}
+	public static boolean isEnforceTokenNonce() {
+		ClientAppInfo clientAppInfo = getClientAppInfo();
+		boolean enforceTokenNonce = clientAppInfo.getEnforceTokenNonce();
+		return enforceTokenNonce;
+	}
+
+	public static void checkTokenIpAndNonceRequirement(String tokenIp, String tokenNonce) {
+	
+		if (StringUtil.isEmptyOrNull(tokenIp) && isEnforceTokenIp()) {
+			String errMsg = "enforceTokenIp is set to true. can not find token ip in the IaaUser!";
+			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
+		}
+		if (StringUtil.isEmptyOrNull(tokenNonce) && isEnforceTokenNonce()) {
+			String errMsg = "enforceTokenNonce is set to true. can not find token nonce in the IaaUser!";
+			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
+		}
+		return;
+
+	}
+	
+	public static ClientAppInfo getClientAppInfo() {
+		ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
+		String clientAppId = apiAuthInfo.clientAppId;
+		ClientAppInfo clientAppInfo = AppComponents.clientAppInfoCache.getClientAppInfo(clientAppId);
+		if(clientAppInfo == null) {
+			String errMsg = "getClientAppInfo() - clientAppId (" + clientAppId + ") is not supported!" ;
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_VALIDATION, errMsg);
+		}
+
+		return clientAppInfo;
+
+	}
+
 }

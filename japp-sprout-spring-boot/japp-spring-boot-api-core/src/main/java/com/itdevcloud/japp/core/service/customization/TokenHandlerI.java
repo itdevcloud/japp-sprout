@@ -33,10 +33,12 @@ import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppException;
+import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.common.JJwtTokenUtil;
 import com.itdevcloud.japp.core.iaa.service.DefaultIaaUser;
 import com.itdevcloud.japp.core.iaa.token.AppLocalTokenHandler;
+import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.DateUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -59,7 +61,7 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 	public static final String JWT_CLAIM_KEY_ISSUER = "iss";
 	public static final String JWT_CLAIM_KEY_TOKEN_TYPE = "type";
 //	public static final String JWT_CLAIM_KEY_IDENTITY_PROVIDER = "idp";
-	public static final String JWT_CLAIM_KEY_APP_ID = "appid";
+//	public static final String JWT_CLAIM_KEY_APP_ID = "appid";
 	public static final String JWT_CLAIM_KEY_ISSUE_AT = "iat";
 	public static final String JWT_CLAIM_KEY_IAT_LOCAL = "iatLocal";
 	public static final String JWT_CLAIM_KEY_SUBJECT = "sub";
@@ -127,7 +129,7 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 			PublicKey publicKey = AppComponents.pkiKeyCache.getAppPublicKey();
 			Map<String, Object> claims = isValidTokenByPublicKeyDefault(token, publicKey);
 			if (claims == null) {
-				String errMsg = "isValidTokenDefault() ......token can not be validated by publickey!";
+				String errMsg = "isValidTokenDefault() ......token can not be validated.";
 				logger.error(errMsg);
 				throw new AppException(Status.ERROR_VALIDATION, errMsg);
 			}
@@ -159,8 +161,16 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 				logger.error(errMsg + "(nbf is not valid)!");
 				throw new AppException(Status.ERROR_VALIDATION, errMsg);
 		    }
+			//handle tokenIp and nonce
+			String mapHashedTokenIp = (claimEqualMatchMap == null || claimEqualMatchMap.isEmpty())?null:""+claimEqualMatchMap.get(JWT_CLAIM_KEY_HASHED_USERIP);
+			String mapHashedTokenNonce = (claimEqualMatchMap == null || claimEqualMatchMap.isEmpty())?null:""+claimEqualMatchMap.get(JWT_CLAIM_KEY_HASHED_NONCE);
+			AppUtil.checkTokenIpAndNonceRequirement(mapHashedTokenIp,  mapHashedTokenNonce);
+			
+			String tokenHashedTokenIp = ""+claims.get(JWT_CLAIM_KEY_HASHED_USERIP);
+			String tokenHashedTokenNonce = ""+claims.get(JWT_CLAIM_KEY_HASHED_NONCE);
+			AppUtil.checkTokenIpAndNonceRequirement(tokenHashedTokenIp,  tokenHashedTokenNonce);
+
 			if(claimEqualMatchMap == null || claimEqualMatchMap.isEmpty()) {
-				//no custom claims need to be verified
 				return claims;
 			}else {
 				//this could include nonce and UIP
@@ -219,17 +229,20 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 			return null;
 		}
 		try {
-			
 			Map<String, Object> claims = TokenHandlerI.getDefaultTokenClaims(iaaUser, tokenType, expireMinutes);
-			if(customClaimMap != null) {
-				customClaimMap.putAll(claims);
-			}else {
-				customClaimMap = claims;
+			if(claims == null) {
+				String errMsg = "issueTokenDefault()......can not get default claims!";
+				throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 			}
-			return JJwtTokenUtil.issueToken(customClaimMap, tokenType, privateKey, expireMinutes);
-		} catch (Throwable t) {
+			if(customClaimMap != null) {
+				claims.putAll(customClaimMap);
+			}
+			return JJwtTokenUtil.issueToken(claims, tokenType, privateKey, expireMinutes);
+		}catch (AppException ae) {
+			throw ae;
+		}catch (Throwable t) {
 			logger.error(CommonUtil.getStackTrace(t));
-			return null;
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, t.getMessage());
 		}
 	}
 
@@ -273,29 +286,31 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 		String hashedUip = iaaUser.getHashedUserIp();
 		String hashedNonce = iaaUser.getHashedNonce();
 		
-		
 		//logger.info("hashedUip = " + hashedUip + ", hashednonce = "+ hashedNonce);
+		
+		AppUtil.checkTokenIpAndNonceRequirement(hashedUip, hashedNonce);
 
 		Map<String, Object> claims = new HashMap<String, Object>();
 		
-		claims.put(JWT_CLAIM_KEY_ISSUER, iss);
+		//some JWT library remove claim name if the value is null (e.g. jjwt)
+		claims.put(JWT_CLAIM_KEY_ISSUER, iss==null?"":iss);
 		claims.put(JWT_CLAIM_KEY_ISSUE_AT, iat);
-		claims.put(JWT_CLAIM_KEY_IAT_LOCAL, iatLocal);
+		claims.put(JWT_CLAIM_KEY_IAT_LOCAL, iatLocal==null?"":iatLocal);
 		claims.put(JWT_CLAIM_KEY_NOT_BEFORE, iat);
 		claims.put(JWT_CLAIM_KEY_EXPIRE, exp);
-		claims.put(JWT_CLAIM_KEY_EXPIRE_LOCAL, expLocal);
-		claims.put(JWT_CLAIM_KEY_AUDIENCE, iaaUser.getClientAppId());
-		claims.put(JWT_CLAIM_KEY_AUTH_KEY, iaaUser.getClientAuthKey());
-		claims.put(JWT_CLAIM_KEY_APP_ID, iaaUser.getApplicationId());
-		claims.put(JWT_CLAIM_KEY_SUBJECT, iaaUser.getSystemUid());
-		claims.put(JWT_CLAIM_KEY_MFA_STATUS, iaaUser.getMfaStatus());
-		claims.put(JWT_CLAIM_KEY_UID, iaaUser.getSystemUid());
-		claims.put(JWT_CLAIM_KEY_LOGINID, iaaUser.getLoginId());
-		claims.put(JWT_CLAIM_KEY_EMAIL, iaaUser.getEmail());
-		claims.put(JWT_CLAIM_KEY_NAME, iaaUser.getName());
-		claims.put(JWT_CLAIM_KEY_PHONE, iaaUser.getPhone());
-		claims.put(JWT_CLAIM_KEY_HASHED_USERIP, hashedUip);
-		claims.put(JWT_CLAIM_KEY_HASHED_NONCE, hashedNonce);
+		claims.put(JWT_CLAIM_KEY_EXPIRE_LOCAL, expLocal==null?"":expLocal);
+		claims.put(JWT_CLAIM_KEY_AUDIENCE, iaaUser.getClientAppId()==null?"":iaaUser.getClientAppId());
+		claims.put(JWT_CLAIM_KEY_AUTH_KEY, iaaUser.getClientAuthKey()==null?"":iaaUser.getClientAuthKey());
+//		claims.put(JWT_CLAIM_KEY_APP_ID, iaaUser.getApplicationId()==null?"":iaaUser.getApplicationId());
+		claims.put(JWT_CLAIM_KEY_SUBJECT, iaaUser.getSystemUid()==null?"":iaaUser.getSystemUid());
+		claims.put(JWT_CLAIM_KEY_MFA_STATUS, iaaUser.getMfaStatus()==null?"":iaaUser.getMfaStatus());
+		claims.put(JWT_CLAIM_KEY_UID, iaaUser.getSystemUid()==null?"":iaaUser.getSystemUid());
+		claims.put(JWT_CLAIM_KEY_LOGINID, iaaUser.getLoginId()==null?"":iaaUser.getLoginId());
+		claims.put(JWT_CLAIM_KEY_EMAIL, iaaUser.getEmail()==null?"":iss);
+		claims.put(JWT_CLAIM_KEY_NAME, iaaUser.getName()==null?"":iaaUser.getName());
+		claims.put(JWT_CLAIM_KEY_PHONE, iaaUser.getPhone()==null?"":iaaUser.getPhone());
+		claims.put(JWT_CLAIM_KEY_HASHED_USERIP, hashedUip==null?"":hashedUip);
+		claims.put(JWT_CLAIM_KEY_HASHED_NONCE, hashedNonce==null?"":hashedNonce);
 		
 		return claims;
 	}
@@ -308,9 +323,9 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 		Map<String, Object> claims = getDefaultClaimMap(iaaUser, expireMinutes);
 		
 		claims.put(JWT_CLAIM_KEY_TOKEN_TYPE, TYPE_ACCESS_TOKEN);
-		claims.put(JWT_CLAIM_KEY_BUS_ROLES, iaaUser.getBusinessRoles());
-		claims.put(JWT_CLAIM_KEY_APP_ROLES, iaaUser.getApplicationRoles());
-		claims.put(JWT_CLAIM_KEY_AUTH_GROUPS, iaaUser.getAuthGroups());
+		claims.put(JWT_CLAIM_KEY_BUS_ROLES, iaaUser.getBusinessRoles()==null?"":iaaUser.getBusinessRoles());
+		claims.put(JWT_CLAIM_KEY_APP_ROLES, iaaUser.getApplicationRoles()==null?"":iaaUser.getApplicationRoles());
+		claims.put(JWT_CLAIM_KEY_AUTH_GROUPS, iaaUser.getAuthGroups()==null?"":iaaUser.getAuthGroups());
 		
 		return claims;
 	}

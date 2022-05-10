@@ -80,6 +80,7 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 				AppUtil.setHttpResponse(response, 401, Status.ERROR_SECURITY_AUTHENTICATION, msg);
 					return;
 			}
+	        String tokenType = AppUtil.getParaCookieHeaderValue(request, "tokenType");
 			
 			//String userIp = AppUtil.getClientIp(request);
 			String userIp = apiAuthInfo.clientIP;
@@ -120,19 +121,27 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 				return;
 			}
 			
-			//Force to check nonce and ip if token has them as claims
+			//handle token nonce and ip 
+			String tokenNonce = handlerInfo.apiAuthInfo.tokenNonce;
+			AppUtil.checkTokenIpAndNonceRequirement(userIp, tokenNonce);
 			if (!StringUtil.isEmptyOrNull(userIp)) {
 				iaaUser.setHashedUserIp(Hasher.hashPassword(userIp));
 			}else {
 				iaaUser.setHashedUserIp(null);
 			}
-			if (!StringUtil.isEmptyOrNull(handlerInfo.apiAuthInfo.tokenNonce)) {
+			if (!StringUtil.isEmptyOrNull(tokenNonce)) {
 				iaaUser.setHashedNonce(Hasher.hashPassword(handlerInfo.apiAuthInfo.tokenNonce));
 			}else {
 				iaaUser.setHashedNonce(null);
 			}
 			// issue Core JWT token;
-			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
+			if(!(TokenHandlerI.TYPE_ACCESS_TOKEN.equalsIgnoreCase(tokenType) || 
+					TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType) ||
+					TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(tokenType))) {
+				tokenType = TokenHandlerI.TYPE_ACCESS_TOKEN;
+			}
+
+			String token = AppComponents.jwtService.issueToken(iaaUser, tokenType, null);
 			
 			if (StringUtil.isEmptyOrNull(token)) {
 				errMsg = "doPost() - Authentication Failed. Token can not be created for login Id: "

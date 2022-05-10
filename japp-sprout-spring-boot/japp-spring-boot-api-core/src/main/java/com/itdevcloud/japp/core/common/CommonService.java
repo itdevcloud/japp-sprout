@@ -262,7 +262,11 @@ public class CommonService implements AppFactoryComponentI {
 		String clientAppName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_NAME);
 		String clientOrgName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ORGANIZATION_ID);
 		String clientCidrWhiteListStr = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST);
-		Boolean renewToken = ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_API_RENEW_ACCESS_TOKEN_ENABLED, false);
+		boolean autoRenewToken = ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_API_AUTO_RENEW_ACCESS_TOKEN_ENABLED, true);
+		boolean enforceTokenNonce = ConfigFactory.appConfigService
+				.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_TOKEN_ENFORCE_TOKEN_NONCE, true);
+		boolean enforceTokenIp = ConfigFactory.appConfigService
+				.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_TOKEN_ENFORCE_TOKEN_IP, true);
 		Certificate appCertificate = AppComponents.pkiService.getAppCertificate();
 		PublicKey appPublicKey = AppComponents.pkiService.getAppPublicKey();
 		
@@ -284,9 +288,10 @@ public class CommonService implements AppFactoryComponentI {
 		clientAppInfo.setClientAppId(clientAppId);
 		clientAppInfo.setName(clientAppName);
 		clientAppInfo.setOrganizationId(clientOrgName);
-		clientAppInfo.setApiRenewAccessToken(null);
 		clientAppInfo.setCidrWhiteList(cidrWL);
-		clientAppInfo.setApiRenewAccessToken(renewToken);
+		clientAppInfo.setApiAutoRenewAccessToken(autoRenewToken);
+		clientAppInfo.setEnforceTokenIP(enforceTokenIp);
+		clientAppInfo.setEnforceTokenNonce(enforceTokenNonce);
 		
 		//this is used to generate JSON string which is used as template for client-auth-info.json
 		ClientAuthInfo clientAuthInfo = new ClientAuthInfo();

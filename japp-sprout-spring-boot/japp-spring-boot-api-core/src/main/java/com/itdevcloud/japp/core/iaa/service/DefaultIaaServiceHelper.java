@@ -74,7 +74,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		IaaUserI iaaUser = getAnonymousIaaUserByLoginId(uid);
 
 		long end1 = System.currentTimeMillis();
-		logger.info("getIaaUserFromRepositoryBySystemUid() end........ took " + (end1 - start) + " ms. " + uid);
+		logger.info("getIaaUserFromRepositoryBySystemUid() end........ took " + (end1 - start) + " ms. " );
 		return iaaUser;
 	}
 

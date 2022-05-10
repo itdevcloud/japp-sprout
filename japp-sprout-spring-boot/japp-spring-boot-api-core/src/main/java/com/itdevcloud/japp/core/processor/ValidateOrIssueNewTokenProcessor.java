@@ -75,7 +75,7 @@ public class ValidateOrIssueNewTokenProcessor extends RequestProcessor {
 				TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(newTokenType)) {
 			//issue new token
 			IaaUserI iaaUser = AppComponents.jwtService.getIaaUserBasedOnToken(currentToken);
-					newToken = AppComponents.jwtService.issueToken(iaaUser, newTokenType, null);
+			newToken = AppComponents.jwtService.issueToken(iaaUser, newTokenType, null);
 		}
 		response.setNewToken(newToken);
 		response.setResponseStatus(

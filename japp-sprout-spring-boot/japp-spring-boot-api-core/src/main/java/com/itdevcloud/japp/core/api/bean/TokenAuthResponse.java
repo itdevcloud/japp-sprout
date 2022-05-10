@@ -15,9 +15,7 @@
  *
  */
 package com.itdevcloud.japp.core.api.bean;
-
 /**
- * BasicAuthRequest Class.
  *
  * @author Marvin Sun
  * @since 1.0.0
@@ -25,43 +23,26 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
-import io.netty.util.internal.StringUtil;
-
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 @Component
-public class  BasicAuthRequest extends BaseRequest {
+public class TokenAuthResponse extends BaseResponse {
 
 	private static final long serialVersionUID = 1L;
+	private String token;
 
-	private String loginId;
-	private String password;
-	private String tokenType;
-	
-	
-	public String getLoginId() {
-		return loginId;
+	public String getToken() {
+		return token;
 	}
-	public void setLoginId(String loginId) {
-		this.loginId = loginId;
+
+	public void setToken(String token) {
+		this.token = token;
 	}
-	public String getPassword() {
-		return password;
-	}
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	
-	public String getTokenType() {
-		return tokenType;
-	}
-	public void setTokenType(String tokenType) {
-		this.tokenType = tokenType;
-	}
-	
+
 	@Override
 	public String toString() {
-		return "BasicAuthRequest [loginId=" + loginId + ", password=" + (StringUtil.isNullOrEmpty(password)?null:"*") + ", tokenType=" + tokenType + ", Super =" + super.toString() + "] ";
+		return "TokenAuthResponse [token=" + (StringUtil.isEmptyOrNull(token)?null:"*") + ", Super = " + super.toString() + "]";
 	}
 
-	
+
 }

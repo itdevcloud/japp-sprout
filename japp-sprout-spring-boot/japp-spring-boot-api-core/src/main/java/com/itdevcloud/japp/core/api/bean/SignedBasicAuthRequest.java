@@ -35,6 +35,7 @@ public class SignedBasicAuthRequest extends BaseRequest {
 	private String password;
 	private String clientPkiKey;
 	private String signature;
+	private String tokenType;
 	
 	public String getLoginId() {
 		return loginId;
@@ -60,10 +61,17 @@ public class SignedBasicAuthRequest extends BaseRequest {
 	public void setClientPkiKey(String clientPkiKey) {
 		this.clientPkiKey = clientPkiKey;
 	}
+	
+	public String getTokenType() {
+		return tokenType;
+	}
+	public void setTokenType(String tokenType) {
+		this.tokenType = tokenType;
+	}
 	@Override
 	public String toString() {
 		return "SignedBasicAuthRequest [loginId=" + loginId + ", password=" + (StringUtil.isEmptyOrNull(password)?null:"*") + ", clientPkiKey="
-				+ clientPkiKey + ", signature=" + signature + ", Super =" + super.toString() + "] ";
+				+ clientPkiKey + ", signature=" + signature + ", tokenType=" + tokenType + ", Super =" + super.toString() + "] ";
 	}
 	
 

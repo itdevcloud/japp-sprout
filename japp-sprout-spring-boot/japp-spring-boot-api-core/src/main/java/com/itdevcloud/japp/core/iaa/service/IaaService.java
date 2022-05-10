@@ -72,13 +72,6 @@ public class IaaService implements AppFactoryComponentI {
 		return clientAppInfoList;
 	}
 	
-//	public ClientAppInfo getClientAppInfo(String clientId){
-//		return AppComponents.clientAppInfoCache.getClientAppInfo(clientId);
-//	}
-
-//	public ClientAuthProvider getClientAuthProvider(String clientAppId, String clientAuthKey) {
-//		return AppComponents.clientAppInfoCache.getClientAuthProvider(clientAppId, clientAuthKey);
-//	}
 	
 	public ClientPKI getClientPKI(String clientId, String clientPkiKey) {
 		return AppComponents.clientAppInfoCache.getClientPKI(clientId, clientPkiKey);
@@ -87,7 +80,7 @@ public class IaaService implements AppFactoryComponentI {
 	
 	public IaaUserI login(String loginId, String password, String authProvider) {
 		if (StringUtil.isEmptyOrNull(loginId) || StringUtil.isEmptyOrNull(password)) {
-			String err = "loginByLoginIdPassword() - The login and/or password is null or empty. check code!";
+			String err = "login() - The login and/or password is null or empty. check code!";
 			logger.error(err);
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
 		}
@@ -97,13 +90,14 @@ public class IaaService implements AppFactoryComponentI {
 		String hashedPwd = Hasher.hashPassword(password);;
 		IaaUserI user = helper.getIaaUserFromRepositoryByLoginId(loginId, authProvider);
 		if (user == null) {
-			logger.info("loginByLoginIdPassword() - The user loginId = '" + loginId + "' is not found in the repository.....");
-			return null;
+			String errMsg = "login() - loginId and/or password are not correct. loginId = " + loginId;
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 		}
 		if (!hashedPwd.equals(user.getHashedPassword())) {
-			logger.info("loginByLoginIdPassword() - password does not match for login user '" + loginId
-					+ "' from repository.....");
-			return null;
+			String errMsg = "login() - loginId and/or password are not correct. loginId = " + loginId;
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 		} else {
 			AppComponents.iaaUserCache.addIaaUser(user);
 			AppThreadContext.setIaaUser(user);
@@ -113,7 +107,7 @@ public class IaaService implements AppFactoryComponentI {
 	
 	public IaaUserI loginByToken(String token, Map<String, Object> claimEqualMatchMap, boolean ignoreNullInToken, String... args) {
 		if (StringUtil.isEmptyOrNull(token)) {
-			String err = "loginByToken() - The token is null or empty. check code!";
+			String err = "loginByToken() - The token is null or empty.";
 			logger.error(err);
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
 		}
@@ -162,15 +156,23 @@ public class IaaService implements AppFactoryComponentI {
 	public IaaUserI validateTokenAndRetrieveIaaUser(String token, Map<String, Object> claimEqualMatchMap, boolean ignoreNullInToken, String... args) {
 		
 		if (StringUtil.isEmptyOrNull(token)) {
-			throw new AppException(Status.ERROR_SYSTEM_ERROR, "token is null!");
+			String errMsg = "validateTokenAndRetrieveIaaUser() - The token is null or empty.";
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION,  errMsg);
 		}
 		IaaUserI iaaUser = null;
 		Map<String, Object> claims = AppComponents.jwtService.isValidToken(token, claimEqualMatchMap, ignoreNullInToken, args);
 		if(claims == null) {
-			throw new AppException(Status.ERROR_SYSTEM_ERROR, "Invalid Token!");
+			String errMsg = "validateTokenAndRetrieveIaaUser() - The token is not valid.";
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 		}
 		iaaUser = AppComponents.jwtService.getIaaUserBasedOnToken(token);
-		
+		if (iaaUser == null) {
+			String errMsg = "validateTokenAndRetrieveIaaUser() - Can not get iaaUser from token.";
+			logger.error(errMsg);
+			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
+		}
 		AppComponents.iaaUserCache.addIaaUser(iaaUser);
 		AppThreadContext.setIaaUser(iaaUser);
 		

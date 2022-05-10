@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
-import com.itdevcloud.japp.core.api.bean.BasicAuthRequest;
-import com.itdevcloud.japp.core.api.bean.BasicAuthResponse;
+import com.itdevcloud.japp.core.api.bean.TokenAuthRequest;
+import com.itdevcloud.japp.core.api.bean.TokenAuthResponse;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppThreadContext;
@@ -18,21 +18,20 @@ import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.security.Hasher;
-import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 
 @Component
-public class BasicAuthProcessor extends RequestProcessor {
+public class TokenAuthProcessor extends RequestProcessor {
 
 
 	@PostConstruct
 	private void init() {
 	}
 
-	private static final Logger logger = LogManager.getLogger(BasicAuthProcessor.class);
+	private static final Logger logger = LogManager.getLogger(TokenAuthProcessor.class);
 	
 	@Override
 	protected BaseResponse processRequest(BaseRequest req) {
@@ -42,23 +41,20 @@ public class BasicAuthProcessor extends RequestProcessor {
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
 				+ txnCtx.getTransactionId() + ">...... ");
 
-		BasicAuthRequest request = (BasicAuthRequest) req;
-		BasicAuthResponse response = new BasicAuthResponse();
+		TokenAuthRequest request = (TokenAuthRequest) req;
+		TokenAuthResponse response = new TokenAuthResponse();
 		ResponseStatus responseStatus = null;
 		
 		// ====== validate request ======
-		if (StringUtil.isEmptyOrNull(request.getLoginId()) || StringUtil.isEmptyOrNull(request.getPassword())) {
-			responseStatus = AppUtil.createResponseStatus(Status.ERROR_VALIDATION, "LoginId and/or password is null.");
+		String token = request.getToken();
+		String newTokenType = request.getNewTokenType();
+		if (StringUtil.isEmptyOrNull(token)) {
+			responseStatus = AppUtil.createResponseStatus(Status.ERROR_SECURITY_AUTHENTICATION, "token in the request is null or empty.");
 			response.setResponseStatus(responseStatus);
 			return response;
 		}
 
-
 		// ====== business logic starts ======
-		String loginId = request.getLoginId();
-		String password = request.getPassword();
-		String tokenType = request.getTokenType();
-
 		String tokenNonce = apiAuthInfo.tokenNonce;
 		String uip = apiAuthInfo.clientIP;
 		String clientAppId = apiAuthInfo.clientAppId;
@@ -67,9 +63,10 @@ public class BasicAuthProcessor extends RequestProcessor {
 		//handle token nonce and ip 
 		AppUtil.checkTokenIpAndNonceRequirement(uip, tokenNonce);
 
-		IaaUserI iaaUser = AppComponents.iaaService.login(loginId, password, null);
+		
+		IaaUserI iaaUser = AppComponents.iaaService.loginByToken(token, null, true);
 		if (iaaUser == null) {
-			String errMsg = "loginId and/or password are not correct. loginId = " + loginId;
+			String errMsg = "can not login by token";
 			logger.error(errMsg);
 			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 		}
@@ -84,30 +81,28 @@ public class BasicAuthProcessor extends RequestProcessor {
 		iaaUser.setClientAppId(clientAppId);
 		iaaUser.setClientAuthKey(clientAuthKey);
 		
-		if(!(TokenHandlerI.TYPE_ACCESS_TOKEN.equalsIgnoreCase(tokenType) || 
-				TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType) ||
-				TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(tokenType))) {
-			tokenType = TokenHandlerI.TYPE_ACCESS_TOKEN;
+		if(!(TokenHandlerI.TYPE_ACCESS_TOKEN.equalsIgnoreCase(newTokenType) || 
+				TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(newTokenType) ||
+				TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(newTokenType))) {
+			newTokenType = TokenHandlerI.TYPE_ACCESS_TOKEN;
 		}
-
-		String token = AppComponents.jwtService.issueToken(iaaUser, tokenType, null);
+		String newToken = AppComponents.jwtService.issueToken(iaaUser, newTokenType, null);
 		
-		if (StringUtil.isEmptyOrNull(token)) {
-			String errMsg = tokenType + " Token can not be created for login Id: " + loginId;
+		if (StringUtil.isEmptyOrNull(newToken)) {
+			String errMsg = newTokenType + "can not be created.";
 			logger.error(errMsg);
 			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 		}
-		responseStatus = AppUtil.createResponseStatus(Status.SUCCESS, "Login Process Success.");
+		responseStatus = AppUtil.createResponseStatus(Status.SUCCESS, "Token Auth Process Success.");
 
 		response.setResponseStatus(responseStatus);
-		response.setToken(token);
+		response.setToken(newToken);
 
 		logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = " + txnCtx.getTransactionId()
 		+ ">...... ");
 		return response;
+
 	}
-
-
 
 
 }

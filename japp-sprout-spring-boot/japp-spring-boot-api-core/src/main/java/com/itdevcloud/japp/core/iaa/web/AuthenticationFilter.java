@@ -39,6 +39,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
+import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
@@ -142,6 +143,8 @@ public class AuthenticationFilter implements Filter {
 			boolean enableAuth = ConfigFactory.appConfigService
 					.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_API_AUTH_ENABLED);
 			boolean isExcluded = isExcluded(httpRequest);
+			boolean ignoreNullClaimInToken = ConfigFactory.appConfigService
+					.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_TOKEN_VALIDATION_IGNORE_NULL_IN_TOKEN, true);
 
 			if (!(isExcluded || (!enableAuth
 					&& !AppConstant.JAPPCORE_SPRING_ACTIVE_PROFILE_PROD.equalsIgnoreCase(activeProfile)))) {
@@ -163,7 +166,8 @@ public class AuthenticationFilter implements Filter {
 				//must be access token
 				claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_TOKEN_TYPE, TokenHandlerI.TYPE_ACCESS_TOKEN);
 				
-				//Force to check nonce and ip if token has them as claims
+				//handle token IP and nonce
+				AppUtil.checkTokenIpAndNonceRequirement(userIp, nonce);
 				if (!StringUtil.isEmptyOrNull(userIp)) {
 					claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_USERIP, Hasher.hashPassword(userIp));
 				}else {
@@ -175,7 +179,7 @@ public class AuthenticationFilter implements Filter {
 					claimEqualMatchMap.put(TokenHandlerI.JWT_CLAIM_KEY_HASHED_NONCE, null);
 				}
 				//if token doesn't has nonce or IP, ignore them
-				iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token, claimEqualMatchMap, true);
+				iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token, claimEqualMatchMap, ignoreNullClaimInToken);
 				if (iaaUser == null) {
 					errMessage = "Authorization Failed. Can not retrieve iaaUser";
 					logger.error(errMessage);
@@ -216,8 +220,14 @@ public class AuthenticationFilter implements Filter {
 						"X-Requested-With,Origin,Content-Type, Accept, Token");
 				httpResponse.addHeader("Access-Control-Expose-Headers", "Token");
 
-				logger.info("AuthenticationFilter - Issue new token........");
-				String newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
+				//auto renew access token
+				ClientAppInfo clientAppInfo = AppUtil.getClientAppInfo();
+				Boolean autoRenew = clientAppInfo.getApiAutoRenewAccessToken();
+				String newToken = "";
+				if(autoRenew) {
+					logger.info("AuthenticationFilter - Issue new token........");
+					newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
+				}
 				httpResponse.addHeader("Token", newToken);
 
 			} else {

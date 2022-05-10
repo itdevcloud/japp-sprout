@@ -46,7 +46,9 @@ public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 	private String clientAppId;
 	private String name;
 	private String organizationId;
-	private Boolean apiRenewAccessToken;
+	private Boolean apiAutoRenewAccessToken;
+	private Boolean enforceTokenNonce;
+	private Boolean enforceTokenIP;
 	private CidrWhiteList cidrWhiteList;
 	private ClientAuthInfo clientAuthInfo;
 	private ClientPkiInfo clientPkiInfo;
@@ -75,11 +77,25 @@ public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 		this.organizationId = organizationId;
 	}
 
-	public Boolean getApiRenewAccessToken() {
-		return apiRenewAccessToken;
+	public Boolean getApiAutoRenewAccessToken() {
+		return apiAutoRenewAccessToken;
 	}
-	public void setApiRenewAccessToken(Boolean apiRenewAccessToken) {
-		this.apiRenewAccessToken = apiRenewAccessToken;
+	public void setApiAutoRenewAccessToken(Boolean apiAutoRenewAccessToken) {
+		this.apiAutoRenewAccessToken = apiAutoRenewAccessToken;
+	}
+	
+	
+	public Boolean getEnforceTokenNonce() {
+		return enforceTokenNonce;
+	}
+	public void setEnforceTokenNonce(Boolean enforceTokenNonce) {
+		this.enforceTokenNonce = enforceTokenNonce;
+	}
+	public Boolean getEnforceTokenIP() {
+		return enforceTokenIP;
+	}
+	public void setEnforceTokenIP(Boolean enforceTokenIP) {
+		this.enforceTokenIP = enforceTokenIP;
 	}
 	public void addClientAuthProvider(ClientAuthProvider clientAuthProvider) {
 		if(this.clientAuthInfo == null) {
@@ -210,7 +226,9 @@ public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 	@Override
 	public String toString() {
 		return "ClientAppInfo [id=" + id + ", clientAppId=" + clientAppId + ", name=" + name + ", organizationId="
-				+ organizationId + ", cidrWhiteList=" + cidrWhiteList + ", clientAuthInfo=" + clientAuthInfo + ", clientPkiInfo=" + clientPkiInfo + "]";
+				+ organizationId + ", apiAutoRenewAccessToken=" + apiAutoRenewAccessToken + ", enforceTokenNonce="
+				+ enforceTokenNonce + ", enforceTokenIP=" + enforceTokenIP + ", cidrWhiteList=" + cidrWhiteList
+				+ ", clientAuthInfo=" + clientAuthInfo + ", clientPkiInfo=" + clientPkiInfo + "]";
 	}
 	
 	public static void main(String[] args) {
@@ -221,7 +239,9 @@ public class ClientAppInfo implements Serializable,  Comparable<ClientAppInfo>{
 		clientAppInfo.setClientAppId("clientappid-1");
 		clientAppInfo.setName("Client-1");
 		clientAppInfo.setOrganizationId("Org-1");
-		clientAppInfo.setApiRenewAccessToken(false);
+		clientAppInfo.setApiAutoRenewAccessToken(true);
+		clientAppInfo.setEnforceTokenNonce(true);
+		clientAppInfo.setEnforceTokenIP(false);
 
 		CidrWhiteList cidrWhitelist = new CidrWhiteList();
 		ClientAuthInfo clientAuthInfo = new ClientAuthInfo();

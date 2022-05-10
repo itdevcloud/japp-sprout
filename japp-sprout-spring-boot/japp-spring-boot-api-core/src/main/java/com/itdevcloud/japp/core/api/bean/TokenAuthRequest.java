@@ -15,9 +15,8 @@
  *
  */
 package com.itdevcloud.japp.core.api.bean;
-
 /**
- * BasicAuthRequest Class.
+  *
  *
  * @author Marvin Sun
  * @since 1.0.0
@@ -25,43 +24,33 @@ package com.itdevcloud.japp.core.api.bean;
 
 import org.springframework.stereotype.Component;
 
-import io.netty.util.internal.StringUtil;
-
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 @Component
-public class  BasicAuthRequest extends BaseRequest {
+public class TokenAuthRequest extends BaseRequest {
 
 	private static final long serialVersionUID = 1L;
-
-	private String loginId;
-	private String password;
-	private String tokenType;
+	private String token;
+	private String newTokenType;
 	
-	
-	public String getLoginId() {
-		return loginId;
+	public String getToken() {
+		return token;
 	}
-	public void setLoginId(String loginId) {
-		this.loginId = loginId;
-	}
-	public String getPassword() {
-		return password;
-	}
-	public void setPassword(String password) {
-		this.password = password;
+	public void setToken(String token) {
+		this.token = token;
 	}
 	
-	public String getTokenType() {
-		return tokenType;
+	public String getNewTokenType() {
+		return newTokenType;
 	}
-	public void setTokenType(String tokenType) {
-		this.tokenType = tokenType;
+	public void setNewTokenType(String newTokenType) {
+		this.newTokenType = newTokenType;
 	}
-	
 	@Override
 	public String toString() {
-		return "BasicAuthRequest [loginId=" + loginId + ", password=" + (StringUtil.isNullOrEmpty(password)?null:"*") + ", tokenType=" + tokenType + ", Super =" + super.toString() + "] ";
+		return "TokenAuthRequest [token=" + (StringUtil.isEmptyOrNull(token)?null:"*") + ", newTokenType = " + newTokenType + ", Super = " + super.toString() + "]";
 	}
 
-	
+
+
 }

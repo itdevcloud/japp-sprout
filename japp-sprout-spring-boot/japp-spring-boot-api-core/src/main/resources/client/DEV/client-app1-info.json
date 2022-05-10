@@ -3,7 +3,9 @@
   "clientAppId": "clientappid-1",
   "name": "Client-1",
   "organizationId": "Org-1",
-  "apiRenewAccessToken": false,
+  "apiAutoRenewAccessToken": true,
+  "enforceTokenNonce": true,
+  "enforceTokenIP": true,
   "cidrWhiteList": {
     "ipWhiteList": [
       "127.0.0.1",

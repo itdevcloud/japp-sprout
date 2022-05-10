@@ -9,6 +9,7 @@ import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.SignedBasicAuthRequest;
 import com.itdevcloud.japp.core.api.bean.SignedBasicAuthResponse;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.TransactionContext;
@@ -59,29 +60,16 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			loginId = request.getLoginId();
 			String password = request.getPassword();
 			String clientPkiKey = request.getClientPkiKey();
+			String tokenType = request.getTokenType();
+
 			String clientAppId = apiAuthInfo.clientAppId;
 			String clientAuthKey = apiAuthInfo.clientAuthKey;
-			String requestTokenNonce = request.getTokenNonce();
-			String authTokenNonce = apiAuthInfo.tokenNonce;
-			String tokenNonce = null;
+			String tokenNonce = apiAuthInfo.tokenNonce;
 			String uip = apiAuthInfo.clientIP;
 			String signature = request.getSignature();
 			
-			if (StringUtil.isEmptyOrNull(requestTokenNonce) && StringUtil.isEmptyOrNull(authTokenNonce)) {
-				responseStatus = AppUtil.createResponseStatus(Status.ERROR_VALIDATION, "Authentication Failed. tokenNonce is null.");
-				response.setResponseStatus(responseStatus);
-				return response;
-			}else if(StringUtil.isEmptyOrNull(requestTokenNonce)) {
-				tokenNonce = authTokenNonce;
-			}else if(StringUtil.isEmptyOrNull(authTokenNonce)) {
-				tokenNonce = requestTokenNonce;
-			}else if(!requestTokenNonce.equals(authTokenNonce)) {
-				responseStatus = AppUtil.createResponseStatus(Status.ERROR_VALIDATION, "Authentication Failed. tokenNonce from request JSON ("+requestTokenNonce+") is different from request header/parameter/cookie (" + authTokenNonce + ")");
-				response.setResponseStatus(responseStatus);
-				return response;
-			}else {
-				tokenNonce = requestTokenNonce;
-			}
+			//handle token nonce and ip 
+			AppUtil.checkTokenIpAndNonceRequirement(uip, tokenNonce);
 
 			String signedMessage = clientAppId + loginId + password + tokenNonce;
 			logger.info("signatureText=" + signedMessage + ", signature=" + signature);
@@ -126,7 +114,13 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			iaaUser.setHashedNonce(hashedNonce);
 			iaaUser.setHashedUserIp(hashedUip);
 			
-			String token = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
+			if(!(TokenHandlerI.TYPE_ACCESS_TOKEN.equalsIgnoreCase(tokenType) || 
+					TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType) ||
+					TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(tokenType))) {
+				tokenType = TokenHandlerI.TYPE_ACCESS_TOKEN;
+			}
+			
+			String token = AppComponents.jwtService.issueToken(iaaUser, tokenType, null);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error("JWT Token can not be created for login Id '" + loginId);
 				responseStatus = AppUtil.createResponseStatus(Status.ERROR_SYSTEM_ERROR,
@@ -138,15 +132,17 @@ public class SignedBasicAuthProcessor extends RequestProcessor {
 			responseStatus = AppUtil.createResponseStatus(Status.SUCCESS, "Login Process Success.");
 
 			response.setResponseStatus(responseStatus);
-			response.setJwt(token);
+			response.setToken(token);
 
 			logger.debug(this.getClass().getSimpleName() + " end to process request...<txId = "
 					+ txnCtx.getTransactionId() + ">...... ");
 			return response;
-		} catch (Exception e) {
-			logger.error(CommonUtil.getStackTrace(e));
+		}catch (AppException ae) {
+			throw ae;
+		}catch (Throwable t) {
+			logger.error(CommonUtil.getStackTrace(t));
 			responseStatus = AppUtil.createResponseStatus(Status.ERROR_SYSTEM_ERROR,
-					e.getMessage());
+					t.getMessage());
 			response.setResponseStatus(responseStatus);
 			return response;
 		}

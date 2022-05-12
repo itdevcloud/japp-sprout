@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
+import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
 
 /**
@@ -37,6 +38,8 @@ public class AppThreadContext {
 	private static ThreadLocal<TransactionContext> txContext = new ThreadLocal<TransactionContext>();
 	private static ThreadLocal<ApiAuthInfo> authContext = new ThreadLocal<ApiAuthInfo>();
 	private static ThreadLocal<Map<String, Object>> claimesContext = new ThreadLocal<Map<String, Object>>();
+	private static ThreadLocal<Status> txStatusContext = new ThreadLocal<Status>();
+	private static ThreadLocal<Boolean> skipAuthEnabledContext = new ThreadLocal<Boolean>();
 
 	public static IaaUserI getIaaUser() {
 		IaaUserI user = iaaUserContext.get();
@@ -93,12 +96,48 @@ public class AppThreadContext {
 		claimesContext.set(authTokenClaimes);
 	}
 
+	public static Boolean getSkipAuthEnabled() {
+		Boolean skipAuthEnabled = skipAuthEnabledContext.get();
+		if (skipAuthEnabled == null) {
+			skipAuthEnabled = false;
+			skipAuthEnabledContext.set(false);
+		}
+		return skipAuthEnabled;
+	}
+
+
+	public static void setSkipAuthEnable(Boolean skipAuthEnabled) {
+		if (skipAuthEnabled == null) {
+			skipAuthEnabledContext.set(false);
+		}
+		skipAuthEnabledContext.set (skipAuthEnabled);
+	}
+
+	public static Status getTxStatus() {
+		Status status = txStatusContext.get();
+		if (status == null) {
+			status = Status.NA;
+			txStatusContext.set(status);
+		}
+		return status;
+	}
+
+
+	public static void setTxStatus(Status status) {
+		if (status == null) {
+			txStatusContext.set(Status.NA);
+		}
+		txStatusContext.set(status);
+	}
+
 	public static void clean() {
 		logger.debug("clean AppThreadContext..... => start");
 		iaaUserContext.set(null);
 		txContext.set(null);
 		authContext.set(null);
 		claimesContext.set(null);
+		txStatusContext.set(null);
+		skipAuthEnabledContext.set(null);
 		logger.debug("clean AppThreadContext..... <= end");
 	}
 }

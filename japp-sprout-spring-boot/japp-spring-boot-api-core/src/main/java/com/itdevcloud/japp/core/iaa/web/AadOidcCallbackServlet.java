@@ -62,9 +62,11 @@ public class AadOidcCallbackServlet extends javax.servlet.http.HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-		AppUtil.initTransactionContext(request);
+//		AppUtil.initTransactionContext();
+		logger.debug("aadOidcCallbackServlet.doPost().....start......");
+//		AppUtil.initAuthContext(request);
+		
 		try {
-			logger.debug("aadOidcCallbackServlet.doPost().....start......");
 
 			String idToken = request.getParameter("id_token");
 			// log.debug("id_token=========" + idToken);

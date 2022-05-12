@@ -38,6 +38,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -49,6 +53,8 @@ import com.itdevcloud.japp.core.api.vo.BasicCredential;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
+import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -87,9 +93,54 @@ public class AppUtil {
 	public static Date getStartupDate() {
 		return startupDate;
 	}
+	
+	public static String getClassSimpleName(String classFullName) {
+		if (StringUtil.isEmptyOrNull(classFullName)) {
+			return null;
+		}
+		classFullName = classFullName.replaceAll("\\.class", "");
+		int idx = classFullName.lastIndexOf(".");
+		if(idx < 0) {
+			return classFullName;
+		}else {
+			return classFullName.substring(idx+1);
+		}
+	}
+	public static String getCallerMethodNameTrace() {
+		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+		StackTraceElement e = null;
+		String nameTrace = null;
+		if(stacktrace != null && stacktrace.length >=5) {
+			e = stacktrace[4];
+			nameTrace = getClassSimpleName(e.getClassName()) + "." + e.getMethodName() + "()";
+			e = stacktrace[3];
+			nameTrace = nameTrace + "::" + getClassSimpleName(e.getClassName()) + "." + e.getMethodName() + "()";
+			e = stacktrace[2];
+			nameTrace = nameTrace + "::" + getClassSimpleName(e.getClassName()) + "." + e.getMethodName() + "()";
+			return nameTrace;
+		}else if(stacktrace != null && stacktrace.length >=4) {
+			e = stacktrace[3];
+			nameTrace = getClassSimpleName(e.getClassName()) + "." + e.getMethodName() + "()";
+			e = stacktrace[2];
+			nameTrace = nameTrace + "::" + getClassSimpleName(e.getClassName()) + "." + e.getMethodName() + "()";
+			return nameTrace;
+		}else if(stacktrace != null && stacktrace.length >=3) {
+			e = stacktrace[2];
+			nameTrace = getClassSimpleName(e.getClassName()) + "." + e.getMethodName() + "()";
+			return nameTrace;
+		}else  {
+			e = stacktrace[1];
+			nameTrace = getClassSimpleName(e.getClassName()) + "." + e.getMethodName() + "()";
+			return nameTrace;
+		}
+	}
 
 
 	public static BaseResponse createBaseResponse(Status status, String customizedMessage) {
+		
+		if(status == null) {
+			status = Status.NA;
+		}
 
 		BaseResponse response = new BaseResponse();
 		ResponseStatus responseStatus = createResponseStatus(status, customizedMessage);
@@ -100,12 +151,15 @@ public class AppUtil {
 		String txId = tcContext == null ? null : tcContext.getTransactionId();
 
 		response.setServerTxId(txId);
-
+		
 		return response;
 	}
 
 	public static <T extends BaseResponse> T createResponse(Class<T> responseClass, String command, Status status, String customizedMessage) {
 
+		if(status == null) {
+			status = Status.NA;
+		}
 		T response = AppFactory.getInstance(responseClass);
 		response.setCommand(command);
 
@@ -117,21 +171,25 @@ public class AppUtil {
 		String txId = tcContext == null ? null : tcContext.getTransactionId();
 
 		response.setServerTxId(txId);
-
+		
 		return response;
 	}
 
 
 	public static ResponseStatus createResponseStatus(Status status, String customizedMessage) {
 
+		if(status == null) {
+			status = Status.NA;
+		}
 		ResponseStatus responseStatus = new ResponseStatus(status, customizedMessage);
-
 		return responseStatus;
 	}
 
 	public static <T> T GsonDeepCopy(Object sourceObj, Class<T> outputClass) {
 		if (sourceObj == null || outputClass == null) {
-			return null;
+			String errMsg = getCallerMethodNameTrace() + ".....sourceObj and/or outputClass can not be null or empty.";
+			logger.warn(errMsg);
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
 		T targetObj;
 		Gson gson = null;
@@ -141,22 +199,24 @@ public class AppUtil {
 			targetObj = gson.fromJson(jsonStr, outputClass);
 			return targetObj;
 		} catch (Throwable t) {
-			t.printStackTrace();
+			String errMsg = getCallerMethodNameTrace() + "....." + t.getMessage();
+			logger.error(errMsg);
 			logger.error(CommonUtil.getStackTrace(t));
-			return null;
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
 	}
 
 	public static <T> T GsonDeepCopy(T sourceObj) {
 		if (sourceObj == null) {
-			return null;
+			String errMsg = getCallerMethodNameTrace() + "......sourceObj can not be null.";
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
 		return GsonDeepCopy(sourceObj, (Class<T>) sourceObj.getClass());
 	}
 
 	public static String getPropertyFileName(String baseName, String suffix){
 		if (StringUtil.isEmptyOrNull(baseName)) {
-			String errMsg = "getPropertyFileName().....baseName is null or empty, check code!";
+			String errMsg = getCallerMethodNameTrace() + ".....baseName can not be null or empty.";
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
 		String env = getSpringActiveProfile();
@@ -202,6 +262,8 @@ public class AppUtil {
 
 	public static String getCorrespondingCommand(String classSimpleName) {
 		if(StringUtil.isEmptyOrNull(classSimpleName)) {
+			String msg = getCallerMethodNameTrace() + ".....classSimpleName is null or empty.";
+			logger.warn(msg);
 			return null;
 		}
 		int idx = classSimpleName.indexOf(REQUEST_POSTFIX);
@@ -212,13 +274,19 @@ public class AppUtil {
 			}
 		}
 		if (idx <= 0) {
+			String msg = getCallerMethodNameTrace() + ".....can not get command name from classSimpleName(" + classSimpleName+").";
+			logger.warn(msg);
 			return null;
 		}
 		String command = classSimpleName.substring(0, idx);
 		if (StringUtil.isEmptyOrNull(command)) {
+			String msg = getCallerMethodNameTrace() + ".....can not get command name from classSimpleName(" + classSimpleName+").";
+			logger.warn(msg);
 			return null;
 		}
 		if (command.equalsIgnoreCase("Base")) {
+			String msg = getCallerMethodNameTrace() + ".....can not get command name from classSimpleName(" + classSimpleName+").";
+			logger.warn(msg);
 			return null;
 		}
 		return command;
@@ -226,24 +294,7 @@ public class AppUtil {
 
 	public static String getCorrespondingCommand(Object object) {
 		String classSimpleName = object.getClass().getSimpleName();
-		int idx = classSimpleName.indexOf(REQUEST_POSTFIX);
-		if (idx <= 0) {
-			idx = classSimpleName.indexOf(RESPONSE_POSTFIX);
-			if (idx <= 0) {
-				idx = classSimpleName.indexOf(PROCESSOR_POSTFIX);
-			}
-		}
-		if (idx <= 0) {
-			return null;
-		}
-		String command = classSimpleName.substring(0, idx);
-		if (StringUtil.isEmptyOrNull(command)) {
-			return null;
-		}
-		if (command.equalsIgnoreCase("Base")) {
-			return null;
-		}
-		return command;
+		return getCorrespondingCommand(classSimpleName);
 
 	}
 
@@ -311,26 +362,37 @@ public class AppUtil {
 	}
 
 	public static void setHttpResponse(HttpServletResponse httpResponse, int httpStatus, Status status, String customizedMessage) {
-		BaseResponse jappBaseResponse = AppUtil.createResponse(BaseResponse.class, null, status, customizedMessage);
-		Gson gson = new GsonBuilder().serializeNulls().create();
-		String jsonResponseStr = gson.toJson(jappBaseResponse);
-
-		httpResponse.setStatus(httpStatus);
-		PrintWriter out;
-		try {
-			out = httpResponse.getWriter();
-		} catch (Exception e) {
-			logger.error(CommonUtil.getStackTrace(e));
-			return;
+		if(httpResponse == null) {
+			String errMsg = getCallerMethodNameTrace() + ".....httpResponse can not be null.";
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
-		httpResponse.setContentType("application/json");
-		httpResponse.setCharacterEncoding("UTF-8");
-		out.print(jsonResponseStr);
+
+		PrintWriter out = null;
+		try {
+			httpResponse.setStatus(httpStatus);
+			BaseResponse jappBaseResponse = AppUtil.createResponse(BaseResponse.class, null, status, customizedMessage);
+			Gson gson = new GsonBuilder().serializeNulls().create();
+			String jsonResponseStr = gson.toJson(jappBaseResponse);
+			out = httpResponse.getWriter();
+			httpResponse.setContentType("application/json");
+			httpResponse.setCharacterEncoding("UTF-8");
+			out.print(jsonResponseStr);
+		} catch (AppException ae) {
+			throw ae;
+		} catch (Throwable t) {
+			String errMsg = getCallerMethodNameTrace() + "....." + t.getMessage();
+			logger.error(CommonUtil.getStackTrace(t));
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
+		}finally {
+			if(out != null) {
+				out.close();
+				out = null;
+			}
+		}
 	}
 
 	public static String getJwtTokenFromRequest(HttpServletRequest httpRequest) {
 		if (httpRequest == null) {
-			//logger.debug("getJwtTokenFromRequest - httpRequest is null.........");
 			return null;
 		}
 		String authHeader = httpRequest.getHeader(AppConstant.HTTP_AUTHORIZATION_HEADER_NAME);
@@ -351,7 +413,6 @@ public class AppUtil {
 		if (request == null) {
 			return null;
 		}
-		String body = null;
 		BufferedReader reader = null;
 		StringBuffer sBuffer = new StringBuffer();
 		try {
@@ -363,17 +424,16 @@ public class AppUtil {
 			reader.close();
 			reader = null;
 		} catch (Exception e) {
-			e.printStackTrace();
+			String errMsg = getCallerMethodNameTrace() + "....." + e.getMessage();
 			logger.error("getHttpRequestJsonBody()...end....with Error, json read: " + sBuffer.toString());
-			logger.error(e);
-			return null;
+			e.printStackTrace();
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		} finally{
 			if(reader != null) {
 				try {
 					reader.close();
 				} catch (IOException e) {
 					e.printStackTrace();
-					//logger.error("getHttpRequestJsonBody()......close reader......with Error: " + e + "\njson read: " + sBuffer.toString());
 				}
 			}
 		}
@@ -385,8 +445,8 @@ public class AppUtil {
 	public static String getValueFromJsonString (String jsonString, String name) {
 		logger.debug("getValueFromJsonString()...start........");
 		if (StringUtil.isEmptyOrNull(jsonString) || StringUtil.isEmptyOrNull(name) || !jsonString.startsWith("{")) {
-			logger.debug("getValueFromJsonString()...input is not a json string, return null........");
-			return null;
+			String errMsg = getCallerMethodNameTrace() + ".....jsonString is null / empty or it is not a valid json string or property name is null / empty." ;
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
 		String value = null;
 		try {
@@ -397,41 +457,48 @@ public class AppUtil {
 			}
 			logger.debug("getValueFromJsonString()......end......name = " + name +", value = "+value);
 		} catch (Exception e) {
-			logger.debug("getValueFromJsonString()...input is not a valid json string, return null....Error:" + e);
-			return null;
+			String errMsg = getCallerMethodNameTrace() + "....." + e.getMessage();
+			logger.error(CommonUtil.getStackTrace(e));
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		} 
 		return value;
 	}
 
 
-	public static void initTransactionContext(HttpServletRequest request) {
+	public static void initTransactionContext() {
+		
+		clearTransactionContext();
+		
 		TransactionContext txnCtx = new TransactionContext();
 		String txId = UUID.randomUUID().toString();
 		// for log4j2
 		ThreadContext.put(AppConstant.CONTEXT_KEY_JAPPCORE_TX_ID, txId);
 
-		logger.debug("initTransactionContext()...init transaction context....begin....");
+		logger.debug("initTransactionContext()......begin....");
+		
+		txnCtx.setTransactionId(txId);
+		txnCtx.setRequestReceivedTimeStamp(new Timestamp(new Date().getTime()));
+		txnCtx.setServerTimezoneId(TimeZone.getDefault().getID());
+		
+		AppThreadContext.setTransactionContext(txnCtx);
+
+
+		logger.debug("initTransactionContext().....end.....\ntxnCtx = " + txnCtx );
+		
+	}
+	
+	public static void initAuthContext(HttpServletRequest request) {
+		
+		logger.debug("initAuthContext().......begin....");
 		String errMsg = null;
 		if (request == null ) {
-			errMsg = "initTransactionContext() - request can not be null!" ;
+			errMsg = "initAuthContext() - request can not be null!" ;
 			logger.error(errMsg);
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		}
 		AppComponents.commonService.setValidatedAuthTokenClaimsAndApiAuthInfoContext(request);	
 		
-		//used during processing request
-
-		txnCtx.setTransactionId(txId);
-		txnCtx.setRequestReceivedTimeStamp(new Timestamp(new Date().getTime()));
-		txnCtx.setServerTimezoneId(TimeZone.getDefault().getID());
-		
-		// for request processor
-		AppThreadContext.setTransactionContext(txnCtx);
-
-		// for log4j2
-		ThreadContext.put(AppConstant.CONTEXT_KEY_JAPPCORE_TX_ID, txId);
-		
-		logger.debug("initTransactionContext()...init transaction context...end.....\ntxnCtx = " + txnCtx + "\nauthInfo = " + AppThreadContext.getApiAuthInfo());
+		logger.debug("initAuthContext()....end.....\nauthInfo = " + AppThreadContext.getApiAuthInfo());
 		
 	}
 
@@ -527,6 +594,50 @@ public class AppUtil {
 		}
 
 		return clientAppInfo;
+
+	}
+	
+	public static void handleHttpResposeBeforeBackToClient(BaseResponse response) {
+		
+		//task 1. set TxStatusContext
+		//will be used in AuthenticationFilter
+		ResponseStatus responseStatus = null;
+		Status status = null;
+		if (response == null || (responseStatus = response.getResponseStatus())==null || (status = responseStatus.getStatus()) == null) {
+			AppThreadContext.setTxStatus(null);
+		}
+		AppThreadContext.setTxStatus(status);
+		
+		//task 2. auto renew access token if required
+		//use data set from from AuthenticationFileter
+		Boolean skipAuthEnabled = AppThreadContext.getSkipAuthEnabled();
+		if(skipAuthEnabled) {
+			return;
+		}
+		//auto renew access token
+		ClientAppInfo clientAppInfo = AppUtil.getClientAppInfo();
+		Boolean autoRenew = clientAppInfo.getApiAutoRenewAccessToken();
+		String newToken = "";
+		if(autoRenew) {
+			if(status != null && status.code.equalsIgnoreCase(Status.SUCCESS.code)) {
+				logger.info("Auto renew access token........");
+				RequestAttributes ra = RequestContextHolder.getRequestAttributes();
+				ServletRequestAttributes sra = null;
+				if(ra != null) {
+					 sra = (ServletRequestAttributes)ra;
+					 HttpServletResponse httpResponse = sra.getResponse();
+					 IaaUserI iaaUser = AppThreadContext.getIaaUser();
+				 	 newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
+					 httpResponse.addHeader("Token", newToken);
+				}else {
+					logger.info("RequestAttributes is null, does not auto renew access token........");
+				}
+			}else {
+				logger.info("Transaction Status is not success, does not auto renew access token........");
+			}
+		}else {
+			logger.debug("autoRenew is disabled, does not auto renew access token........");
+		}
 
 	}
 

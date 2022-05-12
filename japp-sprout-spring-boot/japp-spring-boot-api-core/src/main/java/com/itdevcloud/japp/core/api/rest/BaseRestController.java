@@ -87,10 +87,14 @@ public abstract class BaseRestController {
 	
 	public <O extends BaseResponse, I extends BaseRequest> O processRequest(I request, Class<O> responseClass) {
 		try {
-			logger.debug("processRequest() - start ===>");
+			String reqName = request==null?null:request.getClass().getSimpleName();
+			
+			logger.info("processRequest() - start ===>>> request [" + reqName + "]");
+			
 			if (request == null) {
 				O response = AppUtil.createResponse(responseClass, "N/A",
 						Status.ERROR_VALIDATION, " request parameter is null!");
+				printEndStatement(response, request);
 				return response;
 			}
 			String requestSimpleName = request.getClass().getSimpleName();
@@ -100,12 +104,17 @@ public abstract class BaseRestController {
 				O response = AppUtil.createResponse(responseClass, "N/A",
 						Status.ERROR_VALIDATION, "processor not found for request: '" + requestSimpleName
 							+ "'....");
+				printEndStatement(response, request);
 				return response;
 			}
-	
+			
+			//call processor
 			O response = requestProcessor.process(request, responseClass);
-	
-			logger.debug("processRequest() - end <=== request = '" + requestSimpleName + "'");
+			
+			AppUtil.handleHttpResposeBeforeBackToClient(response);
+			
+			printEndStatement(response, request);
+			
 			return response;
 		} catch (AppException ae) {
 			ae.printStackTrace();
@@ -120,6 +129,20 @@ public abstract class BaseRestController {
 					Status.ERROR_SYSTEM_ERROR, t.getMessage());
 			return response;
 		}
+	}
+
+	private void printEndStatement(BaseResponse response, BaseRequest request) {
+		Status status = (response.getResponseStatus() == null?null:response.getResponseStatus().getStatus());
+		String reqName = request==null?null:request.getClass().getSimpleName();
+		String msg = "processRequest() - end <<<=== request [" + reqName + "], " + response.getResponseStatus();
+		if(status != null && status.name().startsWith("ERROR")) {
+			logger.error(msg);
+		}else if(status != null && status.name().startsWith("WARN")) {
+			logger.warn(msg);
+		}else {
+			logger.info(msg);
+		}
+
 	}
 
 }

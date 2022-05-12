@@ -38,6 +38,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
+import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
@@ -89,17 +90,26 @@ public class AuthenticationFilter implements Filter {
 		
 		CachedHttpServletRequest httpRequest = null;
 		HttpServletResponse httpResponse = null;
-		
+		long startTS = System.currentTimeMillis();
+		String requestURI = null;
+		String queryStr = null;
 		try {
 			HttpServletRequest originalHttpRequest = (HttpServletRequest) request;
 			httpResponse = (HttpServletResponse) response;
 	        
 			//this cached class enables multi-times request body reading		
 			httpRequest = new CachedHttpServletRequest(originalHttpRequest);
+			requestURI = httpRequest.getRequestURI();
+			queryStr = httpRequest.getQueryString();
 			
-			AppUtil.initTransactionContext(httpRequest);
-
-			logger.debug("AuthenticationFilter.doFilter() start ========>" + httpRequest.getRequestURI());
+			//make sure log4j has txId printed
+			AppUtil.initTransactionContext();
+			
+			logger.info("AuthenticationFilter.doFilter() start =======>>> requestURI <" + requestURI + ">, Query String = <"
+					+ queryStr + ">" );
+			
+			AppUtil.initAuthContext(httpRequest);
+			
 			ApiAuthInfo apiAuthInfo = AppThreadContext.getApiAuthInfo();
 			Map<String, Object> authTokenClaims = AppThreadContext.getAuthTokenClaims();
 			
@@ -110,14 +120,12 @@ public class AuthenticationFilter implements Filter {
 						+ apiAuthInfo.clientIP + ".....";
 				logger.error(errMessage);
 				AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
+				printEndStatement(startTS, requestURI, queryStr, errMessage);
 				return;
 			}
-			long startTS = System.currentTimeMillis();
 
-			String requestURI = httpRequest.getRequestURI();
-			String queryStr = httpRequest.getQueryString();
 
-			logger.info("AuthenticationFilter.doFilter () ====> method=" + httpRequest.getMethod());
+			logger.info("AuthenticationFilter.doFilter ()......method=" + httpRequest.getMethod());
 			String origin = ConfigFactory.appConfigService
 					.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
 
@@ -128,6 +136,7 @@ public class AuthenticationFilter implements Filter {
 				httpResponse.addHeader("Access-Control-Allow-Headers",
 						"Origin, X-Requested-With, Content-Type, Accept, Authorization, Token, Token-Nonce");
 				httpResponse.setStatus(200);
+				printEndStatement(startTS, requestURI, queryStr, null);
 				return;
 			}
 			String activeProfile = AppUtil.getSpringActiveProfile();
@@ -153,6 +162,7 @@ public class AuthenticationFilter implements Filter {
 					errMessage = "Token is null or not valid.....";
 					logger.error(errMessage);
 					AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
+					printEndStatement(startTS, requestURI, queryStr, errMessage);
 					return;
 				}
 				//initial context does NOT verify token signature if it find there is auth token in header
@@ -185,6 +195,7 @@ public class AuthenticationFilter implements Filter {
 					logger.error(errMessage);
 					httpResponse.setStatus(403);
 					AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
+					printEndStatement(startTS, requestURI, queryStr, errMessage);
 					return;
 				}
 				//add nonce and uerip
@@ -200,6 +211,7 @@ public class AuthenticationFilter implements Filter {
 					logger.error(errMessage);
 					httpResponse.setStatus(403);
 					AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
+					printEndStatement(startTS, requestURI, queryStr, errMessage);
 					return;
 				}
 				// CIDR white list check begin
@@ -209,10 +221,12 @@ public class AuthenticationFilter implements Filter {
 					logger.error(errMessage);
 					httpResponse.setStatus(403);
 					AppUtil.setHttpResponse(httpResponse, 403, Status.ERROR_SECURITY_AUTHORIZATION, errMessage);
+					printEndStatement(startTS, requestURI, queryStr, errMessage);
 					return;
 				}
 				// handle maintenance mode
 				if (AppComponents.commonService.inMaintenanceMode(httpResponse, iaaUser.getLoginId())) {
+					printEndStatement(startTS, requestURI, queryStr, "Application Is In Maitainenace Mode");
 					return;
 				}
 			
@@ -220,16 +234,9 @@ public class AuthenticationFilter implements Filter {
 						"X-Requested-With,Origin,Content-Type, Accept, Token");
 				httpResponse.addHeader("Access-Control-Expose-Headers", "Token");
 
-				//auto renew access token
-				ClientAppInfo clientAppInfo = AppUtil.getClientAppInfo();
-				Boolean autoRenew = clientAppInfo.getApiAutoRenewAccessToken();
-				String newToken = "";
-				if(autoRenew) {
-					logger.info("AuthenticationFilter - Issue new token........");
-					newToken = AppComponents.jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
-				}
-				httpResponse.addHeader("Token", newToken);
-
+				AppThreadContext.setIaaUser(iaaUser);
+				AppThreadContext.setSkipAuthEnable(false);
+				
 			} else {
 
 				// skip auth
@@ -241,52 +248,32 @@ public class AuthenticationFilter implements Filter {
 				if (AppComponents.commonService.inMaintenanceMode(httpResponse, loginId)) {
 					return;
 				}
+				
+				AppThreadContext.setIaaUser(iaaUser);
+				AppThreadContext.setSkipAuthEnable(true);
+
 				logger.warn("AuthenticationFilter - back-end skip auth.......!!!!!!!, get Anonymous user with loginId = "
 						+ loginId);
 
 			}
 
 			chain.doFilter(httpRequest, httpResponse);// sends request to next resource
-
-			Date end = new Date();
-			long endTS = end.getTime();
-			long totalTS = (endTS - startTS);
-			String infoStr = null;
-			int warningSeconds = ConfigFactory.appConfigService
-					.getPropertyAsInteger(AppConfigKeys.JAPPCORE_APP_SYSTEM_PERFORMANCE_WARNING_THRESHOLD_SECONDS);
-			int alertSeconds = ConfigFactory.appConfigService
-					.getPropertyAsInteger(AppConfigKeys.JAPPCORE_APP_SYSTEM_PERFORMANCE_ALERT_THRESHOLD_SECONDS);
-			if (totalTS <= warningSeconds * 1000) {
-				infoStr = "JappAuthenticationFilter.... end...Request URI = <" + requestURI + ">, Query String = <"
-						+ queryStr + ">, total time = " + totalTS + " millis. \n";
-			} else if (totalTS > warningSeconds * 1000 && totalTS <= alertSeconds * 1000) {
-				infoStr = "JappAuthenticationFilter...PERFORMANCE WARNING - Request URI = <" + requestURI
-						+ ">, Query String = <" + queryStr + ">, total time = " + totalTS + " millis. \n";
-
-				Date scheduledDate = null;
-				SystemNotification sn = new SystemNotification(SystemNotifyService.CATEGORY_PERFORMANCE_WARNING,
-						scheduledDate, infoStr);
-				AppComponents.systemNotifyService.addNotification(sn);
-			} else {
-				infoStr = "JappAuthenticationFilter...PERFORMANCE ALERT - Request URI = <" + requestURI
-						+ ">, Query String = <" + queryStr + ">, total time = " + totalTS + " millis. \n";
-
-				Date scheduledDate = null;
-				SystemNotification sn = new SystemNotification(SystemNotifyService.CATEGORY_PERFORMANCE_ALERT,
-						scheduledDate, infoStr);
-				AppComponents.systemNotifyService.addNotification(sn);
-			}
-			logger.info(infoStr);
+			//note start from here, HTTP Response has been flash out by REST controller, so can't use it anymore
+			
+			printEndStatement(startTS, requestURI, queryStr, null);
+			
 		} catch (AppException ae) {
 			String errStr = "AuthenticationFilter process request failed: ResponseStatus:" + ae.getMessage();
 			logger.error(errStr);
 			AppUtil.setHttpResponse(httpResponse, 403, ae.getStatus(), errStr);
+			printEndStatement(startTS, requestURI, queryStr, ae.getMessage());
 			return;
 			
 		} catch (Throwable t) {
 			String errStr = "AuthenticationFilter process request failed: " + t.getMessage();
 			logger.error(errStr);
 			AppUtil.setHttpResponse(httpResponse, 500, Status.ERROR_SYSTEM_ERROR, errStr);
+			printEndStatement(startTS, requestURI, queryStr, t.getMessage());
 			return;
 			
 		} finally{
@@ -322,4 +309,48 @@ public class AuthenticationFilter implements Filter {
 	public void destroy() {
 		AppUtil.clearTransactionContext();
 	}
+	
+	private void printEndStatement(long startTS, String requestURI, String queryStr, String errorMsg) {
+
+		Date end = new Date();
+		long endTS = end.getTime();
+		long totalTS = (endTS - startTS);
+		String infoStr = "AuthenticationFilter.doFilter() End. <<<====== Request URI = <" + requestURI + ">, Query String = <"
+				+ queryStr + ">, total time = " + totalTS + " millis.";
+		
+		int warningSeconds = ConfigFactory.appConfigService
+				.getPropertyAsInteger(AppConfigKeys.JAPPCORE_APP_SYSTEM_PERFORMANCE_WARNING_THRESHOLD_SECONDS);
+		int alertSeconds = ConfigFactory.appConfigService
+				.getPropertyAsInteger(AppConfigKeys.JAPPCORE_APP_SYSTEM_PERFORMANCE_ALERT_THRESHOLD_SECONDS);
+		
+		boolean useWarn = false;
+		if (totalTS > warningSeconds * 1000 && totalTS <= alertSeconds * 1000) {
+			useWarn = true;
+			infoStr = infoStr + "[PERFORMANCE WARNING]";
+			Date scheduledDate = null;
+			SystemNotification sn = new SystemNotification(SystemNotifyService.CATEGORY_PERFORMANCE_WARNING,
+					scheduledDate, infoStr);
+			AppComponents.systemNotifyService.addNotification(sn);
+		} else if (totalTS > alertSeconds * 1000 ){
+			useWarn = true;
+			infoStr = infoStr + "......[PERFORMANCE ALERT]......";
+			Date scheduledDate = null;
+			SystemNotification sn = new SystemNotification(SystemNotifyService.CATEGORY_PERFORMANCE_ALERT,
+					scheduledDate, infoStr);
+			AppComponents.systemNotifyService.addNotification(sn);
+		}
+		
+		infoStr = StringUtil.isEmptyOrNull(errorMsg)?infoStr: infoStr + "......ERROR: " + errorMsg;
+		
+		Status status = AppThreadContext.getTxStatus();
+		if((status != null && status.name().startsWith("ERROR")) || !StringUtil.isEmptyOrNull(errorMsg)) {
+			logger.error(infoStr);
+		}else if((status != null && status.name().startsWith("WARN")) || useWarn) {
+			logger.warn(infoStr);
+		}else {
+			logger.info(infoStr);
+		}
+
+	}
+
 }

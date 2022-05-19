@@ -16,7 +16,6 @@
  */
 package com.itdevcloud.japp.core.iaa.azure;
 
-import java.security.Key;
 import java.security.PublicKey;
 import java.util.Date;
 import java.util.HashMap;
@@ -109,26 +108,15 @@ public class AadIdTokenHandler implements TokenHandlerI {
 	@Override
 	public IaaUserI getIaaUserBasedOnToken(String token) {
 		try {
-			if (token == null || token.trim().isEmpty()) {
+			if (StringUtil.isEmptyOrNull(token) ) {
 				return null;
 			}
-			Map<String, Object> claims = JJwtTokenUtil.parseJwtClaims(token);
-			String email = "" + claims.get(JWT_CLAIM_KEY_EMAIL);
-			String sub = "" + claims.get(JWT_CLAIM_KEY_SUBJECT);
-			String upn = "" + claims.get(JWT_CLAIM_KEY_AAD_USERNAME);
+			Map<String, Object> claims = parseTokenClaims(token);
 			String nonce = "" + claims.get(JWT_CLAIM_KEY_AAD_NONCE);
+			String uid = "" + claims.get(JWT_CLAIM_KEY_UID);
 
-			String loginId = null;
-			logger.info("subject: " + sub + ", upn=" + upn + "......");
-			if (!StringUtil.isEmptyOrNull(upn) && (upn.indexOf("@") != -1)) {
-				loginId = upn;
-			}else if (!StringUtil.isEmptyOrNull(sub) && (sub.indexOf("@") != -1)){
-				loginId = sub;
-			}else {
-				loginId = email;
-			}
-			logger.info("retrieving user by loginid = " + loginId );
-			IaaUserI iaaUser = AppComponents.iaaService.getIaaUserFromRepositoryByLoginId(loginId);
+			logger.info("retrieving user by uid = " + uid );
+			IaaUserI iaaUser = AppComponents.iaaService.getIaaUserBySystemUid(uid);
 			
 			if(!StringUtil.isEmptyOrNull(nonce)) {
 				iaaUser.setHashedNonce(Hasher.hashPassword(nonce));
@@ -141,38 +129,6 @@ public class AadIdTokenHandler implements TokenHandlerI {
 		}
 	}
 
-
-	@Override
-	public String getAccessToken(String token) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public String issueToken(IaaUserI iaaUser, String tokenType, Key privateKey, int expireMinutes,
-			Map<String, Object> customClaimMap) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Map<String, Object> parseTokenHeaders(String token) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Map<String, Object> parseTokenClaims(String token) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Map<String, Object> isValidTokenByPublicKey(String token, PublicKey publicKey) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 
 }

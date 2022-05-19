@@ -259,7 +259,7 @@ public class AppUtil {
 		logger.info("getDeploymentRootDir().....jappcore.deployment.root.dir = " + deploymentRootDir);
 		return deploymentRootDir;
 	}
-
+	
 	public static String getCorrespondingCommand(String classSimpleName) {
 		if(StringUtil.isEmptyOrNull(classSimpleName)) {
 			String msg = getCallerMethodNameTrace() + ".....classSimpleName is null or empty.";
@@ -409,7 +409,7 @@ public class AppUtil {
 	}
 
 	public static String getHttpRequestJsonBody (HttpServletRequest request) {
-		logger.debug("getHttpRequestJsonBody()...start........");
+		//logger.debug("getHttpRequestJsonBody()...start........");
 		if (request == null) {
 			return null;
 		}
@@ -424,8 +424,8 @@ public class AppUtil {
 			reader.close();
 			reader = null;
 		} catch (Exception e) {
-			String errMsg = getCallerMethodNameTrace() + "....." + e.getMessage();
-			logger.error("getHttpRequestJsonBody()...end....with Error, json read: " + sBuffer.toString());
+			String errMsg = getCallerMethodNameTrace() + " - " + e.getMessage();
+			logger.error(errMsg + ", json read: " + sBuffer.toString());
 			e.printStackTrace();
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 		} finally{
@@ -443,7 +443,7 @@ public class AppUtil {
 	}
 
 	public static String getValueFromJsonString (String jsonString, String name) {
-		logger.debug("getValueFromJsonString()...start........");
+		//logger.debug("getValueFromJsonString()...start........");
 		if (StringUtil.isEmptyOrNull(jsonString) || StringUtil.isEmptyOrNull(name) || !jsonString.startsWith("{")) {
 			String errMsg = getCallerMethodNameTrace() + ".....jsonString is null / empty or it is not a valid json string or property name is null / empty." ;
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
@@ -455,7 +455,7 @@ public class AppUtil {
 				JsonElement element = obj.get(name.trim());
 				value = (element == null? null: element.getAsString());
 			}
-			logger.debug("getValueFromJsonString()......end......name = " + name +", value = "+value);
+			//logger.debug("getValueFromJsonString()......end......name = " + name +", value = "+value);
 		} catch (Exception e) {
 			String errMsg = getCallerMethodNameTrace() + "....." + e.getMessage();
 			logger.error(CommonUtil.getStackTrace(e));
@@ -489,7 +489,7 @@ public class AppUtil {
 	
 	public static void initAuthContext(HttpServletRequest request) {
 		
-		logger.debug("initAuthContext().......begin....");
+		logger.debug("initAuthContext() - begin....");
 		String errMsg = null;
 		if (request == null ) {
 			errMsg = "initAuthContext() - request can not be null!" ;
@@ -498,12 +498,12 @@ public class AppUtil {
 		}
 		AppComponents.commonService.setValidatedAuthTokenClaimsAndApiAuthInfoContext(request);	
 		
-		logger.debug("initAuthContext()....end.....\nauthInfo = " + AppThreadContext.getApiAuthInfo());
+		logger.debug("initAuthContext() - end.....\nauthInfo = " + AppThreadContext.getApiAuthInfo());
 		
 	}
 
 	public static void clearTransactionContext() {
-		logger.debug("clearTransactionContext()...clear transaction context........");
+		logger.debug("clearTransactionContext() - clear transaction context........");
 		AppThreadContext.clean();
 		ThreadContext.clearAll();
 	}

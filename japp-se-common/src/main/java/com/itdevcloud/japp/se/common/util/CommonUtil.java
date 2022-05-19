@@ -439,5 +439,53 @@ public class CommonUtil {
 		return true;
 	}
 
-	
+	public static Set<String> changeStringSetCase(Set<String> sourceSet, boolean toUpperCase) {
+		
+		Set<String> targetSet = new HashSet<String>();
+		if (sourceSet == null ||sourceSet.isEmpty() ) {
+			return targetSet;
+		}
+		for(String str: sourceSet) {
+			if(toUpperCase) {
+				targetSet.add(str.toUpperCase());
+			}else {
+				targetSet.add(str.toLowerCase());
+			}
+		}
+		return targetSet;
+	}
+
+	public static List<String> changeStringListCase(List<String> sourceList, boolean toUpperCase) {
+		
+		List<String> targetList = new ArrayList<String>();
+		if (sourceList == null ||sourceList.isEmpty() ) {
+			return targetList;
+		}
+		for(String str: sourceList) {
+			if(toUpperCase) {
+				targetList.add(str.toUpperCase());
+			}else {
+				targetList.add(str.toLowerCase());
+			}
+		}
+		return targetList;
+	}
+	public static String[] changeStringArrayCase(String[] sourceArray, boolean toUpperCase) {
+		int len = (sourceArray == null || sourceArray.length == 0)?0:sourceArray.length;
+		if (len == 0 ) {
+			return null;
+		}
+		String[] targetArray = new String[len];
+		int i = 0;
+		for(String str: sourceArray) {
+			if(toUpperCase) {
+				targetArray[i] = str.toUpperCase();
+			}else {
+				targetArray[i] = str.toLowerCase();
+			}
+			i++;
+		}
+		return targetArray;
+	}
+
 }

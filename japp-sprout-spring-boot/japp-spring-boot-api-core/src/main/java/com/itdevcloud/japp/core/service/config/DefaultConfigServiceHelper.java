@@ -16,11 +16,6 @@
  */
 package com.itdevcloud.japp.core.service.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
@@ -33,13 +28,5 @@ import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 @Component
 public class DefaultConfigServiceHelper implements ConfigServiceHelperI {
 
-	//private static final Logger logger = LogManager.getLogger(DefaultConfigServiceHelper.class);
-
-
-	@Override
-	public Map<String, String> createConfigMapFromAppRepository() {
-		Map<String, String> configeMap = new HashMap<String, String>();
-		return configeMap;
-	}
 
 }

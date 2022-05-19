@@ -34,6 +34,7 @@ import com.itdevcloud.japp.core.api.bean.TokenAuthResponse;
 import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenRequest;
 import com.itdevcloud.japp.core.api.bean.ValidateOrIssueNewTokenResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -58,9 +59,9 @@ public class AuthRestController extends BaseRestController {
 	@PostMapping("/open/core/basicauth")
 	BasicAuthResponse basicAuth(@RequestBody BasicAuthRequest request) {
 		BasicAuthResponse response = null;
-		if ((response = checkIsEnabled(BasicAuthResponse.class)) != null) {
-			return response;
-		}
+//		if ((response = AppComponents.commonService.checkIsEnabledCommand(BasicAuthResponse.class)) != null) {
+//			return response;
+//		}
 		response = processRequest(request, BasicAuthResponse.class);
 		return response;
 	}
@@ -72,9 +73,9 @@ public class AuthRestController extends BaseRestController {
 	SignedBasicAuthResponse signedBasicAuth(@RequestBody SignedBasicAuthRequest request) {
 
 		SignedBasicAuthResponse response = null;
-		if ((response = checkIsEnabled(SignedBasicAuthResponse.class)) != null) {
-			return response;
-		}
+//		if ((response = AppComponents.commonService.checkIsEnabledCommand(SignedBasicAuthResponse.class)) != null) {
+//			return response;
+//		}
 		response = (SignedBasicAuthResponse) processRequest(request, SignedBasicAuthResponse.class);
 
 		return response;
@@ -86,9 +87,9 @@ public class AuthRestController extends BaseRestController {
 	@PostMapping("/open/core/tokenauth")
 	TokenAuthResponse tokenAuth(@RequestBody TokenAuthRequest request) {
 		TokenAuthResponse response = null;
-		if ((response = checkIsEnabled(TokenAuthResponse.class)) != null) {
-			return response;
-		}
+//		if ((response = AppComponents.commonService.checkIsEnabledCommand(TokenAuthResponse.class)) != null) {
+//			return response;
+//		}
 		response = processRequest(request, TokenAuthResponse.class);
 		return response;
 	}
@@ -99,9 +100,9 @@ public class AuthRestController extends BaseRestController {
 	@PostMapping("/api/core/tokenvalidation")
 	ValidateOrIssueNewTokenResponse validateOrIssueNewToken(@RequestBody ValidateOrIssueNewTokenRequest request) {
 		ValidateOrIssueNewTokenResponse response = null;
-		if ((response = checkIsEnabled(ValidateOrIssueNewTokenResponse.class)) != null) {
-			return response;
-		}
+//		if ((response = AppComponents.commonService.checkIsEnabledCommand(ValidateOrIssueNewTokenResponse.class)) != null) {
+//			return response;
+//		}
 		response = processRequest(request, ValidateOrIssueNewTokenResponse.class);
 		return response;
 	}

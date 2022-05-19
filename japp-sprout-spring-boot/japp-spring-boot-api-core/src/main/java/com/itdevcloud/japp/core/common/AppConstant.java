@@ -23,6 +23,8 @@ package com.itdevcloud.japp.core.common;
  */
 public class AppConstant {
 
+	public static enum LogicOperation {NOT, AND, OR};
+
 	public static final String IDENTITY_PROVIDER_CORE_AAD_OIDC = "CORE-AAD-OIDC";
 	public static final String IDENTITY_PROVIDER_CORE_AAD_OAUTH2 = "CORE-AAD-OAUTH2";
 	public static final String IDENTITY_PROVIDER_CORE_BASIC = "CORE-BASIC";

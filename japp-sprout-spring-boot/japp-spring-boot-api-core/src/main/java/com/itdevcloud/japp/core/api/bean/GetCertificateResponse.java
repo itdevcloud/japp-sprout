@@ -28,8 +28,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class GetCertificateResponse extends BaseResponse {
 
-
-
+	private static final long serialVersionUID = 1L;
 	private String certificate;
 	private String type;
 	public String getCertificate() {

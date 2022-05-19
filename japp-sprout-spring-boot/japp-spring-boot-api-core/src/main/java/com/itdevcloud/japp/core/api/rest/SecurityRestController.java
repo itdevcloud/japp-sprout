@@ -54,9 +54,9 @@ public class SecurityRestController extends BaseRestController {
 	@PostMapping("/api/core/encryption")
 	EncryptTextResponse encryptText(@RequestBody EncryptTextRequest request) {
 		EncryptTextResponse response = null;
-		if ((response = checkIsEnabled(EncryptTextResponse.class)) != null) {
-			return response;
-		}
+//		if ((response = checkIsEnabled(EncryptTextResponse.class)) != null) {
+//			return response;
+//		}
 		response = processRequest(request, EncryptTextResponse.class);
 		return response;
 	}
@@ -66,9 +66,9 @@ public class SecurityRestController extends BaseRestController {
 	@PostMapping("/api/core/decryption")
 	DecryptTextResponse decryptText(@RequestBody DecryptTextRequest request) {
 		DecryptTextResponse response = null;
-		if ((response = checkIsEnabled(DecryptTextResponse.class)) != null) {
-			return response;
-		}
+//		if ((response = checkIsEnabled(DecryptTextResponse.class)) != null) {
+//			return response;
+//		}
 		response = processRequest(request, DecryptTextResponse.class);
 		return response;
 	}
@@ -78,9 +78,9 @@ public class SecurityRestController extends BaseRestController {
 	@PostMapping("/api/core/sign")
 	SignTextResponse signText(@RequestBody SignTextRequest request) {
 		SignTextResponse response = null;
-		if ((response = checkIsEnabled(SignTextResponse.class)) != null) {
-			return response;
-		}
+//		if ((response = checkIsEnabled(SignTextResponse.class)) != null) {
+//			return response;
+//		}
 		response = processRequest(request, SignTextResponse.class);
 		return response;
 	}
@@ -90,9 +90,9 @@ public class SecurityRestController extends BaseRestController {
 	@PostMapping("/api/core/signatureVerification")
 	VerifySignatureResponse signatureVerification(@RequestBody VerifySignatureRequest request) {
 		VerifySignatureResponse response = null;
-		if ((response = checkIsEnabled(VerifySignatureResponse.class)) != null) {
-			return response;
-		}
+//		if ((response = checkIsEnabled(VerifySignatureResponse.class)) != null) {
+//			return response;
+//		}
 		response = processRequest(request, VerifySignatureResponse.class);
 		return response;
 	}

@@ -16,6 +16,7 @@
  */
 package com.itdevcloud.japp.core.service.customization;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,6 +27,9 @@ import java.util.Map;
 public interface ConfigServiceHelperI {
 
 
-	public Map<String, String> createConfigMapFromAppRepository();
+	default Map<String, String> createConfigMapFromAppRepository() {
+		Map<String, String> configeMap = new HashMap<String, String>();
+		return configeMap;
+	}
 
 }

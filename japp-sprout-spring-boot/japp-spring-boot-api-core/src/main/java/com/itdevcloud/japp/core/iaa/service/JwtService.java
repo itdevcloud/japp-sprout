@@ -67,7 +67,7 @@ public class JwtService implements AppFactoryComponentI {
 			String handlerName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME);
 			coreTokenHandler = AppFactory.getTokenHandler(handlerName);
 			if(coreTokenHandler == null) {
-				logger.error("Can't find access token handler by name: " + handlerName + ", check configuration file! JappApiLocalTokenHandler instead......... ");
+				logger.warn("Can't find access token handler by name: " + handlerName + ", use AppLocalTokenHandler instead......... ");
 				coreTokenHandler = AppFactory.getTokenHandler(AppLocalTokenHandler.class.getSimpleName());
 			}
 		}

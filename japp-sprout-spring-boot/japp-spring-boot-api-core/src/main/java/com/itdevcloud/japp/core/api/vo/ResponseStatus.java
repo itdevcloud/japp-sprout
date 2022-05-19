@@ -63,6 +63,7 @@ public class ResponseStatus implements Serializable {
 		SUCCESS(),
 	    NA(),
 	    ERROR_SYSTEM_ERROR(),
+	    ERROR_SYSTEM_CMD_NOT_SUPPORTED(),
 	    ERROR_VALIDATION(),
 	    ERROR_SECURITY(),
 	    ERROR_SECURITY_INVALID_TOKEN(),
@@ -71,16 +72,6 @@ public class ResponseStatus implements Serializable {
 	    WARN_NO_ACTION()
 	    ;
 
-//		SUCCESS("SUCCESS", "Success"),
-//	    NA("NA", "N/A"),
-//	    ERROR_SYSTEM_ERROR("E0001", "System Error"),
-//	    ERROR_VALIDATION("E0100", "General Validation Error"),
-//	    ERROR_SECURITY("E0300", "General Security Error"),
-//	    ERROR_SECURITY_INVALID_TOKEN("E0301", "Validation Error"),
-//	    ERROR_SECURITY_AUTHENTICATION("E0302", "Authentication Error"),
-//	    ERROR_SECURITY_AUTHORIZATION("E0303", "Authorization Error"),
-//	    WARN_NO_ACTION("W1000", "Warning: No Action")
-//	    ;
 
 	    public final String code;
 	    public final String message;
@@ -102,10 +93,6 @@ public class ResponseStatus implements Serializable {
 	    		this.message = strArr[1].trim();
 	    	}
 	    }
-//	    Status(final String code, final String message) {
-//	        this.code = StringUtil.isEmptyOrNull(code)?"NA":code.trim().toUpperCase();
-//	        this.message = StringUtil.isEmptyOrNull(code)?"N/A":code.trim();
-//	    }
 	    public String toString() {
 	        return code + "-" + message;
 	    }

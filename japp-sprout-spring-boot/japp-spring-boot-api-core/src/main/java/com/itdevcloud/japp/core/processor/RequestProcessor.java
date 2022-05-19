@@ -31,8 +31,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
-import com.itdevcloud.japp.core.api.vo.ApiAuthInfo;
-import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
@@ -57,7 +55,8 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 	protected IaaUserI getIaaUser() {
 		IaaUserI iaaUser = 	AppThreadContext.getIaaUser();
 		if (iaaUser == null) {
-			throw new RuntimeException("IaaUser is not set in the AppThreadContext, check code!");
+			String errmsg = "getIaaUser() - IaaUser is not set in the AppThreadContext.";
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errmsg);
 		}
 		return iaaUser;
 	}
@@ -80,36 +79,51 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 		TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 		T response = null;
 		try {
-			logger.info("RequestProcessor process begin,  LoginId = '" + getLoginId() + "', TransactionContext = " + txnCtx + "......");
+			logger.info("process() - begin,  LoginId = '" + getLoginId() + "', TransactionContext = " + txnCtx + "......");
 			if (request == null) {
 				response = AppUtil.createResponse(responseClass, "N/A",
-						Status.ERROR_VALIDATION, " request parameter is null!");
+						Status.ERROR_SYSTEM_ERROR, " request parameter can not be null!");
+				return response;
+			}
+			//check command is enabled or not
+			String classSimpleName = request.getClass().getSimpleName();
+			if(!AppComponents.commonService.isCommandEnabled(classSimpleName)) {
+				String command = AppUtil.getCorrespondingCommand(classSimpleName);
+				String errMsg = "process() - Command [" + command  + "] is not enabled or supported.";
+				T commandResponse = AppUtil
+						.createResponse(responseClass, command, Status.ERROR_SYSTEM_CMD_NOT_SUPPORTED, errMsg);
+				response = commandResponse;
+				logger.error(errMsg);
 				return response;
 			}
 			//check role
-			if(!AppComponents.iaaService.isAccessAllowed(getTargetRole(request.getClass().getSimpleName()))) {
-				String simpleName = this.getClass().getSimpleName();
+			if(!AppComponents.iaaService.isAccessAllowed(getTargetRole(classSimpleName))) {
+				String command = AppUtil.getCorrespondingCommand(classSimpleName);
+				String errMsg = "process() - User [" + getLoginId() + "] is not authorized to invoke the function: " + command;
 				T commandResponse = AppUtil
-						.createResponse(responseClass, request.getCommand(), Status.ERROR_SECURITY_AUTHORIZATION, getLoginId() + " not authorized: " + simpleName);
+						.createResponse(responseClass, request.getCommand(), Status.ERROR_SECURITY_AUTHORIZATION, errMsg);
 				response = commandResponse;
+				logger.error(errMsg);
 				return response;
 		    }
 			
 			response = (T) processRequest(request);
 			if(response == null) {
-				String simpleName = this.getClass().getSimpleName();
+				String command = AppUtil.getCorrespondingCommand(classSimpleName);
+				String errMsg = "process() - User [" + getLoginId() + "]. Procossor returns null reponse for the command: " + command;
 				T commandResponse = AppUtil
-						.createResponse(responseClass, request.getCommand(), Status.ERROR_SYSTEM_ERROR, simpleName + " returns null response object");
+						.createResponse(responseClass, request.getCommand(), Status.ERROR_SYSTEM_ERROR, errMsg);
 				response = commandResponse;
+				logger.error(errMsg);
 			}
 			response.populateReuqstInfo(request);
 			
 			long endTS = System.currentTimeMillis();
-			logger.info("RequestProcessor process end - total time = " + (endTS - startTS) + " millis. LoginId = '" + getLoginId() + "', TransactionContext = " + txnCtx + "......");
+			logger.info("process() - end - total time = " + (endTS - startTS) + " millis. LoginId = " + getLoginId() + "......");
 
 		} catch (AppException ae) {
 			ae.printStackTrace();
-			logger.error(ae.getMessage());
+			logger.error("process() - ERROR: " + ae.getMessage());
 			T commandResponse = AppUtil
 					.createResponse(responseClass, request.getCommand(), ae.getStatus(), ae.getMessage());
 			response = commandResponse;
@@ -118,7 +132,7 @@ public abstract class RequestProcessor implements AppFactoryComponentI {
 			}
 		}  catch (Throwable t) {
 			t.printStackTrace();
-			logger.error(t.getMessage(), t);
+			logger.error("process() - ERROR: " + t.getMessage(), t);
 			T commandResponse = AppUtil
 					.createResponse(responseClass, request.getCommand(), Status.ERROR_SYSTEM_ERROR, t.getMessage());
 			response = commandResponse;

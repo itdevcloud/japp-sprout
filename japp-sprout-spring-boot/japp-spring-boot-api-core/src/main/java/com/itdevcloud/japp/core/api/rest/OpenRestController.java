@@ -58,9 +58,9 @@ public class OpenRestController extends BaseRestController {
 	@RequestMapping(value = "/open/core/echo", method=RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	EchoResponse echo(@RequestBody EchoRequest request) {
 		EchoResponse response = null;
-		if ((response = checkIsEnabled(EchoResponse.class)) != null) {
-			return response;
-		}
+//		if ((response = checkIsEnabled(EchoResponse.class)) != null) {
+//			return response;
+//		}
 		response = processRequest(request, EchoResponse.class);
 		return response;
 	}
@@ -103,37 +103,37 @@ public class OpenRestController extends BaseRestController {
 	@Operation(summary = "Load Transfer Token To Client Style", description = "Load Transfer Token To Client Style", tags = {
 	"Core-Open" })
 
-@RequestMapping(value="/open/core/transfer_token_to_client_style", method=RequestMethod.GET)
-String getTransferTokenToClientStyle() {
-InputStream inputStream = null;
-StringBuilder sb = new StringBuilder();
-try {
-	inputStream = OpenRestController.class.getResourceAsStream("/page/transfer_token_to_client_style.css");
-	if (inputStream == null) {
-		throw new Exception("can not load transfer_token_to_client_style.css, check code!.......");
-	}
-	String line;
-	BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-	while ((line = br.readLine()) != null) {
-		sb.append(line).append("\r\n");
-	}
-	inputStream.close();
-	inputStream = null;
-} catch (Exception e) {
-	e.printStackTrace();
-	sb = new StringBuilder(e.getMessage());
-} finally {
-	if (inputStream != null) {
+	@RequestMapping(value="/open/core/transfer_token_to_client_style", method=RequestMethod.GET)
+	String getTransferTokenToClientStyle() {
+		InputStream inputStream = null;
+		StringBuilder sb = new StringBuilder();
 		try {
+			inputStream = OpenRestController.class.getResourceAsStream("/page/transfer_token_to_client_style.css");
+			if (inputStream == null) {
+				throw new Exception("can not load transfer_token_to_client_style.css, check code!.......");
+			}
+			String line;
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+			while ((line = br.readLine()) != null) {
+				sb.append(line).append("\r\n");
+			}
 			inputStream.close();
-		} catch (IOException e) {
+			inputStream = null;
+		} catch (Exception e) {
 			e.printStackTrace();
+			sb = new StringBuilder(e.getMessage());
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				inputStream = null;
+			}
 		}
-		inputStream = null;
+		return sb.toString();
 	}
-}
-return sb.toString();
-}
 
 	@Operation(summary = "Load Online Login Error Script", description = "Load Online Login Error Script", tags = {
 			"Core-Open" })

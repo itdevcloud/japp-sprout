@@ -30,6 +30,7 @@ import java.net.InetAddress;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.stereotype.Component;
 
@@ -65,9 +67,87 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 public class CommonService implements AppFactoryComponentI {
 	private static final Logger logger = LogManager.getLogger(CommonService.class);
 
+	@Value("${" + AppConfigKeys.JAPPCORE_APP_CORE_CONTROLLER_ENABLED_COMMANDS + ":none}")
+	private String enabledCommands;
+	private Set<String> enabledCommandSet = null;
+
+	@Value("${" + AppConfigKeys.JAPPCORE_IAA_AUTH_SUPPORTED_PROVIDERS + "}")
+	private String supportedProviderIds;
+	private Set<String> supportedProviderIdSet = null;
 
 	@PostConstruct
 	public void init() {
+		//enabled command set
+		this.enabledCommandSet = new HashSet<String>();
+		if(StringUtil.isEmptyOrNull(enabledCommands) || "none".equalsIgnoreCase(enabledCommands)) {
+			return;
+		}
+		String[] cmdArr = enabledCommands.split(",");
+		for(String cmd: cmdArr) {
+			enabledCommandSet.add(cmd.trim().toLowerCase());
+		}
+		//supported auth provider set
+		this.supportedProviderIdSet = new HashSet<String>();
+		if(StringUtil.isEmptyOrNull(supportedProviderIds) ) {
+			return;
+		}
+		String[] idArr = enabledCommands.split(",");
+		for(String id: idArr) {
+			supportedProviderIdSet.add(id.trim().toLowerCase());
+		}
+
+	}
+	
+	//return null means it is enabled
+	//return a response object means the command is not enabled
+	//this way could simplify controller's code
+//	public <T extends BaseResponse> T checkIsEnabledCommand(Class<T> responseClass) {
+//		if (responseClass == null) {
+//			String errMsg = "checkIsEnabledCommand()......responseClass is null.";
+//			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
+//		}
+//		String command = AppUtil.getCorrespondingCommand(responseClass.getSimpleName());
+//		if(StringUtil.isEmptyOrNull(command) || !enabledCommandSet.contains(command)) {
+//			if(enabledCommandSet.contains("all") || enabledCommandSet.contains("any") || enabledCommandSet.contains("*")) {
+//				return null;
+//			}
+//			T response = AppUtil.createResponse(responseClass, "N/A", Status.ERROR_VALIDATION,
+//					"the command [" + command + "] is not enabled!");
+//			return response;
+//		}
+//		return null;
+//	}
+	
+	public boolean isCommandEnabled(String classSimpleName) {
+		if (StringUtil.isEmptyOrNull(classSimpleName)) {
+			String errMsg = "isEnabledCommand()......classSimpleName can not be null ot empty.";
+			throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
+		}
+		String command = AppUtil.getCorrespondingCommand(classSimpleName);
+		if(StringUtil.isEmptyOrNull(command)) {
+			return false;
+		}
+		//use lower case
+		if(!enabledCommandSet.contains(command.trim().toLowerCase())) {
+			if(enabledCommandSet.contains("all") || enabledCommandSet.contains("any") || enabledCommandSet.contains("*")) {
+				return true;
+			}else {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean isSupportedAuthProvider(String authProviderId) {
+		if(StringUtil.isEmptyOrNull(authProviderId)) {
+			return false;
+		}
+		//use lower case
+		if(!supportedProviderIdSet.contains(authProviderId.trim().toLowerCase())) {
+			return false;
+		}
+		return true;
+
 	}
 
 	/**
@@ -299,7 +379,7 @@ public class CommonService implements AppFactoryComponentI {
 		
 		ClientAuthProvider ClientAuthProvider = new ClientAuthProvider();
 		
-		String clientAuthKey = clientAppId;
+		String clientAuthKey = clientAppId + "-ak-1";
 		
 		ClientAuthProvider = new ClientAuthProvider();
 		ClientAuthProvider.setId(2L);
@@ -321,7 +401,7 @@ public class CommonService implements AppFactoryComponentI {
 		//pki info
 		ClientPkiInfo clientPkiInfo = new ClientPkiInfo();
 		List<ClientPKI> pkiList = new ArrayList<ClientPKI>();
-		String clientPkiKey = clientAppId + "-pk-1";
+		String clientPkiKey = clientAppId + "-pki-1";
 		
 		ClientPKI clientPKI = new ClientPKI();
 		clientPKI.setId(1L);
@@ -422,21 +502,6 @@ public class CommonService implements AppFactoryComponentI {
 		return;
 	}
 
-	public boolean isSupportedAuthProvider(String authProviderId) {
-		if(StringUtil.isEmptyOrNull(authProviderId)) {
-			return false;
-		}
-		String supportedProviderIds = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_SUPPORTED_AUTH_PROVIDERS);
-		String[] ids= supportedProviderIds.split(",");
-		for(String id: ids) {
-			if(!StringUtil.isEmptyOrNull(id)) {
-				if(authProviderId.equalsIgnoreCase(id.trim())) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
 	
 	
 	public void setValidatedAuthTokenClaimsAndApiAuthInfoContext(HttpServletRequest request)  {
@@ -533,7 +598,7 @@ public class CommonService implements AppFactoryComponentI {
 		if (StringUtil.isEmptyOrNull(clientAppId)) {
 			//default to core app, refer to CommonService.getCoreAppInfo()
 			clientAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
-			clientAuthKey = AppComponents.clientAppInfoCache.getDefaultClientPkiKey(clientAppId);
+			clientAuthKey = AppComponents.clientAppInfoCache.getDefaultClientAuthKey(clientAppId);
 			useCoreAppIdAsClientAppId = true;
 		}
 		

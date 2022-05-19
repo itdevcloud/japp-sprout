@@ -87,14 +87,14 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_IAA_TOKEN_ENFORCE_TOKEN_NONCE = "jappcore.iaa.token.enforce.toekn.nonce";
 	public static final String JAPPCORE_IAA_TOKEN_ENFORCE_TOKEN_IP = "jappcore.iaa.token.enforce.toekn.ip";
 
-	public static final String JAPPCORE_IAA_SUPPORTED_AUTH_PROVIDERS = "jappcore.iaa.supported.auth.providers";
+	public static final String JAPPCORE_IAA_AUTH_SUPPORTED_PROVIDERS = "jappcore.iaa.auth.supported.providers";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLECHECK_ENABLED = "jappcore.iaa.application.rolecheck.enabled";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLE_LIST = "jappcore.iaa.application.rolelist";
 	public static final String JAPPCORE_IAA_AUTH_APP_CALLBACK_URL = "jappcore.iaa.auth.app.callback.url";
 	//public static final String JAPPCORE_IAA_USE_THIRDPARTY_TOKEN = "jappcore.iaa.use.thirdparty.token";
 	public static final String JAPPCORE_IAA_ACCESSTOKEN_HANDLER_NAME = "jappcore.iaa.accessstoken.handler.name";
 	public static final String JAPPCORE_IAA_AUTH_EXCLUDE_PATHS = "jappcore.iaa.auth.exclude.paths";
-	public static final String JAPPCORE_IAA_PROCESSOR_EMPTY_TARGET_ROLE_ALLOWED = "jappcore.iaa.processor.empty.target.role.allowed";
+	//public static final String JAPPCORE_IAA_PROCESSOR_EMPTY_TARGET_ROLE_ALLOWED = "jappcore.iaa.processor.empty.target.role.allowed";
 	public static final String JAPPCORE_IAA_DESKTOP_LOGIN_CALLBACK_URL = "jappcore.iaa.auth.desktop.callback.url";
 	public static final String JAPPCORE_IAA_AAD_REDIRECT_URL =  "jappcore.iaa.aad.redirect.url";
 

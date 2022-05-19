@@ -123,7 +123,7 @@ public abstract class BaseCommandController {
 			if (request == null) {
 				BaseResponse response = AppUtil.createResponse(BaseResponse.class, command,
 						Status.ERROR_VALIDATION,
-						"can not initialize request instance for command: (" + command + "), check command  or json request string. ");
+						"can not initialize request instance for command: [" + command + "], check command  or json request string. ");
 				printEndStatement(response, command);
 				return toJsonResponse(response);
 			}
@@ -168,7 +168,7 @@ public abstract class BaseCommandController {
 
 	}
 	private BaseRequest getNewRequestInstanceFromCommand(String command) {
-		logger.debug("getEmptyRequestInstanceFromCommand() start ...");
+		logger.debug("getEmptyRequestInstanceFromCommand() start......");
 		if (StringUtil.isEmptyOrNull(command)) {
 			return null;
 		}

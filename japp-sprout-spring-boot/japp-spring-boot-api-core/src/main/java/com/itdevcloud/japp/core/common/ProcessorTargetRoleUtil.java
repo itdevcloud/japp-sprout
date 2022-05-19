@@ -63,8 +63,8 @@ public class ProcessorTargetRoleUtil implements Serializable {
 			targetRole = (targetRole==null?"":targetRole.trim());
 			processorName = processorName.trim().toUpperCase();
 			if(StringUtil.isEmptyOrNull(targetRole)) {
-				targetRole = "";
-			}else if(targetRole.equals("*")) {
+				targetRole = ROLE_ANY;
+			}else if(targetRole.equals("*") || targetRole.equalsIgnoreCase("any")) {
 				targetRole = ROLE_ANY;
 			}else {
 				targetRole = targetRole.trim();

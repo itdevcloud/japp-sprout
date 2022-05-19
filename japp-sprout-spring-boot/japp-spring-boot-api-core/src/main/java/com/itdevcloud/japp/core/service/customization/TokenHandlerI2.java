@@ -48,7 +48,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @author Marvin Sun
  * @since 1.0.0
  */
-public interface TokenHandlerI extends AppFactoryComponentI {
+public interface TokenHandlerI2 extends AppFactoryComponentI {
 
 	public static final String TOKEN_PROVIDER_JJWT = "JJWT";
 	public static final String TOKEN_PROVIDER_AUTH0 = "AUTH0";
@@ -60,7 +60,7 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 	public static final String JWT_CLAIM_KEY_TOEKN_ID = "jti";
 	public static final String JWT_CLAIM_KEY_ISSUER = "iss";
 	public static final String JWT_CLAIM_KEY_TOKEN_TYPE = "type";
-	public static final String JWT_CLAIM_KEY_IDENTITY_PROVIDER = "idp";
+//	public static final String JWT_CLAIM_KEY_IDENTITY_PROVIDER = "idp";
 //	public static final String JWT_CLAIM_KEY_APP_ID = "appid";
 	public static final String JWT_CLAIM_KEY_ISSUE_AT = "iat";
 	public static final String JWT_CLAIM_KEY_IAT_LOCAL = "iatLocal";
@@ -90,18 +90,25 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 	
 	static final Logger logger = LogManager.getLogger(AppLocalTokenHandler.class);
 	
+	public Map<String, Object> parseTokenHeaders(String token) ;
+	public Map<String, Object> parseTokenClaims(String token) ;
+	public Map<String, Object> isValidTokenByPublicKey(String token, PublicKey publicKey);
+	public Map<String, Object> isValidToken(String token, Map<String, Object> claimEqualMatchMap, boolean ingoreNullInToken, String... args ) ;
+	public IaaUserI getIaaUserBasedOnToken(String token);
+	public String issueToken(IaaUserI iaaUser, String tokenType, Key privateKey, int expireMinutes, Map<String, Object> customClaimMap);
+
 	
-	default Map<String, Object> parseTokenHeaders(String token) {
+	public static Map<String, Object> parseTokenHeadersDefault(String token) {
 		Map<String, Object> claims = JJwtTokenUtil.parseJwtHeaders(token);
 		return claims;
 	}
 	
-	default Map<String, Object> parseTokenClaims(String token) {
+	public static Map<String, Object> parseTokenClaimsDefault(String token) {
 		Map<String, Object> claims = JJwtTokenUtil.parseJwtClaims(token);
 		return claims;
 	}
 	
-	default Map<String, Object> isValidTokenByPublicKey(String token, PublicKey publicKey){
+	public static Map<String, Object> isValidTokenByPublicKeyDefault(String token, PublicKey publicKey){
 		if (token == null || publicKey == null) {
 			String errMsg = "isValidTokenByPublicKeyDefault() - token and/or publicKey is null";
 			logger.error(errMsg);
@@ -111,7 +118,7 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 		return claims;
 	}
 
-	default Map<String, Object> isValidToken(String token, Map<String, Object> claimEqualMatchMap, boolean ingoreNullInToken, String... args ) {
+	public static Map<String, Object> isValidTokenDefault(String token, Map<String, Object> claimEqualMatchMap, boolean ingoreNullInToken, String... args ) {
 		try {
 			if (token == null || token.trim().isEmpty()) {
 				String errMsg = "isValidTokenDefault() - token is null";
@@ -119,7 +126,7 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 				throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
 			}
 			PublicKey publicKey = AppComponents.pkiKeyCache.getAppPublicKey();
-			Map<String, Object> claims = isValidTokenByPublicKey(token, publicKey);
+			Map<String, Object> claims = isValidTokenByPublicKeyDefault(token, publicKey);
 			if (claims == null) {
 				String errMsg = "isValidTokenDefault() ......token can not be validated.";
 				logger.error(errMsg);
@@ -127,9 +134,9 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 			}
 			
 			String tokenType = (claims.get(JWT_CLAIM_KEY_TOKEN_TYPE)==null?null:"" + claims.get(JWT_CLAIM_KEY_TOKEN_TYPE));
-			if (!TokenHandlerI.TYPE_ACCESS_TOKEN.equalsIgnoreCase(tokenType)
-					&& !TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(tokenType)
-					&& !TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType)) {
+			if (!TokenHandlerI2.TYPE_ACCESS_TOKEN.equalsIgnoreCase(tokenType)
+					&& !TokenHandlerI2.TYPE_REFRESH_TOKEN.equalsIgnoreCase(tokenType)
+					&& !TokenHandlerI2.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType)) {
 				String errMsg = "isValidTokenDefault() - token is not Valid, missing token type";
 				logger.error(errMsg);
 				throw new AppException(Status.ERROR_VALIDATION, errMsg);
@@ -214,14 +221,14 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 		}
 	}
 	
-	default String issueToken (IaaUserI iaaUser, String tokenType, Key privateKey, int expireMinutes, Map<String, Object> customClaimMap) {
+	public static String issueTokenDefault (IaaUserI iaaUser, String tokenType, Key privateKey, int expireMinutes, Map<String, Object> customClaimMap) {
 
 		if (iaaUser == null || privateKey == null) {
 			logger.error("issueTokenDefault() - iaaUser and/or privateKey is null ..........");
 			return null;
 		}
 		try {
-			Map<String, Object> claims = getDefaultTokenClaims(iaaUser, tokenType, expireMinutes);
+			Map<String, Object> claims = TokenHandlerI2.getDefaultTokenClaims(iaaUser, tokenType, expireMinutes);
 			if(claims == null) {
 				String errMsg = "issueTokenDefault()......can not get default claims!";
 				throw new AppException(Status.ERROR_SYSTEM_ERROR, errMsg);
@@ -237,30 +244,17 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, t.getMessage());
 		}
 	}
-	
-	default IaaUserI getIaaUserBasedOnToken(String token) {
-		if (token == null || token.trim().isEmpty()) {
-			return null;
-		}
-		
-		Map<String, Object> claims = parseTokenClaims(token);
-		if (claims == null) {
-			logger.error("token claims are null..........");
-			return null;
-		}
-		return getIaaUserFromTokenClaim(claims);
-	}
 
-	default Map<String, Object> getDefaultTokenClaims(IaaUserI iaaUser, String tokenType, int expireMinutes) {
+	public static Map<String, Object> getDefaultTokenClaims(IaaUserI iaaUser, String tokenType, int expireMinutes) {
 		if (iaaUser == null) {
 			return null;
 		}
-		if (TokenHandlerI.TYPE_REFRESH_TOKEN.equalsIgnoreCase(tokenType)) {
+		if (TokenHandlerI2.TYPE_REFRESH_TOKEN.equalsIgnoreCase(tokenType)) {
 			if (expireMinutes <= 0) {
 				expireMinutes = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_REFRESH_EXPIRATION_LENGTH);
 			}
 			return getDefaultRefreshTokenClaims(iaaUser, expireMinutes);
-		}else if (TokenHandlerI.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType)) {
+		}else if (TokenHandlerI2.TYPE_ID_TOKEN.equalsIgnoreCase(tokenType)) {
 			if (expireMinutes <= 0) {
 				expireMinutes = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_IDTOKEN_EXPIRATION_LENGTH);
 			}
@@ -272,7 +266,6 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 			return getDefaultAccessTokenClaims(iaaUser, expireMinutes);
 		}
 	}
-	
 	private static Map<String, Object> getDefaultClaimMap(IaaUserI iaaUser, int expireMinutes) {
 		if (iaaUser == null) {
 			return null;
@@ -357,8 +350,19 @@ public interface TokenHandlerI extends AppFactoryComponentI {
 		return claims;
 	}
 	
-	
-	private static IaaUserI getIaaUserFromTokenClaim(Map<String, Object> claims) {
+	public static IaaUserI getIaaUserBaseOnTokenDefault(String token) {
+		if (token == null || token.trim().isEmpty()) {
+			return null;
+		}
+		
+		Map<String, Object> claims = AppComponents.jwtService.parseTokenClaims(token);
+		if (claims == null) {
+			logger.error("token can not be validated by publickey..........");
+			return null;
+		}
+		return getIaaUserFromTokenClaimDefault(claims);
+	}
+	private static IaaUserI getIaaUserFromTokenClaimDefault(Map<String, Object> claims) {
 		if (claims == null ) {
 			return null;
 		}

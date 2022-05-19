@@ -28,21 +28,15 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ClientAppInfo;
-import com.itdevcloud.japp.core.api.vo.ClientAuthProvider;
 import com.itdevcloud.japp.core.api.vo.ClientPKI;
-import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
-import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppFactory;
 import com.itdevcloud.japp.core.common.AppThreadContext;
-import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.common.ProcessorTargetRoleUtil;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
-import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.StringUtil;
  
@@ -56,14 +50,8 @@ public class IaaService implements AppFactoryComponentI {
 
 	private static final Logger logger = LogManager.getLogger(IaaService.class);
 
-	private static Boolean allowEmptyTargetRole = null;
-	
 	@PostConstruct
 	public void init() {
-		if(allowEmptyTargetRole == null) {
-			allowEmptyTargetRole = ConfigFactory.appConfigService
-				.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_PROCESSOR_EMPTY_TARGET_ROLE_ALLOWED, false);
-		}
 	}
 	
 	public List<ClientAppInfo> getClientAppInfoList(){
@@ -80,7 +68,7 @@ public class IaaService implements AppFactoryComponentI {
 	
 	public IaaUserI login(String loginId, String password, String authProvider) {
 		if (StringUtil.isEmptyOrNull(loginId) || StringUtil.isEmptyOrNull(password)) {
-			String err = "login() - The login and/or password is null or empty. check code!";
+			String err = "login() - The login and/or password is null or empty.";
 			logger.error(err);
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
 		}
@@ -88,20 +76,21 @@ public class IaaService implements AppFactoryComponentI {
 
 		//cache should not be used for login 
 		String hashedPwd = Hasher.hashPassword(password);;
-		IaaUserI user = helper.getIaaUserFromRepositoryByLoginId(loginId, authProvider);
-		if (user == null) {
+		IaaUserI iaaUser = helper.getIaaUserByLoginId(loginId, authProvider);
+		if (iaaUser == null) {
 			String errMsg = "login() - loginId and/or password are not correct. loginId = " + loginId;
 			logger.error(errMsg);
 			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 		}
-		if (!hashedPwd.equals(user.getHashedPassword())) {
+		if (!hashedPwd.equals(iaaUser.getHashedPassword())) {
 			String errMsg = "login() - loginId and/or password are not correct. loginId = " + loginId;
 			logger.error(errMsg);
 			throw new AppException(Status.ERROR_SECURITY_AUTHENTICATION, errMsg);
 		} else {
-			AppComponents.iaaUserCache.addIaaUser(user);
-			AppThreadContext.setIaaUser(user);
-			return user;
+			//add to cache and thread
+			AppComponents.iaaUserCache.addIaaUser(iaaUser);
+			AppThreadContext.setIaaUser(iaaUser);
+			return iaaUser;
 		}
 	}
 	
@@ -111,48 +100,30 @@ public class IaaService implements AppFactoryComponentI {
 			logger.error(err);
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
 		}
-		IaaUserI iaaUser = AppComponents.iaaService.validateTokenAndRetrieveIaaUser(token, claimEqualMatchMap, ignoreNullInToken, args);
+		IaaUserI iaaUser = validateTokenAndRetrieveIaaUser(token, claimEqualMatchMap, ignoreNullInToken, args);
 		return iaaUser;
 	}
 
 	public IaaUserI getIaaUserBySystemUid(String uid) {
 		if (StringUtil.isEmptyOrNull(uid)) {
-			String err = "getIaaUserBySystemUid() - The user (uid: " + uid + ") is null or empty. check code!";
+			String err = "getIaaUserBySystemUid() - The user (uid: " + uid + ") is null or empty.";
 			logger.error(err);
 			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
 		}
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		IaaUserI user = AppComponents.iaaUserCache.getIaaUserBySystemUid(uid);
-		if (user == null) {
-			user = helper.getIaaUserFromRepositoryBySystemUid(uid);
+		IaaUserI iaaUser = AppComponents.iaaUserCache.getIaaUserBySystemUid(uid);
+		if (iaaUser == null) {
+			iaaUser = helper.getIaaUserBySystemUid(uid);
 		}
-		if (user == null) {
-			logger.info("getIaaUser() - The user '" + uid + "' is not found.");
+		if (iaaUser == null) {
+			logger.info("getIaaUserBySystemUid() - The user [" + uid + "] can not be found.");
 			return null;
 		}
-		AppComponents.iaaUserCache.addIaaUser(user);
-		AppThreadContext.setIaaUser(user);
-		return user;
+		AppComponents.iaaUserCache.addIaaUser(iaaUser);
+		AppThreadContext.setIaaUser(iaaUser);
+		return iaaUser;
 	}
 	
-	public IaaUserI getIaaUserFromRepositoryByLoginId(String loginId, String... args) {
-		if (StringUtil.isEmptyOrNull(loginId)) {
-			String err = "getIaaUserFromRepositoryByLoginId() - The user (loginId: " + loginId + ") is null or empty. check code!";
-			logger.error(err);
-			throw new AppException(Status.ERROR_SYSTEM_ERROR, err);
-		}
-		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		IaaUserI user = helper.getIaaUserFromRepositoryByLoginId(loginId, args);
-		if (user == null) {
-			logger.info("getIaaUser() - The user '" + loginId + "' is not found.");
-			return null;
-		}
-		AppComponents.iaaUserCache.addIaaUser(user);
-		AppThreadContext.setIaaUser(user);
-		return user;
-		
-	}
-
 	public IaaUserI validateTokenAndRetrieveIaaUser(String token, Map<String, Object> claimEqualMatchMap, boolean ignoreNullInToken, String... args) {
 		
 		if (StringUtil.isEmptyOrNull(token)) {
@@ -182,54 +153,19 @@ public class IaaService implements AppFactoryComponentI {
 
 	//target role could be business role or application role
 	public boolean isAccessAllowed(String targetRole) {
-		IaaUserI user = AppThreadContext.getIaaUser();
-		if (user == null) {
-			logger.info("isAccessAllowed() - The user can't be retrieved from ThreadContext, return false.");
-			return false;
-		}
-		if (StringUtil.isEmptyOrNull(targetRole)) {
-			if(allowEmptyTargetRole) {
-				logger.debug("isAccessAllowed() - allowEmptyTargetRole is set to 'true', The target role is empty or null, return true.");
-				return true;
-			}else {
-				logger.debug("isAccessAllowed() - allowEmptyTargetRole is set to 'false', The target role is empty or null, return false.");
-				return false;
-			}
-		}
-		if (targetRole.equalsIgnoreCase(ProcessorTargetRoleUtil.ROLE_ANY)) {
-			return true;
-		}
-		Set<String> brSet = user.getBusinessRoles();
-		if (! (brSet == null) && ! brSet.isEmpty()) {
-			if (brSet.contains(targetRole)) {
-				return true;
-			}
-		}
-		Set<String> arSet = user.getApplicationRoles();
-		if (! (arSet == null) && ! arSet.isEmpty()) {
-			if (arSet.contains(targetRole)) {
-				return true;
-			}
-		}
-		Set<String> agSet = user.getAuthGroups();
-		if (! (agSet == null) && ! agSet.isEmpty()) {
-			if (agSet.contains(targetRole)) {
-				return true;
-			}
-		}
-		logger.info("isAccessAllowed() -  The user is not assigned to required Auth Group, Business Role or Application Role: " + targetRole + ", User = " + user.getLoginId());
-		return false;
+		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
+		return helper.isAccessAllowed(targetRole, null);
 	}
 	
-	public boolean isAccessAllowed(String userId, String targetNodeId, String targetRole) {
+	public boolean isAccessAllowed(String targetRole, String targetNodeId) {
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		return helper.isAccessAllowed(userId, targetNodeId, targetRole);
+		return helper.isAccessAllowed(targetRole,targetNodeId );
 	}
 
 	
 	public List<String> getUpdatedIaaUsers(long lastCheckTimestamp){
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		return helper.getUpdatedIaaUsers(lastCheckTimestamp);
+		return helper.getUpdatedSystemUids(lastCheckTimestamp);
 	}
 	
 	

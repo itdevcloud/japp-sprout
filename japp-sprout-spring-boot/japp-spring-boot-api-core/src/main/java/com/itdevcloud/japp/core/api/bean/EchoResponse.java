@@ -26,8 +26,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class EchoResponse extends BaseResponse {
 
-
-
+	private static final long serialVersionUID = 1L;
 	private String message;
 
 	public String getMessage() {

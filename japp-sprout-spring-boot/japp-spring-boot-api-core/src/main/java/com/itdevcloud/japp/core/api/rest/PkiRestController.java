@@ -53,9 +53,9 @@ public class PkiRestController extends BaseRestController {
 	@PostMapping("/api/core/publickey")
 	GetPublicKeyResponse getPublicKey(@RequestBody GetPublicKeyRequest request) {
     	GetPublicKeyResponse response = null;
-		if( (response = checkIsEnabled(GetPublicKeyResponse.class)) != null) {
-    		return response;
-    	}
+//		if( (response = checkIsEnabled(GetPublicKeyResponse.class)) != null) {
+//    		return response;
+//    	}
     	response = processRequest(request, GetPublicKeyResponse.class);
 		return response;
 	}
@@ -67,9 +67,9 @@ public class PkiRestController extends BaseRestController {
 	@PostMapping("/api/core/certificate")
     GetCertificateResponse getCertificate(@RequestBody GetCertificateRequest request) {
     	GetCertificateResponse response = null;
-		if( (response = checkIsEnabled(GetCertificateResponse.class)) != null) {
-    		return response;
-    	}
+//		if( (response = checkIsEnabled(GetCertificateResponse.class)) != null) {
+//    		return response;
+//    	}
     	response =  processRequest(request, GetCertificateResponse.class);
 		return response;
 	}

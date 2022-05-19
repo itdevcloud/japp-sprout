@@ -29,6 +29,7 @@ import com.itdevcloud.japp.core.api.vo.BasicCredential;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus.Status;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -97,7 +98,7 @@ public class CoreBasicAuthServlet extends javax.servlet.http.HttpServlet {
 
 			IaaUserI iaaUser = null;
 			try {
-				iaaUser = AppComponents.iaaService.getIaaUserFromRepositoryByLoginId(basicCredential.getLoginId(), basicCredential.getPassword());
+				iaaUser = AppComponents.iaaService.login(basicCredential.getLoginId(), basicCredential.getPassword(), AppConstant.IDENTITY_PROVIDER_CORE_BASIC);
 				if (iaaUser == null) {
 					errMsg = "Authentication Failed. code E102 - Can not retrive user by loginId '" + basicCredential.getLoginId()
 							+ "' and password.....";

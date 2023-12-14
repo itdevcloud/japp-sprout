@@ -14,18 +14,18 @@ public class LoginValidator {
 	public ResponseStatus validate(BaseRequest appRrequest){
 		ResponseStatus responseStatus = null;
 		if(appRrequest == null){
-			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "request object is null!");
+			responseStatus = AppUtil.createResponseStatus(ResponseStatus.Status.ERROR_VALIDATION, "request object is null!");
 			return responseStatus;
 		}
 		if(!(appRrequest instanceof LoginRequest)) {
-			responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "request is not a LoginRequest!");
+			responseStatus = AppUtil.createResponseStatus(ResponseStatus.Status.ERROR_VALIDATION, "request is not a LoginRequest!");
 			return responseStatus;
 		}
 		LoginRequest  request = (LoginRequest) appRrequest;
 		
 		//=====Add Business Logic ======
 		
-		responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, " Validated Successfully.");
+		responseStatus = AppUtil.createResponseStatus(ResponseStatus.Status.SUCCESS, " Validated Successfully.");
 		return responseStatus;
 
 	}

@@ -16,6 +16,7 @@ import com.itdevcloud.japp.core.iaa.service.IaaService;
 import com.itdevcloud.japp.core.iaa.service.JwtService;
 import com.itdevcloud.japp.core.processor.RequestProcessor;
 import com.itdevcloud.japp.core.service.customization.IaaUserI;
+import com.itdevcloud.japp.core.service.customization.TokenHandlerI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.sampleapiapp.api.bean.AppRequest;
@@ -56,7 +57,7 @@ public class LoginProcessor extends RequestProcessor {
 		
 		// ====== validate request ======
 		ResponseStatus responseStatus = validator.validate(appRrequest);
-		if (responseStatus == null || !ResponseStatus.STATUS_CODE_SUCCESS.equalsIgnoreCase(responseStatus.getStatusCode())) {
+		if (responseStatus == null || !ResponseStatus.Status.SUCCESS.code.equalsIgnoreCase(responseStatus.getStatus().code)) {
 			// validation failed
 			if (appRrequest != null && appRrequest instanceof AppRequest) {
 				responseHeader.populateRequestHeaderInfo(((AppRequest) appRrequest).getHeader());
@@ -78,31 +79,31 @@ public class LoginProcessor extends RequestProcessor {
 			if (iaaUser == null) {
 				logger.error(
 						"Authentication Failed. Can not retrive user by loginId '" + username + "' and/or password.....");
-				responseStatus = new ResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SECURITY, "Authentication Failed. Can not retrive user by loginId '" + username + "' and/or password.....");
+				responseStatus = new ResponseStatus(ResponseStatus.Status.ERROR_SECURITY_AUTHENTICATION, "Authentication Failed. Can not retrive user by loginId '" + username + "' and/or password.....");
 				response.setHeader(responseHeader);
 				response.setResponseStatus(responseStatus);
 				return response;
 			}
 		} catch (Exception e) {
 			logger.error(CommonUtil.getStackTrace(e));
-			responseStatus = new ResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, e.getMessage());
+			responseStatus = new ResponseStatus(ResponseStatus.Status.ERROR_SYSTEM_ERROR, e.getMessage());
 			response.setHeader(responseHeader);
 			response.setResponseStatus(responseStatus);
 			return response;
 		}
 
 		// issue new JWT token;
-		String token = jwtService.issueAccessToken(iaaUser);
+		String token = jwtService.issueToken(iaaUser, TokenHandlerI.TYPE_ACCESS_TOKEN, null);
 		if (StringUtil.isEmptyOrNull(token)) {
 			logger.error("JWT Token can not be created for login Id '" + iaaUser.getLoginId() + "', username = "
 					+ username);
-			responseStatus = new ResponseStatus(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "JWT Token can not be created for login Id '" + iaaUser.getLoginId() + "', username = "
+			responseStatus = new ResponseStatus(ResponseStatus.Status.ERROR_SYSTEM_ERROR, "JWT Token can not be created for login Id '" + iaaUser.getLoginId() + "', username = "
 					+ username);
 			response.setHeader(responseHeader);
 			response.setResponseStatus(responseStatus);
 			return response;
 		}
-		responseStatus = AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Login Process Success.");
+		responseStatus = AppUtil.createResponseStatus(ResponseStatus.Status.SUCCESS, "Login Process Success.");
 
 		response.setHeader(responseHeader);
 		response.setResponseStatus(responseStatus);

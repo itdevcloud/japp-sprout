@@ -92,7 +92,7 @@ public class IaaServiceHelper extends DefaultIaaServiceHelper {
 //			}
 
 
-		iaaUser = getDummyIaaUserByLoginId(loginId);
+		//iaaUser = getDummyIaaUserByLoginId(loginId);
 
 		long end = System.currentTimeMillis();
 		logger.info("getIaaUserFromRepository() end........ took " + (end - start) + " ms. " + loginId);
@@ -100,14 +100,14 @@ public class IaaServiceHelper extends DefaultIaaServiceHelper {
 	}
 
 	
-	@Override
-	public List<String> getUpdatedIaaUsers(long lastCheckTimestamp) {
-		if (lastCheckTimestamp == -1) {
-			return null;
-		}
-		ArrayList<String> idList = new ArrayList<>();
-		return idList;
-	}
+//	@Override
+//	public List<String> getUpdatedIaaUsers(long lastCheckTimestamp) {
+//		if (lastCheckTimestamp == -1) {
+//			return null;
+//		}
+//		ArrayList<String> idList = new ArrayList<>();
+//		return idList;
+//	}
 
 //	@Override
 //	public String getAndSend2factorValue(IaaUserI iaaUser, String secondFactorType) {

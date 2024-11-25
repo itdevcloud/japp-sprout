@@ -21,13 +21,22 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+
 /**
  * Class Definition
  *
@@ -35,7 +44,6 @@ import java.util.UUID;
  * @since 1.0.0
  */
 public class CommonUtil {
-
 
 	public static void throwRuntimeException(Throwable e) {
 		if (e == null) {
@@ -46,7 +54,7 @@ public class CommonUtil {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	public static RuntimeException getRuntimeException(Throwable e) {
 		if (e == null) {
 			return new RuntimeException("getRuntimeException() - Throwable is null!");
@@ -56,6 +64,7 @@ public class CommonUtil {
 			return new RuntimeException(e);
 		}
 	}
+
 	public static String getStackTrace(Throwable t) {
 		if (t == null) {
 			return null;
@@ -72,7 +81,7 @@ public class CommonUtil {
 		}
 		return str;
 	}
-	
+
 	public static String generateUUID() {
 		String uuidStr = UUID.randomUUID().toString();
 		return uuidStr;
@@ -84,9 +93,9 @@ public class CommonUtil {
 		}
 		if (obj instanceof Map) {
 			return mapToString((Map<?, ?>) obj, level);
-		}else if (obj instanceof Set) {
+		} else if (obj instanceof Set) {
 			return setToString((Set<?>) obj, level);
-		}else if (obj instanceof List) {
+		} else if (obj instanceof List) {
 			return listToString((List<?>) obj, level);
 		} else if (obj.getClass().isArray()) {
 			return arrayToString((Object[]) obj, level);
@@ -96,6 +105,7 @@ public class CommonUtil {
 			return obj.toString();
 		}
 	}
+
 	public static String propertiesToString(Properties properties, int level) {
 		if (properties == null) {
 			return null;
@@ -177,7 +187,7 @@ public class CommonUtil {
 		}
 		return sb.toString();
 	}
-	
+
 	public static String setToString(Set<?> set, int level) {
 		if (set == null) {
 			return null;
@@ -185,7 +195,7 @@ public class CommonUtil {
 		if (set.isEmpty()) {
 			return "";
 		}
-	
+
 		StringBuffer sb = new StringBuffer();
 		String prefix = "";
 		for (int i = 0; i < level * 4; i++) {
@@ -193,12 +203,12 @@ public class CommonUtil {
 		}
 		sb.append("( Set ):\n");
 
-		for (Object object : set){ 
+		for (Object object : set) {
 			sb.append(objectToString(object, level + 1) + "\n");
 		}
 		return sb.toString();
 	}
-	
+
 	public static String arrayToString(Object[] arr, int level) {
 		if (arr == null) {
 			return null;
@@ -222,46 +232,148 @@ public class CommonUtil {
 	}
 
 	public static String listToString(List<?> list) {
-		if(list == null || list.isEmpty()){
+		if (list == null || list.isEmpty()) {
 			return null;
 		}
 		StringBuffer sb = new StringBuffer("[");
 		int i = 0;
-		for (Object object : list){ 
-			if(i > 0){
+		for (Object object : list) {
+			if (i > 0) {
 				sb.append(", ");
 			}
-			sb.append(""+object);
+			sb.append("" + object);
 			i = 1;
 		}
 		sb.append("]");
 		return sb.toString();
 	}
-	
-	public static BigDecimal convertToBigDecimal(Object obj, String format){
-		if(StringUtil.isEmptyOrNull(format)){
+
+	public static BigDecimal convertToBigDecimal(Object obj, String format) {
+		if (StringUtil.isEmptyOrNull(format)) {
 			return convertToBigDecimal(obj);
 		}
-		String value = (obj == null?"0":obj.toString());
-		DecimalFormat df = new DecimalFormat(format); 
-		BigDecimal bd = new BigDecimal(df.format(new Double(value))); 
+		String value = (obj == null ? "0" : obj.toString());
+		DecimalFormat df = new DecimalFormat(format);
+		BigDecimal bd = new BigDecimal(df.format(new Double(value)));
 		return bd;
-	}
-	
-	private static BigDecimal convertToBigDecimal(Object obj){
-		BigDecimal bd = (obj == null?null:new BigDecimal(obj.toString()));
-		return bd;
-	}
-	
-	public static double convertBigDecimalToDouble(BigDecimal b){
-		double d = (b == null?0:b.doubleValue());
-		return d;
-	}
-	public static double SumBigDecimal(BigDecimal b1, BigDecimal b2){
-		double d1 = (b1 == null?0:b1.doubleValue());
-		double d2 = (b2 == null?0:b2.doubleValue());
-		return d1+d2;
 	}
 
+	private static BigDecimal convertToBigDecimal(Object obj) {
+		BigDecimal bd = (obj == null ? null : new BigDecimal(obj.toString()));
+		return bd;
+	}
+
+	public static double convertBigDecimalToDouble(BigDecimal b) {
+		double d = (b == null ? 0 : b.doubleValue());
+		return d;
+	}
+
+	public static double SumBigDecimal(BigDecimal b1, BigDecimal b2) {
+		double d1 = (b1 == null ? 0 : b1.doubleValue());
+		double d2 = (b2 == null ? 0 : b2.doubleValue());
+		return d1 + d2;
+	}
+
+	public static List<String> getMyLocalIp(List<String> includePrefixList) {
+		List<String> ipList = new ArrayList<String>();
+		try {
+			Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+			while (networkInterfaces.hasMoreElements()) {
+				NetworkInterface networkInterface = networkInterfaces.nextElement();
+				Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+				while (addresses.hasMoreElements()) {
+					InetAddress address = addresses.nextElement();
+					// System.out.println("Local IP Address: " + address.getHostAddress());
+					if (!address.isLoopbackAddress() && address instanceof Inet4Address) {
+						String addr = address.getHostAddress();
+						if (StringUtil.isEmptyOrNull(addr)) {
+							continue;
+						}
+						if (includePrefixList == null || includePrefixList.isEmpty()) {
+							ipList.add(addr);
+						} else {
+							for (String prefixStr : includePrefixList) {
+								if (prefixStr != null && addr.startsWith(prefixStr)) {
+									ipList.add(addr);
+								}
+							}
+						}
+					}
+				}
+			}
+			return ipList;
+		} catch (Throwable t) {
+			System.out.println(t);
+			t.printStackTrace();
+			return ipList;
+		}
+	}
+
+	public static String getMyFirstLocalIp(List<String> includePrefixList) {
+		List<String> ipList = getMyLocalIp(includePrefixList);
+		String ip = null;
+		if (ipList != null && !ipList.isEmpty()) {
+			ip = ipList.get(0);
+		}
+		return StringUtil.isEmptyOrNull(ip) ? "localhost" : ip.trim();
+	}
+
+	public static boolean isPortAvailable(int port) {
+		/*
+		 * try (ServerSocket serverSocket = new ServerSocket()) { //
+		 * setReuseAddress(false) is required only on macOS, // otherwise the code will
+		 * not work correctly on that platform serverSocket.setReuseAddress(false);
+		 * serverSocket.bind(new InetSocketAddress(InetAddress.getByName("localhost"),
+		 * port), 1); return true; } catch (Exception ex) { return false; }
+		 */
+
+	       System.out.println("Check port availability......port # " + port );
+		if (port < 1024 || port > 65535) {
+			return false;
+		}
+		ServerSocket ss = null;
+		DatagramSocket ds = null;
+		try {
+			ss = new ServerSocket(port);
+			ss.setReuseAddress(true);
+			ds = new DatagramSocket(port);
+			ds.setReuseAddress(true);
+			return true;
+		} catch (IOException e) {
+		} finally {
+			if (ds != null) {
+				try {
+					ds.close();
+				} catch (Exception e) {
+				}
+			}
+			if (ss != null) {
+				try {
+					ss.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+        System.out.println("port # " + port + " is not available.......");
+		return false;
+	}
+
+	public static int getNextAvailablePort(int startPort, int endPort) {
+		if (startPort <= 1024 && startPort > 65535) {
+			return -1;
+		}
+		if (startPort > endPort) {
+			endPort = startPort;
+		}
+		if (endPort > 65535) {
+			endPort = 65535;
+		}
+		for (int i = startPort; i <= endPort; i++) {
+			if (isPortAvailable(i)) {
+				return i;
+			}
+		}
+		return -1;
+	}
 
 }

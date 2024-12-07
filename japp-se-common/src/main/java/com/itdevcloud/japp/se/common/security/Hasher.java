@@ -35,20 +35,23 @@ public class Hasher  {
 		return preferredHashAlgorithm;
 	}
 
-	public static String getHash(String message, String method)  {
+	public static String getHash(String message)  {
+		return getHash(message,  null) ;
+	}
+	public static String getHash(String message, String algorithm)  {
 		if(StringUtil.isEmptyOrNull(message)) {
 			return message;
 		}
-		if(StringUtil.isEmptyOrNull(method)) {
-			method = preferredHashAlgorithm;
+		if(StringUtil.isEmptyOrNull(algorithm)) {
+			algorithm = preferredHashAlgorithm;
 		}
 		try {
-			MessageDigest algorithm = MessageDigest.getInstance(method);
+			MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
 
-			algorithm.reset();
-			algorithm.update(StringUtil.getBytes(message));
+			messageDigest.reset();
+			messageDigest.update(StringUtil.getBytes(message));
 
-			return StringUtil.encodeBase64(algorithm.digest());
+			return StringUtil.encodeBase64(messageDigest.digest());
 
 		}catch (Exception e) {
 			//logger.error(e);
@@ -56,13 +59,13 @@ public class Hasher  {
 			throw new RuntimeException(e);
 		}
 	}
-
 	public static String hashPassword(String cleartextPassword) {
 		return getHash(cleartextPassword, preferredHashAlgorithm);
 	}
+
 	public static void main(String[] args) {
 		String clearPwd = "12345";
-		String hashedPwd = Hasher.hashPassword(clearPwd);
+		String hashedPwd = Hasher.getHash(clearPwd);
 		System.out.println("hashedPwd = " + hashedPwd);
 
 	}

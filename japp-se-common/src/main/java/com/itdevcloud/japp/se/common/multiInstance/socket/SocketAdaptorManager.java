@@ -3,7 +3,11 @@ package com.itdevcloud.japp.se.common.multiInstance.socket;
 import java.util.logging.Logger;
 
 import com.itdevcloud.japp.se.common.service.CommonLogger;
-
+/**
+ * @author Marvin Sun
+ * @since 1.0.0
+ * 
+ */
 public class SocketAdaptorManager extends Thread{
 
 	private static final CommonLogger logger = CommonLogger.getLogger(SocketAdaptorManager.class.getName());

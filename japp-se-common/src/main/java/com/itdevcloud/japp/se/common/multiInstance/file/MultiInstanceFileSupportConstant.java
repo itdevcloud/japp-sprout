@@ -38,10 +38,10 @@ public class MultiInstanceFileSupportConstant {
 	
 	public static void init() {
 		ConfigurationManager manager = new ConfigurationManager();
-		String prefix = "multi.instance.support.socket.";
+		String prefix = "multi.instance.support.file.";
 		
-		INSTANCE_lOCK_FILE_NAME = manager.getPropertyAsString(prefix + "INSTANCE_lOCK_FILE_NAME", "C:\\Users\\Sun\\Downloads\\test-lock.txt");
-		INSTANCE_EVENT_FILE_PATH =  manager.getPropertyAsString(prefix + "INSTANCE_EVENT_FILE_PATH", "C:\\Users\\Sun\\Downloads");
+		INSTANCE_lOCK_FILE_NAME = manager.getPropertyAsString(prefix + "INSTANCE_lOCK_FILE_NAME", "C:\\temp\\test-lock.txt");
+		INSTANCE_EVENT_FILE_PATH =  manager.getPropertyAsString(prefix + "INSTANCE_EVENT_FILE_PATH", "C:\\temp");
 		INSTANCE_EVENT_FILE_NAME =  manager.getPropertyAsString(prefix + "INSTANCE_EVENT_FILE_NAME", "test-event.txt");
 		INSTANCE_EVENT_FILE_FULL_NAME = INSTANCE_EVENT_FILE_PATH + "\\" + INSTANCE_EVENT_FILE_NAME;
 

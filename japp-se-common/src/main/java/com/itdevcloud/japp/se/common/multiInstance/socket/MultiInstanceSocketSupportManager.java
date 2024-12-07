@@ -72,6 +72,8 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  *		
  *		List<EventStatus> statusList = manager.inquiryEventStatus(mId1);
  *
+ * @author Marvin Sun
+ * @since 1.0.0
  *
  */
 

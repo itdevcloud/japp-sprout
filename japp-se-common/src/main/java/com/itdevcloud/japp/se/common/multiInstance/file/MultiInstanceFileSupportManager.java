@@ -52,7 +52,9 @@ package com.itdevcloud.japp.se.common.multiInstance.file;
  *		String content = "abcde^John@ontaio.ca";
  *		key = manager.addEvent(eventName, expiryDate, key, content);
  *
- *
+ * @author Marvin Sun
+ * @since 1.0.0
+*
  */
 import java.io.IOException;
 import java.io.RandomAccessFile;

@@ -14,7 +14,10 @@ import com.itdevcloud.japp.se.common.service.CommonLogger;
 import com.itdevcloud.japp.se.common.util.FileUtil;
 import com.itdevcloud.japp.se.common.util.RandomUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-
+/**
+ * @author Marvin Sun
+ * @since 1.0.0
+ */
 public class LockFileManager {
 	private static final CommonLogger logger = CommonLogger.getLogger(LockFileManager.class.getName());
 

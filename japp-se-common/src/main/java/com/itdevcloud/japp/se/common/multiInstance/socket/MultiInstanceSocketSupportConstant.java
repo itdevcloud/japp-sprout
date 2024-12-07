@@ -70,9 +70,9 @@ public class MultiInstanceSocketSupportConstant {
 	public static int DEFAULT_SOCKET_PORT = 8800;
 	public static int DEFAULT_SOCKET_TIMEOUT = 30000; // 30 seconds
 	
-	public static String MAIN_INSTANCE_FILE_NAME = "C:\\Users\\Sun\\Downloads\\Main_Instance_File.txt";
-	public static String MAIN_INSTANCE_LIVE_CHECK_FILE_NAME = "C:\\Users\\Sun\\Downloads\\Main_Instance_live_Check.txt";
-	public static String INSTANCE_lOCK_FILE_NAME = "C:\\Users\\Sun\\Downloads\\Multiple_Instance_Lock_File.txt";
+	public static String MAIN_INSTANCE_FILE_NAME = "C:\\temp\\Main_Instance_File.txt";
+	public static String MAIN_INSTANCE_LIVE_CHECK_FILE_NAME = "C:\\temp\\Main_Instance_live_Check.txt";
+	public static String INSTANCE_lOCK_FILE_NAME = "C:\\temp\\Multiple_Instance_Lock_File.txt";
 
 	public static int MESSAGE_STATUS_CACHE_RETENTION_DAY = 7; //7 DAYS
 	

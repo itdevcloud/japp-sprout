@@ -21,6 +21,9 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -274,35 +277,6 @@ public class FileUtil {
 		return files;
 	}// end listFiles
 
-	public static boolean writeStringToFile(String filename, boolean append, String content) {
-		if (StringUtil.isEmptyOrNull(filename)) {
-			return false;
-		}
-		if (content == null) {
-			content = " ";
-		}
-		File file = new File(filename);
-		// false to overwrite.// true to append
-		FileWriter fileWriter = null;
-		try {
-			fileWriter = new FileWriter(file, append);
-			fileWriter.write(content);
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		} finally {
-			if (fileWriter != null) {
-				try {
-					fileWriter.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-	}
-
 	public static boolean delete(String fileOrDir) {
 		if (fileOrDir == null || fileOrDir.trim().equals("")) {
 			return true;
@@ -555,6 +529,35 @@ public class FileUtil {
 		return classes;
 	}
 
+	public static boolean writeStringToFile(String filename, boolean append, String content) {
+		if (StringUtil.isEmptyOrNull(filename)) {
+			return false;
+		}
+		if (content == null) {
+			content = " ";
+		}
+		File file = new File(filename);
+		// false to overwrite.// true to append
+		FileWriter fileWriter = null;
+		try {
+			fileWriter = new FileWriter(file, append);
+			fileWriter.write(content);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			if (fileWriter != null) {
+				try {
+					fileWriter.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+
 	public static String getFileContentAsString(String fileName) {
 		if (StringUtil.isEmptyOrNull(fileName)) {
 			return null;
@@ -569,13 +572,13 @@ public class FileUtil {
 					fileName = "/" + fileName;
 				}
 				InputStream in = FileUtil.class.getResourceAsStream("/" + fileName);
-				if(in == null) {
+				if (in == null) {
 					return null;
 				}
 				inReader = new InputStreamReader(in);
 			} else {
 				FileInputStream fin = new FileInputStream(inputFile);
-				if(fin == null) {
+				if (fin == null) {
 					return null;
 				}
 				inReader = new InputStreamReader(fin);
@@ -584,7 +587,7 @@ public class FileUtil {
 			String line = null; // not declared within while loop
 			int i = 0;
 			while ((line = input.readLine()) != null) {
-				if(i++ > 0) {
+				if (i++ > 0) {
 					contents.append("\n");
 				}
 				contents.append(line);
@@ -604,6 +607,69 @@ public class FileUtil {
 		}
 
 		return contents.toString();
+	}
+
+	public static boolean writeStringToFile(FileChannel channel, boolean overwrite, String content) {
+		if (channel == null) {
+			return false;
+		}
+		if (content == null) {
+			content = " ";
+		}
+		byte[] contentBytesArr = content.getBytes(StandardCharsets.UTF_8);
+		long size = contentBytesArr.length;
+		
+		ByteBuffer buff = ByteBuffer.wrap(contentBytesArr);
+		try {
+			channel.position(0);
+			if(overwrite) {
+				channel.write(buff, 0);
+				channel.truncate(size);
+			}else {
+				channel.write(buff);
+			}
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+		}
+		return false;
+
+	}
+
+	public static String getFileContentAsString(FileChannel channel) {
+		if (channel == null) {
+			return null;
+		}
+		ByteArrayOutputStream out = null;
+		try {
+			out = new ByteArrayOutputStream();
+
+			int bufferSize = 1024;
+			if (bufferSize > channel.size()) {
+				bufferSize = (int) channel.size();
+			}
+			ByteBuffer buff = ByteBuffer.allocate(bufferSize);
+
+			while (channel.read(buff) > 0) {
+				out.write(buff.array(), 0, buff.position());
+				buff.clear();
+			}
+			String fileContent = new String(out.toByteArray(), StandardCharsets.UTF_8);
+			return fileContent;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (Exception e) {
+					logger.warning(CommonUtil.getStackTrace(e));
+				}
+			}
+		}
+		return null;
 	}
 
 	public static void main(String[] args) {

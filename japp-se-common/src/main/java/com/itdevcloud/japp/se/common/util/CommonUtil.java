@@ -72,7 +72,8 @@ public class CommonUtil {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		t.printStackTrace(pw);
-		String str = t.getMessage() + "\n" + sw.toString();
+		//String str = t.getMessage() + "\n" + sw.toString();
+		String str = sw.toString();
 		pw.close();
 		try {
 			sw.close();

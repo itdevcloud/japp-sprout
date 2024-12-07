@@ -27,7 +27,7 @@ import java.util.Random;
  * @author Marvin Sun
  * @since 1.0.0
  */
-public class RadomUtil {
+public class RandomUtil {
 	//no 'o', capital J and L
 	private static char[] supportedChars = "0123456789abcdefghiJkmLnpqrstuvwxyz".toCharArray();
 
@@ -53,16 +53,16 @@ public class RadomUtil {
 
 		String str = sdate.substring(0, 2);
 		//repeat every 35 years
-		char yy = supportedChars[(new Integer(str)) % (supportedChars.length)];
+		char yy = supportedChars[Integer.parseInt(str) % (supportedChars.length)];
 
 		str = sdate.substring(2, 4);
-		char MM = supportedChars[new Integer(str)];
+		char MM = supportedChars[Integer.parseInt(str)];
 
 		str = sdate.substring(4, 6);
-		char dd = supportedChars[new Integer(str)];
+		char dd = supportedChars[Integer.parseInt(str)];
 
 		str = sdate.substring(6, 8);
-		char HH = supportedChars[new Integer(str)];
+		char HH = supportedChars[Integer.parseInt(str)];
 
 		str = sdate.substring(8);
 
@@ -72,17 +72,40 @@ public class RadomUtil {
 	}
 	
 	public static String generateOrderID(){
-		String id =  RadomUtil.generateUniqueID("", 5);
+		String id =  RandomUtil.generateUniqueID("", 5);
 		id = id.substring(0, 8) + "-" + id.substring(8);
 		return id;
 	}
 	public static String generateMessageID(){
-		String id =  RadomUtil.generateUniqueID("m-", 7);
+		String id =  RandomUtil.generateUniqueID("m-", 7);
 		return id;
 	}
 	public static String generateTransactionID(){
-		String id =  RadomUtil.generateUniqueID("t-", 7);
+		String id =  RandomUtil.generateUniqueID("t-", 7);
 		return id;
 	}
 	
+	public static String generateAlphanumericString(String prefix, int length) {
+		String str = generateAlphanumericString(length);
+		if(StringUtil.isEmptyOrNull(prefix)) {
+			prefix = "";
+		}
+		return prefix + str;
+	}	
+	public static String generateAlphanumericString(int length) {
+		if(length <= 0){
+			length = 10;
+		}
+	    int leftLimit = 48; // numeral '0'
+	    int rightLimit = 122; // letter 'z'
+	    Random random = new Random();
+	    //58-64 and 91-96 are not Alphanumeric
+	    String generatedString = random.ints(leftLimit, rightLimit + 1)
+	      .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+	      .limit(length)
+	      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+	      .toString();
+
+	    return generatedString;
+	}	
 }

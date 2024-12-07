@@ -53,7 +53,7 @@ public class DateUtils {
 	}
 
 	public static Date stringToDate(String strDate, String pattern) {
-		if (strDate == null) {
+		if (StringUtil.isEmptyOrNull(strDate)) {
 			return null;
 		}
 		DateFormat df = new SimpleDateFormat(pattern);
@@ -61,7 +61,8 @@ public class DateUtils {
 		try {
 			date = df.parse(strDate);
 		} catch (ParseException e) {
-			throw new RuntimeException(e);
+			//throw new RuntimeException(e);
+			return new Date(0L);
 		}
 		return date;
 	}
@@ -164,4 +165,16 @@ public class DateUtils {
             return xmlGregorianCalendar.toGregorianCalendar().getTime();
         }
     }
+    
+	public static Date addTime(Date date, int field, int amount) {
+		if (date == null) {
+			date = new Date();
+		}
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		cal.add(field, amount);
+		Date newDate = cal.getTime();
+		return newDate;
+	}
+
 }

@@ -16,7 +16,8 @@ public class CommonLogger {
 	private static boolean propertyFileLoaded = false;
 
 	private Logger logger = null;
-
+	
+	//run this method before use jaba util logger
 	public static void initJavaUtilLogger(String propertyFileName) {
 		// must set before the Logger
 		// loads logging.properties from the classpath

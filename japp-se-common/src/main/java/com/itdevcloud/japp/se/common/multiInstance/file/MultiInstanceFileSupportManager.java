@@ -1,5 +1,6 @@
 package com.itdevcloud.japp.se.common.multiInstance.file;
 
+import java.io.File;
 /**
  * this class provide a simple file based support for multiple instances running environment
  * the main assumption is that to use this class, all instances can access same files stored in a central place.
@@ -67,7 +68,6 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Handler;
@@ -83,43 +83,58 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 public class MultiInstanceFileSupportManager extends Thread {
 	private static final Logger logger = Logger.getLogger(MultiInstanceFileSupportManager.class.getName());
 
-
 	private static List<EventLockInfo> processedEventList = null;
 	private static boolean eventMonitorEnabled = true;
 
-	public MultiInstanceFileSupportManager() {
+	private static boolean useWatchService = true;
+	// only used when useWatchService is false
+	private static long lastModifiedTime = -1;
+	private static long fileCheckIntervalMills = 3000;
+
+	public MultiInstanceFileSupportManager(boolean useWatchService) {
 		super("FileSupportManager: Tread #" + DateUtils.dateToString(new Date(), "yyyyMMddHHmmssSSS"));
-		init();
+		init(useWatchService, this.fileCheckIntervalMills);
 	}
 
-	private void init() {
-		
-		//set logger level
+	public MultiInstanceFileSupportManager(long fileCheckIntevalMills) {
+		super("FileSupportManager: Tread #" + DateUtils.dateToString(new Date(), "yyyyMMddHHmmssSSS"));
+		init(false, fileCheckIntevalMills);
+	}
+
+	private void init(boolean useWatchService, long fileCheckIntevalMills) {
+
+		// set logger level
 		Logger rootLogger = LogManager.getLogManager().getLogger("");
 		rootLogger.setLevel(Level.FINE);
 		for (Handler h : rootLogger.getHandlers()) {
 			h.setLevel(Level.FINE);
 		}
 		logger.fine(this.getName() + " init start.........");
-		
-		//do not care events sent before this instance start
+		logger.fine(this.getName() + " init start.........useWatchService = " + useWatchService
+				+ ", fileCheckIntevalMills = " + fileCheckIntevalMills);
+		this.useWatchService = useWatchService;
+		this.fileCheckIntervalMills = (fileCheckIntevalMills < 300 ? 300 : fileCheckIntevalMills);
+
+		// do not care events sent before this instance start
 		processedEventList = initProcessedEventInfoList();
-		
+
+		this.lastModifiedTime = System.currentTimeMillis();
+
 		logger.info("EventLockInfo String format: " + EventLockInfo.eventLockInfoStringFormat);
 
 		logger.info(this.getName() + " init end.");
-		
+
 		this.start();
 	}
 
-	//name is the unqiue identifier, key is used to release a lock
-	//return null means lock failed.
-	//default expire date is now + 5 mins
+	// name is the unqiue identifier, key is used to release a lock
+	// return null means lock failed.
+	// default expire date is now + 5 mins
 	public static synchronized String addLock(String name, Date expiryDate, String key) {
 		if (StringUtil.isEmptyOrNull(name)) {
 			return null;
 		}
-		//key will not be null or empty
+		// key will not be null or empty
 		key = StringUtil.isEmptyOrNull(key) ? RandomUtil.generateAlphanumericString("l-", 5) : key;
 		EventLockInfo eventLockInfo = new EventLockInfo(name, expiryDate, key);
 
@@ -131,13 +146,13 @@ public class MultiInstanceFileSupportManager extends Thread {
 		RandomAccessFile file = null;
 		try {
 			try {
-				//logger.fine("Acquire exclusive lock of the lock file......");
+				// logger.fine("Acquire exclusive lock of the lock file......");
 				file = new RandomAccessFile(MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME, "rw");
 				channel = file.getChannel();
 				lock = channel.lock();
 			} catch (Throwable t) {
-				logger.info(
-						"Failed to open and lock Instance lock file: " + MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME + ", Error = " + t);
+				logger.info("Failed to open and lock Instance lock file: "
+						+ MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME + ", Error = " + t);
 				return null;
 			}
 			// read current lock info
@@ -157,7 +172,7 @@ public class MultiInstanceFileSupportManager extends Thread {
 							lineInfoList.add(info);
 						}
 					} catch (Throwable t) {
-						//ignore this eventLockInfo String, continue;
+						// ignore this eventLockInfo String, continue;
 						key = null;
 						info = null;
 						logger.severe("Failed to create EventLockInfo object, check lock file content: "
@@ -195,7 +210,8 @@ public class MultiInstanceFileSupportManager extends Thread {
 
 				}
 				// for debug block file lock request from other process
-				//run other thread to to apply lock while this one is sleeping, the other thread should be blocked.
+				// run other thread to to apply lock while this one is sleeping, the other
+				// thread should be blocked.
 //				logger.fine("sleep 60 seconds.......");
 //				Thread.sleep(60000);
 
@@ -203,7 +219,8 @@ public class MultiInstanceFileSupportManager extends Thread {
 
 			} catch (Throwable t) {
 				key = null;
-				logger.severe("Failed to write back to lock file: " + MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME + ", Error = " + t);
+				logger.severe("Failed to write back to lock file: "
+						+ MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME + ", Error = " + t);
 			}
 		} catch (Throwable t) {
 			key = null;
@@ -227,8 +244,8 @@ public class MultiInstanceFileSupportManager extends Thread {
 		}
 		return key;
 	}
-	
-	//lock releaser must know name and key
+
+	// lock releaser must know name and key
 	public static synchronized boolean releaseLock(String name, String key) {
 		if (StringUtil.isEmptyOrNull(name)) {
 			return false;
@@ -241,13 +258,13 @@ public class MultiInstanceFileSupportManager extends Thread {
 		RandomAccessFile file = null;
 		try {
 			try {
-				//logger.fine("Acquire exclusive lock of the lock file......");
+				// logger.fine("Acquire exclusive lock of the lock file......");
 				file = new RandomAccessFile(MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME, "rw");
 				channel = file.getChannel();
 				lock = channel.lock();
 			} catch (Throwable t) {
-				logger.info(
-						"Failed to open and lock Instance lock file: " + MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME + ", Error = " + t);
+				logger.info("Failed to open and lock Instance lock file: "
+						+ MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME + ", Error = " + t);
 			}
 			// read current lock info
 			String fileContent = FileUtil.getFileContentAsString(channel);
@@ -261,7 +278,7 @@ public class MultiInstanceFileSupportManager extends Thread {
 				for (String infoStr : fileContentArr) {
 					try {
 						info = EventLockInfo.createLineInfoFromString(infoStr);
-						//auto cleaning -- remove expired lock
+						// auto cleaning -- remove expired lock
 						if (info.getExpiryDate().after(now)) {
 							lineInfoList.add(info);
 						}
@@ -303,14 +320,16 @@ public class MultiInstanceFileSupportManager extends Thread {
 				logger.info("release lock successfully for lock name = " + name + ", key = " + key);
 
 				// for debug block file lock request from other process
-				//run other thread to to apply lock while this one is sleeping, the other thread should be blocked.
+				// run other thread to to apply lock while this one is sleeping, the other
+				// thread should be blocked.
 //				logger.fine("sleep 60 seconds.......");
 //				Thread.sleep(60000);
 
 				return true;
 
 			} catch (Throwable t) {
-				logger.severe("Failed to write back to lock file: " + MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME + ", Error = " + t);
+				logger.severe("Failed to write back to lock file: "
+						+ MultiInstanceFileSupportConstant.INSTANCE_lOCK_FILE_NAME + ", Error = " + t);
 			}
 		} catch (Throwable t) {
 			logger.severe("Failed to release lock: " + t);
@@ -334,8 +353,10 @@ public class MultiInstanceFileSupportManager extends Thread {
 		}
 		return false;
 	}
-	//event list  can have same event name, but event name + event key must unique in the list 
-	//default expire date is now + 24 hours
+
+	// event list can have same event name, but event name + event key must unique
+	// in the list
+	// default expire date is now + 24 hours
 	public static synchronized String addEvent(String name, Date expiryDate, String key, String content) {
 		if (StringUtil.isEmptyOrNull(name)) {
 			return null;
@@ -352,13 +373,13 @@ public class MultiInstanceFileSupportManager extends Thread {
 		RandomAccessFile file = null;
 		try {
 			try {
-				//logger.fine("Acquire exclusive lock of the lock file......");
+				// logger.fine("Acquire exclusive lock of the lock file......");
 				file = new RandomAccessFile(MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME, "rw");
 				channel = file.getChannel();
 				lock = channel.lock();
 			} catch (Throwable t) {
-				logger.info("Failed to open and lock Instance lock file: " + MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME
-						+ ", Error = " + t);
+				logger.info("Failed to open and lock Instance lock file: "
+						+ MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME + ", Error = " + t);
 				return null;
 			}
 			// read current lock info
@@ -373,7 +394,7 @@ public class MultiInstanceFileSupportManager extends Thread {
 				for (String infoStr : fileContentArr) {
 					try {
 						info = EventLockInfo.createLineInfoFromString(infoStr);
-						//auto cleaning -  remove expired lock
+						// auto cleaning - remove expired lock
 						if (info.getExpiryDate().after(now)) {
 							lineInfoList.add(info);
 						}
@@ -389,7 +410,7 @@ public class MultiInstanceFileSupportManager extends Thread {
 				boolean found = false;
 				for (int i = 0; i < lineInfoList.size(); i++) {
 					info = lineInfoList.get(i);
-					//check name+key
+					// check name+key
 					if (name.equalsIgnoreCase(info.getName()) && key.equalsIgnoreCase(info.getKey())) {
 						found = true;
 						break;
@@ -400,7 +421,7 @@ public class MultiInstanceFileSupportManager extends Thread {
 					lineInfoList.add(lineInfo);
 
 				} else {
-					//logger.fine("same event detected......");
+					// logger.fine("same event detected......");
 					key = null;
 				}
 				int i = 1;
@@ -431,8 +452,8 @@ public class MultiInstanceFileSupportManager extends Thread {
 
 			} catch (Throwable t) {
 				key = null;
-				logger.severe(
-						"Failed to write back to event file: " + MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME + ", Error = " + t);
+				logger.severe("Failed to write back to event file: "
+						+ MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME + ", Error = " + t);
 			}
 		} catch (Throwable t) {
 			key = null;
@@ -464,27 +485,28 @@ public class MultiInstanceFileSupportManager extends Thread {
 		}
 		boolean found = false;
 		for (EventLockInfo tmpInfo : processedEventList) {
-			//logger.fine("tmpInfo.getName()=" + tmpInfo.getName() + "---info.getName()=" +info.getName() + ",  tmpInfo.getKey()=" +  tmpInfo.getKey() + "---info.getKey()="+info.getKey());
+			// logger.fine("tmpInfo.getName()=" + tmpInfo.getName() + "---info.getName()="
+			// +info.getName() + ", tmpInfo.getKey()=" + tmpInfo.getKey() +
+			// "---info.getKey()="+info.getKey());
 
 			if (tmpInfo.getName().equalsIgnoreCase(info.getName())
 					&& tmpInfo.getKey().equalsIgnoreCase(info.getKey())) {
 				found = true;
 			}
 		}
-		if(!found) {
+		if (!found) {
 			processedEventList.add(info);
 			logger.info("the Event Info is added to the processed list: " + info);
 			return true;
-		}else {
+		} else {
 			logger.info("the Event Info can not be added to the processed list: " + info);
-			
+
 		}
 		return false;
 	}
 
-
 	private static synchronized List<EventLockInfo> getUnProccessedEventInfoList() {
-		
+
 		FileChannel channel = null;
 		FileLock lock = null;
 		List<EventLockInfo> lineInfoList = new ArrayList<EventLockInfo>();
@@ -497,8 +519,8 @@ public class MultiInstanceFileSupportManager extends Thread {
 				channel = file.getChannel();
 				lock = channel.lock();
 			} catch (Throwable t) {
-				logger.info("Failed to open and lock Instance lock file: " + MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME
-						+ ", Error = " + t);
+				logger.info("Failed to open and lock Instance lock file: "
+						+ MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME + ", Error = " + t);
 				return null;
 			}
 			// read current lock info
@@ -507,7 +529,7 @@ public class MultiInstanceFileSupportManager extends Thread {
 			if (StringUtil.isEmptyOrNull(fileContent)) {
 				// no new event found
 				return null;
-				
+
 			} else {
 				String[] fileContentArr = fileContent.split("\n");
 				EventLockInfo info = null;
@@ -516,7 +538,7 @@ public class MultiInstanceFileSupportManager extends Thread {
 						info = EventLockInfo.createLineInfoFromString(infoStr);
 						// only check active event
 						if (info != null && info.getExpiryDate().after(now)) {
-							if(!findProcessedEvent(info)) {
+							if (!findProcessedEvent(info)) {
 								lineInfoList.add(info);
 							}
 						}
@@ -550,9 +572,10 @@ public class MultiInstanceFileSupportManager extends Thread {
 			}
 		}
 	}
-	//the instance will ignore all events sent before this instance start
+
+	// the instance will ignore all events sent before this instance start
 	private static synchronized List<EventLockInfo> initProcessedEventInfoList() {
-		
+
 		FileChannel channel = null;
 		FileLock lock = null;
 		List<EventLockInfo> lineInfoList = new ArrayList<EventLockInfo>();
@@ -565,8 +588,8 @@ public class MultiInstanceFileSupportManager extends Thread {
 				channel = file.getChannel();
 				lock = channel.lock();
 			} catch (Throwable t) {
-				logger.info("Failed to open and lock Instance lock file: " + MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME
-						+ ", Error = " + t);
+				logger.info("Failed to open and lock Instance lock file: "
+						+ MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME + ", Error = " + t);
 				return null;
 			}
 			// read current lock info
@@ -574,7 +597,7 @@ public class MultiInstanceFileSupportManager extends Thread {
 			if (StringUtil.isEmptyOrNull(fileContent)) {
 				// no new event found
 				return lineInfoList;
-				
+
 			} else {
 				String[] fileContentArr = fileContent.split("\n");
 				EventLockInfo info = null;
@@ -583,8 +606,8 @@ public class MultiInstanceFileSupportManager extends Thread {
 						// logger.finer("info string from event file:" + infoStr);
 						info = EventLockInfo.createLineInfoFromString(infoStr);
 						if (info != null) {
-								lineInfoList.add(info);
-							
+							lineInfoList.add(info);
+
 						}
 					} catch (Throwable t) {
 						// ignore this lock string
@@ -595,8 +618,8 @@ public class MultiInstanceFileSupportManager extends Thread {
 				}
 			}
 			String tmpStr = "";
-			for(EventLockInfo tmpInfo:lineInfoList ) {
-				tmpStr = tmpStr + tmpInfo+ "\n";
+			for (EventLockInfo tmpInfo : lineInfoList) {
+				tmpStr = tmpStr + tmpInfo + "\n";
 			}
 			logger.fine("inited processedEventInfoList = " + tmpStr);
 			return lineInfoList;
@@ -621,7 +644,7 @@ public class MultiInstanceFileSupportManager extends Thread {
 			}
 		}
 	}
-	 	
+
 	private static boolean findProcessedEvent(EventLockInfo info) {
 		if (info == null) {
 			logger.fine("Event Info is null, return false.........");
@@ -642,43 +665,80 @@ public class MultiInstanceFileSupportManager extends Thread {
 	}
 
 	public void run() {
-		logger.info(
-				"multi-instance file support manager start to monitor event file: " + MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME);
+		logger.info("multi-instance file support manager start to monitor event file: "
+				+ MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME);
+		File file = null;
+		WatchService watchService = null;
 		try {
-			Path path = FileSystems.getDefault().getPath(MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_PATH);
-			// System.out.println(path);
-			WatchService watchService = FileSystems.getDefault().newWatchService();
-			WatchKey watchKey = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
-					StandardWatchEventKinds.ENTRY_MODIFY);
-			while (eventMonitorEnabled) {
-				WatchKey wk = watchService.take();
-				for (WatchEvent<?> event : wk.pollEvents()) {
-					final Path changed = (Path) event.context();
-					if (changed.endsWith(MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_NAME)) {
+			if (this.useWatchService) {
+
+				Path path = FileSystems.getDefault().getPath(MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_PATH);
+				// System.out.println(path);
+				watchService = FileSystems.getDefault().newWatchService();
+				WatchKey watchKey = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
+						StandardWatchEventKinds.ENTRY_MODIFY);
+				while (eventMonitorEnabled) {
+					WatchKey wk = watchService.take();
+					for (WatchEvent<?> event : wk.pollEvents()) {
+						final Path changed = (Path) event.context();
+						if (changed.endsWith(MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_NAME)) {
+							logger.info("Event File '" + MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_NAME
+									+ "' change is detetced......");
+							List<EventLockInfo> infoList = MultiInstanceFileSupportManager
+									.getUnProccessedEventInfoList();
+							if (infoList == null || infoList.isEmpty()) {
+								logger.info("There is no new event founded, do nothing......");
+								continue;
+							}
+							// process event one by one
+							for (EventLockInfo info : infoList) {
+								new EventProcessor().processEvent(info);
+								MultiInstanceFileSupportManager.addProcessedEvent(info);
+							}
+						}
+					}
+					// reset the key
+					boolean valid = wk.reset();
+					if (!valid) {
+						logger.severe("WatchKey can not be reset...............");
+					}
+				}//end while
+			} else {
+				file = new File(MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_FULL_NAME);
+				while (eventMonitorEnabled) {
+
+					Thread.sleep(this.fileCheckIntervalMills);
+
+					if (this.lastModifiedTime < file.lastModified()) {
 						logger.info("Event File '" + MultiInstanceFileSupportConstant.INSTANCE_EVENT_FILE_NAME + "' change is detetced......");
+						this.lastModifiedTime = file.lastModified();
 						List<EventLockInfo> infoList = MultiInstanceFileSupportManager.getUnProccessedEventInfoList();
-						if(infoList == null || infoList.isEmpty()) {
+						if (infoList == null || infoList.isEmpty()) {
 							logger.info("There is no new event founded, do nothing......");
 							continue;
 						}
-						//process event one by one
-						for(EventLockInfo info: infoList) {
+						// process event one by one
+						for (EventLockInfo info : infoList) {
 							new EventProcessor().processEvent(info);
 							MultiInstanceFileSupportManager.addProcessedEvent(info);
 						}
 					}
 				}
-				// reset the key
-				boolean valid = wk.reset();
-				if (!valid) {
-					logger.severe("WatchKey can not be reset...............");
-				}
+
 			}
 
 		} catch (Throwable t) {
 			eventMonitorEnabled = false;
 			logger.severe(this.getName() + " stopped. Will not monitor event any more........." + t.getMessage());
 			t.printStackTrace();
+		}finally {
+			if(watchService != null) {
+				try {
+					watchService.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 

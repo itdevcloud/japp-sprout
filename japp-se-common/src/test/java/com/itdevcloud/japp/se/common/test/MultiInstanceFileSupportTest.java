@@ -44,7 +44,7 @@ class MultiInstanceFileSupportTest {
 
 	@Test
 	void test() {
-		MultiInstanceFileSupportManager manager = new MultiInstanceFileSupportManager();
+		MultiInstanceFileSupportManager manager = new MultiInstanceFileSupportManager(true);
 		
 		String lockName = "Report-A";
 		Date today = new Date();

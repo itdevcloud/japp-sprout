@@ -48,7 +48,12 @@ public class DateUtils {
 		return new SimpleDateFormat(pattern).format(date);
 	}
 
-	public static Date stringToDate(String strDate) throws ParseException {
+	public static String timestampToDateString(long ts, String pattern) {
+		Date date = new Date(ts);
+		String str =  dateToString(date, pattern);
+		return str;
+	}
+	public static Date stringToDate(String strDate)  {
 		return stringToDate(strDate, DDEFAULT_DISPLAY_DATE_FORMAT);
 	}
 

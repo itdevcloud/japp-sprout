@@ -44,6 +44,12 @@ public class RandomUtil {
 	//case insensitive
 	//prefix+TS(11)+radom
 	public static String generateUniqueID(String prefix, int radomLength){
+		if(StringUtil.isEmptyOrNull(prefix)) {
+			prefix = "";
+		}
+		if(radomLength <= 0 ) {
+			radomLength = 1;
+		}
 		//generate random number
 		char[] randomChars = new char[radomLength];
 		for (int i = 0;  i < radomLength;  i++) {

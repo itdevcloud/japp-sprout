@@ -62,7 +62,7 @@ public class DateUtils {
 			date = df.parse(strDate);
 		} catch (ParseException e) {
 			//throw new RuntimeException(e);
-			return new Date(0L);
+			return null;
 		}
 		return date;
 	}

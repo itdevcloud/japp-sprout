@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.itdevcloud.japp.se.common.multiInstance.socket.LockFileManager;
+import com.itdevcloud.japp.se.common.multiInstance.v1.socket.LockFileManager;
 
 class LockFileManagerTest {
 

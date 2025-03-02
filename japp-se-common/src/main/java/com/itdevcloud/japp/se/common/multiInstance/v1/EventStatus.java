@@ -1,4 +1,4 @@
-package com.itdevcloud.japp.se.common.multiInstance;
+package com.itdevcloud.japp.se.common.multiInstance.v1;
 
 import java.util.Date;
 import java.util.Objects;

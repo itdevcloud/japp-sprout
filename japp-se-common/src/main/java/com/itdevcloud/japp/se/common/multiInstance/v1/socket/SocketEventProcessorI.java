@@ -1,4 +1,4 @@
-package com.itdevcloud.japp.se.common.multiInstance.socket;
+package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 
 
 public interface SocketEventProcessorI {

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import com.itdevcloud.japp.se.common.multiInstance.file.MultiInstanceFileSupportManager;
+import com.itdevcloud.japp.se.common.multiInstance.v1.file.MultiInstanceFileSupportManager;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 
 class MultiInstanceFileSupportTest {

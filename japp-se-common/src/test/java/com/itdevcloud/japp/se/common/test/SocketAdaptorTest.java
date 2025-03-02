@@ -8,8 +8,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.itdevcloud.japp.se.common.multiInstance.socket.SocketAdaptorManager;
-import com.itdevcloud.japp.se.common.multiInstance.socket.SocketAdaptorMessage;
+import com.itdevcloud.japp.se.common.multiInstance.v1.socket.SocketAdaptorManager;
+import com.itdevcloud.japp.se.common.multiInstance.v1.socket.SocketAdaptorMessage;
 
 class SocketAdaptorTest {
 

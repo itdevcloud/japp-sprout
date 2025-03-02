@@ -1,4 +1,4 @@
-package com.itdevcloud.japp.se.common.multiInstance.file;
+package com.itdevcloud.japp.se.common.multiInstance.v1.file;
 
 import com.itdevcloud.japp.se.common.service.CommonLogger;
 import com.itdevcloud.japp.se.common.service.ConfigurationManager;

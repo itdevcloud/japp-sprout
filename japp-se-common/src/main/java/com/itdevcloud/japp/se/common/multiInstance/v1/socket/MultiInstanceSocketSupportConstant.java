@@ -1,4 +1,4 @@
-package com.itdevcloud.japp.se.common.multiInstance.socket;
+package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 
 import com.itdevcloud.japp.se.common.service.CommonLogger;
 import com.itdevcloud.japp.se.common.service.ConfigurationManager;

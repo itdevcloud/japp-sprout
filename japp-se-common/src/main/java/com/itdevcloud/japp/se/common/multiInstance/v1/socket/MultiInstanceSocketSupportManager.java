@@ -1,11 +1,11 @@
-package com.itdevcloud.japp.se.common.multiInstance.socket;
+package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.itdevcloud.japp.se.common.multiInstance.EventStatus;
-import com.itdevcloud.japp.se.common.multiInstance.MultipleInstanceSupportI;
+import com.itdevcloud.japp.se.common.multiInstance.v1.EventStatus;
+import com.itdevcloud.japp.se.common.multiInstance.v1.MultipleInstanceSupportI;
 import com.itdevcloud.japp.se.common.service.CommonFactory;
 import com.itdevcloud.japp.se.common.service.CommonLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;

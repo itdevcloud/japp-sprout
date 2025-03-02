@@ -10,9 +10,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import com.itdevcloud.japp.se.common.multiInstance.EventStatus;
-import com.itdevcloud.japp.se.common.multiInstance.socket.MessageProcessingStatusCache;
-import com.itdevcloud.japp.se.common.multiInstance.socket.MultiInstanceSocketSupportManager;
+import com.itdevcloud.japp.se.common.multiInstance.v1.EventStatus;
+import com.itdevcloud.japp.se.common.multiInstance.v1.socket.MessageProcessingStatusCache;
+import com.itdevcloud.japp.se.common.multiInstance.v1.socket.MultiInstanceSocketSupportManager;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 
 class MultiInstanceSocketSupportTest {

@@ -28,12 +28,8 @@ public class AzureBlobService {
 	private static final Logger logger = Logger.getLogger(AzureBlobService.class.getName());
 	protected static DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
-	// protected static final String STORAGE_URL =
-	// "https://fcsdevappsa04.blob.core.windows.net";
-	// protected static final String SAS_TOKEN =
-	// "sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-04-30T23:05:54Z&st=2025-02-20T16:05:54Z&sip=165.85.214.1-165.85.214.198&spr=https&sig=wbgUObn32L9QcA%2BMqyuupi1aDOeADXKd9HEBgQBtNE4%3D";
 	protected static final String STORAGE_URL = "https://msunpocblobstorage.blob.core.windows.net/";
-	protected static final String SAS_TOKEN = "sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-05-02T04:40:25Z&st=2025-03-01T21:40:25Z&spr=https&sig=wkLp%2BcOTNkqu5%2F9qvL8dMjiYiCFdpdhfvl7w8o4Hvqs%3D";
+	protected static final String SAS_TOKEN = null;//to be added;
 
 	protected static final String DEFAULT_BLOB_CONTAINER_NAME = "mi-event-management";
 	protected static final int DEFAULT_BLOB_LEASE_TIMEOUT_SECOND = 30;

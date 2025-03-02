@@ -21,7 +21,7 @@ public class AzureRedisService {
 	public static final String REDIS_HOST_NAME = "MI-Msg-Event.redis.cache.windows.net";
 	public static final int REDIS_PORT = 6380;
 	public static final int REDIS_TIMEOUT_MILLIS = 20000;
-	public static final String REDIS_ACCESS_KEY = "Fw0A3yovtW7DoUcjXRgKkXIXPDeMPAIy3AzCaElsgVM=";
+	public static final String REDIS_ACCESS_KEY = null;//to be added;
 	
 	public static final Boolean REDIS_ENABLE_SSL = true;
 	public static final int REDIS_MAX_VALUE_LENGTH_PER_KEY = 300;

@@ -361,5 +361,17 @@ public class StringUtil {
 		return decoded;
 	}
 
+	public static int compareTo(String s1, String s2)  {
+		if(s1 == null || s2 == null) {
+			if(s1 == null) {
+				return s2 == null? 0: -1;
+			}else {
+				return 1;
+			}
+		}
+		//both not null
+		return s1.compareTo(s2);
+	}
+
 
 }

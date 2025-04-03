@@ -2,38 +2,41 @@ package com.itdevcloud.japp.se.common.multiInstance.repo.file;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventInfo;
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 
 public class FileEventManagerTest  {
-	private static final Logger logger = Logger.getLogger(FileEventManagerTest.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(FileEventManagerTest.class.getName());
 
 
 	public static void main(String[] args) {
 		
-		CommonLogger.initJavaUtilLogger(null);
-		
-		FileEventManager fileEventManager = new FileEventManager("FCS");
-		
-		
-		fileEventManager.broadcastEventMessage("User_Change_Event", "c1@hotmail.com");
-		
-		EventInfo eventInfo = new EventInfo(fileEventManager.getAppName(), null, fileEventManager.getMyInstanceName());
-	
-		EventInfo eventInfoA = fileEventManager.addTaskLock("run-report-a", 10);
-		EventInfo eventInfoB = fileEventManager.addTaskLock("run-report-b", 2);
-		EventInfo eventInfoC = fileEventManager.addTaskLock("run-report-c", 2);
+		logger.info( "Test CommonLogger formatter.......0....");
+		//JulLogger.initJavaUtilLogger(null);
+		logger.info( "Test CommonLogger formatter.....1......");
 
-		fileEventManager.releaseTaskLock(eventInfoB);
-		
-	
-		List <EventInfo> infoList = fileEventManager.getTaskLockList();
-		
-		String infoListStr = CommonUtil.listToString(infoList);
-		logger.info("Lock Event List, size = " + (infoList==null?0:infoList.size()) + "\n" +infoListStr);
+//		FileEventManager fileEventManager = new FileEventManager("FCS");
+//		
+//		
+//		fileEventManager.broadcastEventMessage("User_Change_Event", "c1@hotmail.com");
+//		
+//		EventInfo eventInfo = new EventInfo(fileEventManager.getAppName(), null, fileEventManager.getMyInstanceName());
+//	
+//		EventInfo eventInfoA = fileEventManager.addTaskLock("run-report-a", 10);
+//		EventInfo eventInfoB = fileEventManager.addTaskLock("run-report-b", 2);
+//		EventInfo eventInfoC = fileEventManager.addTaskLock("run-report-c", 2);
+//
+//		fileEventManager.releaseTaskLock(eventInfoB);
+//		
+//	
+//		List <EventInfo> infoList = fileEventManager.getTaskLockList();
+//		
+//		String infoListStr = CommonUtil.listToString(infoList);
+//		logger.info("Lock Event List, size = " + (infoList==null?0:infoList.size()) + "\n" +infoListStr);
 		
 
 //		DataInfo dInfo = null;

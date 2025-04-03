@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +31,7 @@ import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppFactory;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
@@ -46,6 +47,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class IaaService implements AppFactoryComponentI {
 
+	//private static final Logger logger = LogManager.getLogger(IaaService.class);
 	private static final Logger logger = LogManager.getLogger(IaaService.class);
 
 	@PostConstruct

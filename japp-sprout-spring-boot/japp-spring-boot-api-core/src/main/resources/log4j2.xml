@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--  
 <Configuration packages="com.microsoft.applicationinsights.log4j.v2">
+-->
+<Configuration >
 	<Properties>
 		<Property name="logPath">${env:jappcore.app.log.dir:-./logs/jappcore}</Property>
-		<Property name="logFileSimpleName">auditapi</Property>
+		<Property name="logFileSimpleName">jappapicore</Property>
 	</Properties>
 	<Appenders>
 		<RollingFile name="DailyRollingFile" fileName="${logPath}/${logFileSimpleName}.log"
@@ -19,8 +22,8 @@
 		</RollingFile>
 
 		<Console name="console" target="SYSTEM_OUT">
-			<PatternLayout
-				pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%X{JAPPCORE_TX_ID}] %c{1} - %m%n" />
+			<PatternLayout disableAnsi="false" 
+				pattern="%highlight{[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} } [%t] [%X{JAPPCORE_TX_ID}] %c{1} - %m%n " />
 		</Console>
 	
 	    <ApplicationInsightsAppender name="aiAppender" />

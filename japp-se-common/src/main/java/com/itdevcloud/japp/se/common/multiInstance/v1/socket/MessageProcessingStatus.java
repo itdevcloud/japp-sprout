@@ -3,12 +3,12 @@ package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 import java.util.Date;
 import java.util.Objects;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class MessageProcessingStatus implements Comparable<MessageProcessingStatus> {
-	private static final CommonLogger logger = CommonLogger.getLogger(MessageProcessingStatus.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(MessageProcessingStatus.class.getName());
 	private String id;
 	private String type;
 	private String name;

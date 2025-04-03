@@ -10,15 +10,22 @@ import java.util.logging.LogManager;
 
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
-public class CommonLogger {
+/**
+ * this class may be used by stanalong applications (to reduce log library dependencies, 
+ * but it may not be good for an app running in a server environment
+ * due to limitation of JUL - so far it is per VM based.
+ */
+public class JulLogger {
 
-	private static final String DEFAULT_JAVA_UTIL_LOGGER_PROPERTY_FILE_NAME = "javaUtilLogging.properties";
+	private static final String DEFAULT_JAVA_UTIL_LOGGER_PROPERTY_FILE_NAME = "javaUtilLogging-default.properties";
 	private static boolean propertyFileLoaded = false;
 
+	private static Logger mylogger = Logger.getLogger(JulLogger.class.getName());
 	private Logger logger = null;
 	
-	//run this method before use jaba util logger
-	public static void initJavaUtilLogger(String propertyFileName) {
+	//to use JUL logger and custom property file
+	//must call this method as the first call when starting an application
+	public synchronized static void initJavaUtilLogger(String propertyFileName) {
 		// must set before the Logger
 		// loads logging.properties from the classpath
 		
@@ -29,15 +36,25 @@ public class CommonLogger {
 		if (StringUtil.isEmptyOrNull(propertyFileName)) {
 			propertyFileName = DEFAULT_JAVA_UTIL_LOGGER_PROPERTY_FILE_NAME;
 		}
-		System.out.println("Loading Java Util Logger property file: " + propertyFileName);
+		mylogger.info("Loading Java Util Logger property file: " + propertyFileName);
+		//System.out.println("Loading Java Util Logger property file: " + propertyFileName);
 		InputStream in = null;
 		try {
-			in = CommonLogger.class.getClassLoader().getResourceAsStream("javaUtilLogging.properties");
-			LogManager.getLogManager().readConfiguration(in);
-		} catch (IOException e) {
-			System.out
-					.println("Can not load Java Util Logger property file (" + propertyFileName + ")......Error: " + e);
-			e.printStackTrace();
+			in = JulLogger.class.getClassLoader().getResourceAsStream(propertyFileName);
+			if(in  == null) {
+				mylogger.warning("Can not load Java Util Logger property file (" + propertyFileName + ")......no file found in the class path! ");
+				//System.out.println("Can not load Java Util Logger property file (" + propertyFileName + ")......no file file in the class path! ");
+			}else {
+				mylogger.info("LogManager.getLogManager().readConfiguration()..........start..............." );
+				//System.out.println("LogManager.getLogManager().readConfiguration()..........start..............." );
+				LogManager.getLogManager().readConfiguration(in);
+				//System.out.println("LogManager.getLogManager().readConfiguration()..........end................" );
+				mylogger.info("LogManager.getLogManager().readConfiguration()..........end................" );
+			}
+		} catch (Throwable t) {
+			//System.out.println("Can not load Java Util Logger property file (" + propertyFileName + ")......Error: " + t);
+			mylogger.warning("Can not load Java Util Logger property file (" + propertyFileName + ")......Error: " + t);
+			t.printStackTrace();
 		} finally {
 			if (in != null) {
 				try {
@@ -49,22 +66,22 @@ public class CommonLogger {
 
 	}
 
-	private CommonLogger(String className) {
+	private JulLogger(String className) {
 		this(className, null);
 	}
 
-	private CommonLogger(String className, String propertyFileName) {
+	private JulLogger(String className, String propertyFileName) {
 		// must be the first call
 		initJavaUtilLogger(propertyFileName);
 
 		if (StringUtil.isEmptyOrNull(className)) {
-			className = CommonLogger.class.getName();
+			className = JulLogger.class.getName();
 		}
 		this.logger = Logger.getLogger(className);
 	}
 
-	public static CommonLogger getLogger(String className) {
-		return new CommonLogger(className);
+	public static JulLogger getLogger(String className) {
+		return new JulLogger(className);
 	}
 
 	// finest

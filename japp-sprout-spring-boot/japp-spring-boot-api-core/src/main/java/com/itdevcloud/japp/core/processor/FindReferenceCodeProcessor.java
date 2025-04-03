@@ -31,6 +31,7 @@ import com.itdevcloud.japp.core.api.bean.FindReferenceCodeResponse;
 import com.itdevcloud.japp.core.api.vo.ReferenceCode;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -45,6 +46,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class FindReferenceCodeProcessor extends RequestProcessor {
 
+	//private static final Logger logger = LogManager.getLogger(FindReferenceCodeProcessor.class);
 	private static final Logger logger = LogManager.getLogger(FindReferenceCodeProcessor.class);
 
 	@Override

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventInfo;
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 
 public class AzureRedisEventManagerTest {
@@ -12,7 +12,7 @@ public class AzureRedisEventManagerTest {
 
 	public static void main(String[] args) {
 
-		CommonLogger.initJavaUtilLogger(null);
+		JulLogger.initJavaUtilLogger(null);
 		AzureRedisEventManager azureRedisEventManager = null;
 		try {
 			azureRedisEventManager = new AzureRedisEventManager("FCS");

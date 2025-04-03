@@ -7,7 +7,7 @@ import java.util.List;
 import com.itdevcloud.japp.se.common.multiInstance.v1.EventStatus;
 import com.itdevcloud.japp.se.common.multiInstance.v1.MultipleInstanceSupportI;
 import com.itdevcloud.japp.se.common.service.CommonFactory;
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.FileUtil;
@@ -79,7 +79,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class MultiInstanceSocketSupportManager extends Thread implements MultipleInstanceSupportI {
 
-	private static final CommonLogger logger = CommonLogger
+	private static final JulLogger logger = JulLogger
 			.getLogger(MultiInstanceSocketSupportManager.class.getName());
 
 	private static final long MAX_PING_INACTIVE_INTERVAL_MILLISECOND = MultiInstanceSocketSupportConstant.DEFAULT_SOCKET_MAX_PING_INTERVAL_MILLISECOND
@@ -811,7 +811,7 @@ public class MultiInstanceSocketSupportManager extends Thread implements Multipl
 	}
 
 	private class MessageProcessor extends Thread {
-		private final CommonLogger logger = CommonLogger.getLogger(MessageProcessor.class.getName());
+		private final JulLogger logger = JulLogger.getLogger(MessageProcessor.class.getName());
 
 		private SocketEventProcessorI processor = null;
 		private SocketAdaptorMessage message = null;

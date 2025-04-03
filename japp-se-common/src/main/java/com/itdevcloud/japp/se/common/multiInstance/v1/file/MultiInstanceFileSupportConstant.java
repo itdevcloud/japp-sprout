@@ -1,11 +1,11 @@
 package com.itdevcloud.japp.se.common.multiInstance.v1.file;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.service.ConfigurationManager;
 
 public class MultiInstanceFileSupportConstant {
 	
-	private static final CommonLogger logger = CommonLogger
+	private static final JulLogger logger = JulLogger
 			.getLogger(MultiInstanceFileSupportConstant.class.getName());
 
 

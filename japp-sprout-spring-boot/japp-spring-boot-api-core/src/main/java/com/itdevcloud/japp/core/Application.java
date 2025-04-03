@@ -31,6 +31,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppFactory;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 
 /**
@@ -46,7 +47,6 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 @EnableScheduling
 public class Application extends SpringBootServletInitializer {
-
 
 	//must init ConfigFactory before init AppFactory
 	@Autowired

@@ -22,13 +22,17 @@ import java.io.StringWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.itdevcloud.japp.core.cahce.RefreshableCache;
+
 /**
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
 public class AppException extends RuntimeException {
+	//private static final Logger logger = LogManager.getLogger(AppException.class);
 	private static final Logger logger = LogManager.getLogger(AppException.class);
+
 	private static final long serialVersionUID = 1L;
 
 	private String errorCode;

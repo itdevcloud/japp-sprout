@@ -31,6 +31,7 @@ import com.itdevcloud.japp.core.service.config.AppConfigService;
 @Component
 public class ConfigFactory {
 
+	//private static final Logger logger = LogManager.getLogger(ConfigFactory.class);
 	private static final Logger logger = LogManager.getLogger(ConfigFactory.class);
 
 	public static AppConfigService appConfigService;

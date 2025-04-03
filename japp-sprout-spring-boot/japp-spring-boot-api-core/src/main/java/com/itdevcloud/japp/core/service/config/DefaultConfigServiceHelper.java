@@ -23,6 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 /**
  *
@@ -33,6 +34,7 @@ import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 @Component
 public class DefaultConfigServiceHelper implements ConfigServiceHelperI {
 
+	//private static final Logger logger = LogManager.getLogger(DefaultConfigServiceHelper.class);
 	private static final Logger logger = LogManager.getLogger(DefaultConfigServiceHelper.class);
 
 

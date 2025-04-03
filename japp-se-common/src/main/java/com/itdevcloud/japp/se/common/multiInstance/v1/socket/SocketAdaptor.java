@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 import com.itdevcloud.japp.se.common.security.Crypter;
 import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.service.CommonFactory;
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
@@ -37,7 +37,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @author Marvin Sun
  */
 class SocketAdaptor {
-	private static final CommonLogger logger = CommonLogger.getLogger(SocketAdaptor.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(SocketAdaptor.class.getName());
 
 //	public static final String ERROR_PREFIX = "[ERROR]";
 //	public static final String SUCCESS_PREFIX = "[SUCCESS]";
@@ -389,7 +389,7 @@ class SocketAdaptor {
 	}
 
 	private class SocketAdaptorReceiver extends Thread {
-		private final CommonLogger logger = CommonLogger.getLogger(SocketAdaptorReceiver.class.getName());
+		private final JulLogger logger = JulLogger.getLogger(SocketAdaptorReceiver.class.getName());
 
 		private Socket socket = null;
 		private Crypter crypter = null;

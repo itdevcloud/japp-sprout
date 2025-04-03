@@ -18,10 +18,10 @@ package com.itdevcloud.japp.core.iaa.web;
 
 import java.io.IOException;
 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,6 +34,7 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppFactory;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
@@ -54,8 +55,9 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  */
 
 @WebServlet(name = "logoutServlet", urlPatterns = "/logout")
-public class LogoutServlet extends javax.servlet.http.HttpServlet {
+public class LogoutServlet extends jakarta.servlet.http.HttpServlet {
 	private static final long serialVersionUID = 1L;
+	//private static final Logger logger = LogManager.getLogger(LogoutServlet.class);
 	private static final Logger logger = LogManager.getLogger(LogoutServlet.class);
 
 	@Override

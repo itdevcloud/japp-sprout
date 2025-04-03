@@ -21,7 +21,7 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.util.Date;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 
@@ -41,6 +42,7 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
 @Component
 public class PkiKeyCache extends RefreshableCache{
 
+	//private static final Logger logger = LogManager.getLogger(PkiKeyCache.class);
 	private static final Logger logger = LogManager.getLogger(PkiKeyCache.class);
 
 	private static Key jappPrivateKey;

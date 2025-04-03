@@ -9,7 +9,7 @@ import java.util.logging.LogRecord;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
-public class CommonLogFormatter extends Formatter {
+public class JulLogFormatter extends Formatter {
 	// ANSI escape code
 	public static final String ANSI_RESET = "\u001B[0m";
 	public static final String ANSI_BLACK = "\u001B[30m";
@@ -35,6 +35,7 @@ public class CommonLogFormatter extends Formatter {
 	// format is called for every console log message
 	@Override
 	public String format(LogRecord record) {
+
 		// This example will print date/time, class, and log level in yellow,
 		// followed by the log message and it's parameters in white .
 		StringBuilder builder = new StringBuilder();

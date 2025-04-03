@@ -1,13 +1,13 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo;
 
 import java.util.Date;
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class DataInfo extends EventInfo {
 
-	private static final CommonLogger logger = CommonLogger.getLogger(DataInfo.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(DataInfo.class.getName());
 
 	public DataInfo(String appName, String content) {
 		super(appName, null, null);

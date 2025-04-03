@@ -30,8 +30,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -41,6 +42,7 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -64,6 +66,7 @@ import io.jsonwebtoken.SignatureException;
 
 @Component
 public class JwtService implements AppFactoryComponentI {
+	//private static final Logger logger = LogManager.getLogger(JwtService.class);
 	private static final Logger logger = LogManager.getLogger(JwtService.class);
 
 
@@ -79,9 +82,9 @@ public class JwtService implements AppFactoryComponentI {
 			int idx = idToken.lastIndexOf('.');
 			String tokenWithoutSignature = idToken.substring(0, idx + 1);
 
-			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().parseClaimsJwt(tokenWithoutSignature);
+			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().build().parseUnsecuredClaims(tokenWithoutSignature);
 			Header header = jwtWithoutSignature.getHeader();
-			Claims claims = jwtWithoutSignature.getBody();
+			Claims claims = jwtWithoutSignature.getPayload();
 
 			String kid = (header.containsKey("kid") ? (String) header.get("kid") : null);
 			String x5t = (header.containsKey("x5t") ? (String) header.get("xt5") : null);
@@ -92,13 +95,13 @@ public class JwtService implements AppFactoryComponentI {
 				logger.error("idToken is not Valid..........");
 				return false;
 			}
-			String aud = claims.getAudience();
+			Set<String> audSet = claims.getAudience();
 			Date nbf = claims.getNotBefore();
 			Date exp = claims.getExpiration();
 			String clientId = AppComponents.aadJwksCache.getAadClientId();
 			Date now = new Date();
 
-			if (clientId == null || !clientId.equals(aud)) {
+			if (clientId == null || (audSet != null && !audSet.isEmpty() && !audSet.contains(clientId))) {
 				logger.error("idToken aud claim is not valid.....");
 				return false;
 			}
@@ -125,8 +128,8 @@ public class JwtService implements AppFactoryComponentI {
 			return false;
 		}
 		try {
-			Jws<Claims> jwts = Jwts.parser().setSigningKey(publicKey).parseClaimsJws(token);
-			Claims claims = jwts.getBody();
+			Jws<Claims> jwts = Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token);
+			Claims claims = jwts.getPayload();
 			String subject = claims.getSubject();
 			logger.info("subject ====== " + subject);
 			if (claims.containsKey("upn")) {

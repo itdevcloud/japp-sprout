@@ -2,6 +2,8 @@ package com.itdevcloud.japp.core.frontend;
 
 import org.springframework.util.StringUtils;
 
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  * A class represents front end environment settings. 
  *
@@ -22,7 +24,7 @@ public class FrontendEnvSettings {
 	 * @return the version number.
 	 */
 	public String getVersion() {
-		if(StringUtils.isEmpty(version)) {
+		if(StringUtil.isEmptyOrNull(version)) {
 			return "n/a";
 		}
 		return version;
@@ -41,7 +43,7 @@ public class FrontendEnvSettings {
 	 * @return build number
 	 */
 	public String getBuild() {
-		if(StringUtils.isEmpty(build)) {
+		if(StringUtil.isEmptyOrNull(build)) {
 			return "n/a";
 		}
 		return build;

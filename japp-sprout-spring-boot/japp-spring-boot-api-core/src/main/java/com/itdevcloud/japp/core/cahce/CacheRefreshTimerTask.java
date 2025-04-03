@@ -21,7 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 /**
  * This class is used to refresh various caches based on pre-defined schedules.
@@ -44,7 +45,9 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
 @Component
 public class CacheRefreshTimerTask {
 
+	//private static final Logger logger = LogManager.getLogger(CacheRefreshTimerTask.class);
 	private static final Logger logger = LogManager.getLogger(CacheRefreshTimerTask.class);
+
 	private static String dailyRefreshDate = null;
 	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 
@@ -80,8 +83,8 @@ public class CacheRefreshTimerTask {
 		Date now = new Date();
 		long nowTS = now.getTime();
 		String today = sdf.format(now);
-		int refreshDateInt = (dailyRefreshDate == null ? 0 : new Integer(dailyRefreshDate));
-		int todayInt = new Integer(today);
+		int refreshDateInt = (dailyRefreshDate == null ? 0 : Integer.valueOf(dailyRefreshDate));
+		int todayInt = Integer.valueOf(today);
 
 		if (enableCacheDailyRefresh && (dailyRefreshDate == null || refreshDateInt < todayInt)) {
 			logger.info("CacheRefreshTimerTask.run() - Daily refresh start............");

@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -34,8 +34,10 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
+import com.itdevcloud.japp.core.frontend.FrontendEnvSetupService;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -52,6 +54,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 
+	//private static final Logger logger = LogManager.getLogger(DefaultIaaServiceHelper.class);
 	private static final Logger logger = LogManager.getLogger(DefaultIaaServiceHelper.class);
 
 	@PostConstruct

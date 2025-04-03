@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,7 +55,8 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class AppFactory {
 
-	private static final Logger logger = LogManager.getLogger(AppFactory.class);
+	//private static final Logger logger = LogManager.getLogger(AppFactory.class);
+	private static Logger logger = LogManager.getLogger(AppFactory.class);
 
 	private static Map<String, CommandInfo> commandInfoMap = null;
 	private static Map<Class<?>, AppFactoryComponentI> classComponentMap = null;

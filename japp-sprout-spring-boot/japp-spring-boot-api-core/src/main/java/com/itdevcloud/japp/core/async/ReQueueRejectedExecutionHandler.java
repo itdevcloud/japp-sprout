@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 
 
@@ -20,7 +21,8 @@ import com.itdevcloud.japp.core.common.AppUtil;
  */
 public class ReQueueRejectedExecutionHandler implements RejectedExecutionHandler {
 
-	private static Logger logger = LogManager.getLogger(ReQueueRejectedExecutionHandler.class);
+	//private static Logger logger = LogManager.getLogger(ReQueueRejectedExecutionHandler.class);
+	private static final Logger logger = LogManager.getLogger(ReQueueRejectedExecutionHandler.class);
 
 	@Override
 	public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {

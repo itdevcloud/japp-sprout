@@ -15,7 +15,7 @@ import com.itdevcloud.japp.se.common.multiInstance.repo.EventInfo;
 import com.itdevcloud.japp.se.common.multiInstance.repo.RepoBaseMiEventManager;
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventManagerConstant;
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventProcessor;
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -180,7 +180,7 @@ public class AzureRedisEventManager extends RepoBaseMiEventManager {
 
 	public static void main(String[] args) {
 
-		CommonLogger.initJavaUtilLogger(null);
+		JulLogger.initJavaUtilLogger(null);
 		AzureRedisEventManager azureRedisEventManager = null;
 		try {
 			azureRedisEventManager = new AzureRedisEventManager("FCS");

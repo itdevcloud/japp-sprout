@@ -19,7 +19,7 @@ package com.itdevcloud.japp.core.service.log;
 import java.io.File;
 import java.io.FilenameFilter;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
 

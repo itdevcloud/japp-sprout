@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.itdevcloud.japp.core.api.command.CommandController;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.config.AppConfigService;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -24,6 +26,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Configuration
 public class OpenApiConfig {
 	
+	//private static final Logger logger = LogManager.getLogger(OpenApiConfig.class);
 	private static final Logger logger = LogManager.getLogger(OpenApiConfig.class);
 
 	@Value("${jappcore.openapi.info.title}")

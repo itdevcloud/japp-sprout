@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,6 +33,7 @@ import com.itdevcloud.japp.core.api.vo.ReferenceCode;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppFactory;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.ReferenceCodeServiceHelperI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -46,7 +47,9 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 public class ReferenceCodeCache extends RefreshableCache{
 
 
+	//private static final Logger logger = LogManager.getLogger(ReferenceCodeCache.class);
 	private static final Logger logger = LogManager.getLogger(ReferenceCodeCache.class);
+
 	// key = reference identifier,
 	private static Map<String, List<ReferenceCode>> referenceCodeMap = null;
 
@@ -161,7 +164,7 @@ public class ReferenceCodeCache extends RefreshableCache{
 	public ReferenceCode getReferenceCodeByCode(String type, String code) {
 		waitForInit();
 		logger.info("Type=" + type + " Code=" + code);
-		if (StringUtils.isEmpty(type) || referenceCodeMap == null || StringUtils.isEmpty(code)) {
+		if (StringUtil.isEmptyOrNull(type) || referenceCodeMap == null || StringUtil.isEmptyOrNull(code)) {
 			return null;
 		}
 		List<ReferenceCode> codeList = referenceCodeMap.get(type);

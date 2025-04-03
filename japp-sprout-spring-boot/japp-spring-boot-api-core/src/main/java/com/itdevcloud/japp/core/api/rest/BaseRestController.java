@@ -11,8 +11,10 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
+import com.itdevcloud.japp.core.api.command.CommandController;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppFactory;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.processor.RequestProcessor;
 
@@ -21,8 +23,8 @@ import com.itdevcloud.japp.core.processor.RequestProcessor;
 public abstract class BaseRestController {
 
 
+	//private static final Logger logger = LogManager.getLogger(BaseRestController.class);
 	private static final Logger logger = LogManager.getLogger(BaseRestController.class);
-
 
 	public Object processRequest(BaseRequest request) {
 		logger.debug("processRequest() - start ===>");

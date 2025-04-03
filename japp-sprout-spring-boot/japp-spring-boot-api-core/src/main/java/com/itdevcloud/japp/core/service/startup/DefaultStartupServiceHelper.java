@@ -18,7 +18,7 @@ package com.itdevcloud.japp.core.service.startup;
 
 import java.util.TimeZone;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,8 +27,10 @@ import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.StartupServiceHelperI;
+import com.itdevcloud.japp.core.service.referencecode.ReferenceCodeService;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  *
@@ -37,7 +39,8 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  */
 @Component
 public class DefaultStartupServiceHelper implements StartupServiceHelperI {
-	private Logger logger = LogManager.getLogger(DefaultStartupServiceHelper.class);
+	//private Logger logger = LogManager.getLogger(DefaultStartupServiceHelper.class);
+	private static final Logger logger = LogManager.getLogger(DefaultStartupServiceHelper.class);
 
 
 	@PostConstruct

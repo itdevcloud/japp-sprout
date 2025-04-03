@@ -29,6 +29,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
+import org.apache.logging.log4j.Logger;
 /**
  *
  * @author Marvin Sun
@@ -38,7 +39,8 @@ import com.itdevcloud.japp.core.common.AppConstant;
 @EnableAsync
 public class SpringAppAsyncConfigurer implements AsyncConfigurer {
 
-	private Logger logger = LogManager.getLogger(SpringAppAsyncConfigurer.class);
+	//private Logger logger = LogManager.getLogger(SpringAppAsyncConfigurer.class);
+	private static final Logger logger = LogManager.getLogger(SpringAppAsyncConfigurer.class);
 
 	@Value("${" + AppConfigKeys.JAPPCORE_ASYNC_EXECUTOR_CORE_POOL_SIZE + ":2}")
 	private int corePoolSize;

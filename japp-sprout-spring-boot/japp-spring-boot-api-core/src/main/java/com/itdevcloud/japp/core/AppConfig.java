@@ -21,6 +21,9 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
+import com.itdevcloud.japp.core.common.AppFactory;
+import org.apache.logging.log4j.Logger;
 /**
  * Class Definition
  *
@@ -32,6 +35,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackages = {"com.itdevcloud.japp", "${jappcore.app.spring.scan.base.package}"})
 @EntityScan(basePackages = {"com.itdevcloud.japp", "${jappcore.app.spring.scan.base.package}"})
 public class AppConfig {
-
 
 }

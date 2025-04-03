@@ -26,6 +26,7 @@ import com.itdevcloud.japp.core.api.bean.GetIaaProfileRequest;
 import com.itdevcloud.japp.core.api.bean.GetIaaProfileResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.common.AppUtil;
@@ -39,6 +40,7 @@ import com.itdevcloud.japp.core.iaa.service.IaaUser;
 @Component
 public class GetIaaProfileProcessor extends RequestProcessor {
 
+	//private static final Logger logger = LogManager.getLogger(GetIaaProfileProcessor.class);
 	private static final Logger logger = LogManager.getLogger(GetIaaProfileProcessor.class);
 
 

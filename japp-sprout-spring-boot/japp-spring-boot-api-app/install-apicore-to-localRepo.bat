@@ -1,0 +1,1 @@
+mvn install:install-file -DlocalRepositoryPath=${project.basedir}/local-repo/ -Dfile=${project.basedir}/../japp-spring-boot-api-core/target/japp-spring-boot-api-core-0.1.0.jar  -DpomFile=${project.basedir}/../japp-spring-boot-api-core/pom.xml -DcreateChecksum=true

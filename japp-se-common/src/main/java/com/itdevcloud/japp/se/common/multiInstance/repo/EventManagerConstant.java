@@ -1,12 +1,12 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.service.ConfigurationManager;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 
 public class EventManagerConstant {
 	
-	private static final CommonLogger logger = CommonLogger
+	private static final JulLogger logger = JulLogger
 			.getLogger(EventManagerConstant.class.getName());
 
 

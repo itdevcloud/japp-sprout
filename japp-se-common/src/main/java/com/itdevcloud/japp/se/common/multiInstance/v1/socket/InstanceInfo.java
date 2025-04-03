@@ -2,13 +2,13 @@ package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 
 import java.util.Objects;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class InstanceInfo {
 
-	private static final CommonLogger logger = CommonLogger.getLogger(InstanceInfo.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(InstanceInfo.class.getName());
 	
 	public static final String ATTRIBUTE_SELF = "Self";
 	public static final String ATTRIBUTE_MAIN = "Main";

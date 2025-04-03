@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,6 +47,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 
 @Component
 public class CommonService implements AppFactoryComponentI {
+	//private static final Logger logger = LogManager.getLogger(CommonService.class);
 	private static final Logger logger = LogManager.getLogger(CommonService.class);
 
 

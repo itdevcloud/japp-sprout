@@ -6,12 +6,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class MessageProcessingStatusCache {
-	private static final CommonLogger logger = CommonLogger.getLogger(MessageProcessingStatusCache.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(MessageProcessingStatusCache.class.getName());
 	
 	private static final String PURGE_DATE_FORMAT = "yyyy-MM-dd";
 	

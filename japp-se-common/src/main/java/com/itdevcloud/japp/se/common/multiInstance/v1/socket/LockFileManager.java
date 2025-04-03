@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.FileUtil;
 import com.itdevcloud.japp.se.common.util.RandomUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -19,7 +19,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @since 1.0.0
  */
 public class LockFileManager {
-	private static final CommonLogger logger = CommonLogger.getLogger(LockFileManager.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(LockFileManager.class.getName());
 
 	public static synchronized String addLock(String lockName, String requester, Date expiryDate, String key) {
 		if (StringUtil.isEmptyOrNull(lockName) || StringUtil.isEmptyOrNull(requester)) {

@@ -6,9 +6,13 @@
 	<parent>
 		<groupId>com.itdevcloud.sprout</groupId>
 		<artifactId>japp-sprout-spring-boot</artifactId>
-		<version>0.0.2</version>
-		<!-- default is ../pom.xml -->
+		<version>0.1.0</version>
+		<!-- default is ../ -->
+		<!--To skip the local file search and directly search the parent POM and jar in Maven repositories
+		, we need to explicitly set the relativePath to an empty value 
 		<relativePath></relativePath>
+		-->
+		<relativePath>../</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -26,7 +30,7 @@
 		<dependency>
 			<groupId>com.itdevcloud.sprout</groupId>
 			<artifactId>japp-spring-boot-api-core</artifactId>
-			<version>0.0.1</version>
+			<version>0.1.0</version>
 		</dependency>
 	</dependencies>
 

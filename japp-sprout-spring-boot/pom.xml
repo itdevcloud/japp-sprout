@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.itdevcloud.sprout</groupId>
 		<artifactId>japp-sprout</artifactId>
-		<version>0.0.2</version>
+		<version>0.1.0</version>
 		<relativePath>../</relativePath>
 	</parent>
 
@@ -20,7 +20,9 @@
 
 
 	<modules>
-		<!-- <module>japp-spring-boot-api-core</module> <module>japp-spring-boot-api-app</module> 
+	<!--
+		<module>japp-spring-boot-api-core</module> 
+		 <module>japp-spring-boot-api-app</module> 
 			<module>japp-spring-boot-api-app-gen</module> -->
 	</modules>
 
@@ -83,7 +85,7 @@
 				<!-- Import dependency management from Spring Boot -->
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
-				<version>2.4.2</version>
+				<version>3.4.4</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -94,7 +96,7 @@
 		<dependency>
 			<groupId>com.itdevcloud.sprout</groupId>
 			<artifactId>japp-se-common</artifactId>
-			<version>0.0.2</version>
+			<version>0.1.0</version>
 		</dependency>
 		<!-- Spring -->
 		<dependency>
@@ -149,6 +151,8 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
+		
+		<!-- not spring boot dependencies, require provide version number -->
 		<!-- Azure Starters -->
 		<dependency>
 			<groupId>com.microsoft.azure</groupId>
@@ -188,7 +192,7 @@
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
-			<version>0.9.1</version>
+			<version>0.12.6</version>
 		</dependency>
 
 		<!-- Freemarker - email templates -->
@@ -206,8 +210,8 @@
 		<!-- open api 3.0 with swagger ui -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.5.2</version>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.8.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.aerogear</groupId>

@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.itdevcloud.japp.core.cahce.PkiKeyCache;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -43,6 +44,7 @@ import com.itdevcloud.japp.core.common.AppConfigKeys;
 @RequestMapping(value = "/open")
 public class PkiController {
 
+	//private static final Logger logger = LogManager.getLogger(PkiController.class);
 	private static final Logger logger = LogManager.getLogger(PkiController.class);
 	
 

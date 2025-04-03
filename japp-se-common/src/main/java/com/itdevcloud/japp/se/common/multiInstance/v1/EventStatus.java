@@ -3,7 +3,7 @@ package com.itdevcloud.japp.se.common.multiInstance.v1;
 import java.util.Date;
 import java.util.Objects;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -12,7 +12,7 @@ public class EventStatus implements Comparable<EventStatus> {
 	public static final String CONTENT_SEPARATOR = "◄►";
 	public static final String DISPLAY_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
 
-	private static final CommonLogger logger = CommonLogger.getLogger(EventStatus.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(EventStatus.class.getName());
 	private String messageId;
 	private String name;
 	private String source;

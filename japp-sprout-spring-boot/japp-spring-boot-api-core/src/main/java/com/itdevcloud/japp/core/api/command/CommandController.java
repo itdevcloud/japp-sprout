@@ -57,6 +57,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}")
 public class CommandController extends BaseCommandController {
 
+	//private static final Logger logger = LogManager.getLogger(CommandController.class);
 	private static final Logger logger = LogManager.getLogger(CommandController.class);
 
     @Operation(summary = "Json based RPC style API", 

@@ -2,7 +2,7 @@ package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 
 import java.util.logging.Logger;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 /**
  * @author Marvin Sun
  * @since 1.0.0
@@ -10,7 +10,7 @@ import com.itdevcloud.japp.se.common.service.CommonLogger;
  */
 public class SocketAdaptorManager extends Thread{
 
-	private static final CommonLogger logger = CommonLogger.getLogger(SocketAdaptorManager.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(SocketAdaptorManager.class.getName());
 	
 	private static final int DEFAULT_RECEIVE_RETRY = 3; 
 	private static final int RECEIVE_RETRY_WAIT = 1000; // 1 seconds

@@ -44,8 +44,6 @@ import com.itdevcloud.japp.core.service.startup.StartupService;
 @Component
 public class AppComponents {
 
-	private static final Logger logger = LogManager.getLogger(AppComponents.class);
-
 	public static CommonService commonService;
 	public static JwtService jwtService;
 	public static IaaService iaaService;

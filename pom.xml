@@ -6,7 +6,7 @@
 
 	<groupId>com.itdevcloud.sprout</groupId>
 	<artifactId>japp-sprout</artifactId>
-	<version>0.0.2</version>
+	<version>0.1.0</version>
 	<packaging>pom</packaging>
 
 	<name>Java APP Sprout</name>
@@ -14,7 +14,7 @@
 	<url>https://github.com/itdevcloud/japp-sprout</url>
 
 	<properties>
-		<java.version>15</java.version>
+		<java.version>21</java.version>
 	</properties>
 
 	<developers>
@@ -43,7 +43,8 @@
 	<modules>
 	<!--
 		<module>japp-se-common</module>
-		 <module>japp-sprout-spring-boot</module> -->
+     	 -->
+   	 <module>japp-sprout-spring-boot</module> 
 	</modules>
 
 	<dependencies>
@@ -58,9 +59,9 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
+				<version>3.14.0</version>
 				<configuration>
-					<release>15</release>
+					<release>21</release>
 				</configuration>
 			</plugin>
 			<plugin>

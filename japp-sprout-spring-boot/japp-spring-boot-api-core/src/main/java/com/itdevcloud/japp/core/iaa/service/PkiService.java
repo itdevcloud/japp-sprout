@@ -31,7 +31,7 @@ import java.util.Base64;
 import java.util.Enumeration;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
@@ -55,6 +56,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class PkiService implements AppFactoryComponentI {
 
+	//private static final Logger logger = LogManager.getLogger(PkiService.class);
 	private static final Logger logger = LogManager.getLogger(PkiService.class);
 
 	private Key jappPrivateKey;
@@ -101,12 +103,22 @@ public class PkiService implements AppFactoryComponentI {
 						"retrieveJappKeyPair() try to load JAPP private and public key from Azure Key Vault............");
 				comeFromKeyVault = true;
 				String encodedPkcs12Str = getAzureKeyVaultKeys();
+				if(StringUtil.isEmptyOrNull(encodedPkcs12Str)) {
+					logger.error("retrieveJappKeyPair() ..............no PKCS12 read from Azure Key Vault.......................");
+					return;
+				}
 				byte[] decodedPkcs12Bytes = Base64.getDecoder().decode(encodedPkcs12Str);
 				//log.info("retrieveJappKeyPair() .....Pkcs12Str...." + encodedPkcs12Str);
 				String pkcs12Password = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.AZURE_KEYVAULT_JAPPCORE_PKCS12_PASSWORD);
+				if(StringUtil.isEmptyOrNull(encodedPkcs12Str)) {
+					logger.error("retrieveJappKeyPair() ..............no key store password read from Azure Key Vault.......................");
+					return;
+				}
+				
 				KeyStore keystore = KeyStore.getInstance("PKCS12");
 				in = new ByteArrayInputStream(decodedPkcs12Bytes);
 				keystore.load(in, pkcs12Password.toCharArray());
+				
 				//log.info("get key====save to file============>" );
 				//FileOutputStream out = new FileOutputStream("c:\\temp\\myks.p12");
 				//keystore.store(out, "12345".toCharArray());
@@ -127,7 +139,8 @@ public class PkiService implements AppFactoryComponentI {
 					jappCertificate = null;
 					String err = "There is no alisses found in PKCS12 file, Can't get public and private key from PKCS12 file!!!";
 					logger.error(err);
-					throw new RuntimeException(err);
+					//throw new RuntimeException(err);
+					return;
 				}
 				if (StringUtil.isEmptyOrNull(keyAlias)) {
 					if (aliasList.size() == 1) {
@@ -143,7 +156,8 @@ public class PkiService implements AppFactoryComponentI {
 						jappCertificate = null;
 						String err = "There is no keyAlias defined in property file, but there are more than one alisses found in PKCS12 file, Can't get public and private key from PKCS12 file!!!";
 						logger.error(err);
-						throw new RuntimeException(err);
+						//throw new RuntimeException(err);
+						return;
 					}
 				} else {
 					boolean foundAlias = false;
@@ -164,7 +178,8 @@ public class PkiService implements AppFactoryComponentI {
 						String err = "There is no alisses<" + keyAlias
 								+ "> found in PKCS12 file, Can't get public and private key from PKCS12 file!!!";
 						logger.error(err);
-						throw new RuntimeException(err);
+						//throw new RuntimeException(err);
+						return;
 					}
 				}
 				//log.info("retrieveJappKeyPair()...Azure Key Vault...jappPublicKey=" + jappPublicKey);
@@ -183,7 +198,8 @@ public class PkiService implements AppFactoryComponentI {
 				if (resource == null) {
 					String err ="retrieveJappKeyPair() can not get keystore resource, check code! privateKeyStore=" + privateKeyStore;
 					logger.error(err);
-					throw new RuntimeException(err);
+					//throw new RuntimeException(err);
+					return;
 				}
 				File file = new File(resource.toURI());
 				is = new FileInputStream(file);
@@ -202,8 +218,9 @@ public class PkiService implements AppFactoryComponentI {
 		} catch (Exception e) {
 			jappPrivateKey = null;
 			jappPublicKey = null;
-			logger.error(AppUtil.getStackTrace(e));
-			throw AppUtil.throwRuntimeException(e);
+			logger.error(e, e);
+			//throw AppUtil.throwRuntimeException(e);
+			return;
 		}finally {
 			if(in != null) {
 				try {

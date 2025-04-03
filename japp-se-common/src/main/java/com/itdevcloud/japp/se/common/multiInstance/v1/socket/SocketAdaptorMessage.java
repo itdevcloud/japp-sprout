@@ -3,14 +3,14 @@ package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 import java.util.Date;
 import java.util.Objects;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.RandomUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class SocketAdaptorMessage {
 
-	private static final CommonLogger logger = CommonLogger.getLogger(SocketAdaptorMessage.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(SocketAdaptorMessage.class.getName());
 
 
 	private String id;

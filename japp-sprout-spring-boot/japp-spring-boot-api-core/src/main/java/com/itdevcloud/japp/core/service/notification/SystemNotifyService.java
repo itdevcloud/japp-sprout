@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
@@ -46,6 +47,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class SystemNotifyService implements AppFactoryComponentI{
 
+	//private static final Logger logger = LogManager.getLogger(SystemNotifyService.class);
 	private static final Logger logger = LogManager.getLogger(SystemNotifyService.class);
 
 	public static final DateFormat notificationDateTimeStringFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");

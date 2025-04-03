@@ -1,0 +1,1 @@
+mvn install:install-file -DlocalRepositoryPath=${project.basedir}/local-repo/ -Dfile=${project.basedir}/../../japp-se-common/target/japp-se-common-0.1.0.jar  -DpomFile=${project.basedir}/../../japp-se-common/pom.xml -DcreateChecksum=true

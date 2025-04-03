@@ -42,9 +42,9 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
@@ -74,6 +74,7 @@ import io.jsonwebtoken.Jwts;
 @Component
 public class AppUtil {
 	
+	//private static final Logger logger = LogManager.getLogger(AppUtil.class);
 	private static final Logger logger = LogManager.getLogger(AppUtil.class);
 
 	public static final DateFormat defaulDateStringFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -190,7 +191,7 @@ public class AppUtil {
 	 * 
 	 */
 	public static Certificate getCertificateFromString(String certStr) {
-		if (StringUtils.isEmpty(certStr)) {
+		if (StringUtil.isEmptyOrNull(certStr)) {
 			return null;
 		}
 		ByteArrayInputStream in = null;
@@ -540,8 +541,8 @@ public class AppUtil {
 			int idx = jwtToken.lastIndexOf('.');
 			String tokenWithoutSignature = jwtToken.substring(0, idx + 1);
 
-			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().parseClaimsJwt(tokenWithoutSignature);
-			Claims claims = jwtWithoutSignature.getBody();
+			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().build().parseUnsecuredClaims(tokenWithoutSignature);
+			Claims claims = jwtWithoutSignature.getPayload();
 
 			Set<String> keySet = claims.keySet();
 			if (keySet == null || keySet.isEmpty()) {
@@ -568,8 +569,8 @@ public class AppUtil {
 			int idx = jwtToken.lastIndexOf('.');
 			String tokenWithoutSignature = jwtToken.substring(0, idx + 1);
 
-			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().parseClaimsJwt(tokenWithoutSignature);
-			Claims claims = jwtWithoutSignature.getBody();
+			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().build().parseUnsecuredClaims(tokenWithoutSignature);
+			Claims claims = jwtWithoutSignature.getPayload();
 
 			String subject = claims.getSubject();
 			logger.info("subject ====== " + subject);

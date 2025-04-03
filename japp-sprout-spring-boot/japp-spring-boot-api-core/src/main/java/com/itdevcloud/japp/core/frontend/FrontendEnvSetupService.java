@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,8 +18,10 @@ import com.google.gson.Gson;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
+import com.itdevcloud.japp.core.common.HttpService;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -32,6 +34,8 @@ public class FrontendEnvSetupService implements AppFactoryComponentI {
 
 	private static FrontendEnvironment frontendEnvironment = null;
 	private static final String DEFAULT_FRONTEND_ENV = "default";
+	
+	//private static final Logger logger = LogManager.getLogger(FrontendEnvSetupService.class);
 	private static final Logger logger = LogManager.getLogger(FrontendEnvSetupService.class);
 
 	/**

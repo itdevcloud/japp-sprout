@@ -49,7 +49,7 @@ import java.util.logging.Logger;
  */
 public class ConfigurationManager {
 
-	private static CommonLogger logger = CommonLogger.getLogger(ConfigurationManager.class.getName());
+	private static JulLogger logger = JulLogger.getLogger(ConfigurationManager.class.getName());
 
 	public static final String JAPP_COMMON_CONFIG_FILE_NAME = "commonConfig.properties";
 	public static final String JAPP_COMMON_EXTERNAL_CONFIG_FILE = "japp.common.config.external.file";

@@ -11,12 +11,14 @@ import com.itdevcloud.japp.core.api.vo.ReferenceCode;
 import com.itdevcloud.japp.core.cahce.ReferenceCodeCache;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppFactory;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 
 @Component
 public class ReferenceCodeService implements AppFactoryComponentI {
 	
-	private Logger logger = LogManager.getLogger(ReferenceCodeService.class);
+	//private Logger logger = LogManager.getLogger(ReferenceCodeService.class);
+	private static final Logger logger = LogManager.getLogger(ReferenceCodeService.class);
 
 	public ArrayList<ReferenceCode> getReferenceCodeListByEntityType(String type) {
 		return AppComponents.referenceCodeCache.getReferenceCodeListByEntityType(type);

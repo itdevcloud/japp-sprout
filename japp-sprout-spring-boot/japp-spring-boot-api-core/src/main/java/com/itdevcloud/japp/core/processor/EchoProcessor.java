@@ -25,8 +25,10 @@ import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.EchoRequest;
 import com.itdevcloud.japp.core.api.bean.EchoResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
+import com.itdevcloud.japp.core.iaa.web.Verify2ndFactorServlet;
 import com.itdevcloud.japp.core.common.AppUtil;
 /**
  *
@@ -37,6 +39,7 @@ import com.itdevcloud.japp.core.common.AppUtil;
 @Component
 public class EchoProcessor extends RequestProcessor {
 
+	//private static final Logger logger = LogManager.getLogger(EchoProcessor.class);
 	private static final Logger logger = LogManager.getLogger(EchoProcessor.class);
 
 	@Override

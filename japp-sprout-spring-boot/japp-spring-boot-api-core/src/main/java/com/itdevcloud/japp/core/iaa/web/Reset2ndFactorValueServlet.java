@@ -7,9 +7,9 @@ package com.itdevcloud.japp.core.iaa.web;
 
 import java.io.IOException;
 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +21,7 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppFactory;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.iaa.service.IaaUser;
@@ -34,10 +35,11 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @since 1.0.0
  */
 @WebServlet(name = "reset2ndFactorValueServlet", urlPatterns = "/auth/reset2ndFactorValue")
-public class Reset2ndFactorValueServlet extends javax.servlet.http.HttpServlet {
+public class Reset2ndFactorValueServlet extends jakarta.servlet.http.HttpServlet {
 
 
 	private static final long serialVersionUID = 1L;
+	//private static final Logger logger = LogManager.getLogger(Reset2ndFactorValueServlet.class);
 	private static final Logger logger = LogManager.getLogger(Reset2ndFactorValueServlet.class);
 
 	@Override

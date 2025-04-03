@@ -23,8 +23,6 @@ package com.itdevcloud.japp.core.api.command;
  * @since 1.0.0
  */
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -38,6 +36,9 @@ import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.CommandInfo;
 import com.itdevcloud.japp.core.common.AppFactory;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.processor.RequestProcessor;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -45,6 +46,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public abstract class BaseCommandController {
 
+	//private static final Logger logger = LogManager.getLogger(BaseCommandController.class);
 	private static final Logger logger = LogManager.getLogger(BaseCommandController.class);
 
 	public String processCommand(String command, String jsonRequest) {
@@ -92,7 +94,7 @@ public abstract class BaseCommandController {
 
 		logger.info("processCommand() - start ===>>> command = '" + command + "'" + ", jsonRequest = \n" + jsonRequest);
 		try {
-			if (StringUtils.isEmpty(command) ) {
+			if (StringUtil.isEmptyOrNull(command) ) {
 				BaseResponse response = AppUtil.createBaseResponse("N/A",
 						ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "Request must be Json String and command must be provided through query paraneter or inside JSON request!");
 
@@ -131,7 +133,7 @@ public abstract class BaseCommandController {
 
 	private BaseRequest getNewRequestInstanceFromCommand(String command) {
 		logger.debug("getEmptyRequestInstanceFromCommand() start ...");
-		if (StringUtils.isEmpty(command)) {
+		if (StringUtil.isEmptyOrNull(command)) {
 			return null;
 		}
 		CommandInfo commandInfo = AppFactory.getCommandInfo(command);

@@ -24,7 +24,9 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ReferenceCode;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.service.customization.ReferenceCodeServiceHelperI;
+import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
 
 /**
  *
@@ -33,7 +35,8 @@ import com.itdevcloud.japp.core.service.customization.ReferenceCodeServiceHelper
  */
 @Component
 public class DefaultReferenceCodeServiceHelper implements ReferenceCodeServiceHelperI{
-	private Logger logger = LogManager.getLogger(DefaultReferenceCodeServiceHelper.class);
+	//private Logger logger = LogManager.getLogger(DefaultReferenceCodeServiceHelper.class);
+	private static final Logger logger = LogManager.getLogger(DefaultReferenceCodeServiceHelper.class);
 
 
 	@Override

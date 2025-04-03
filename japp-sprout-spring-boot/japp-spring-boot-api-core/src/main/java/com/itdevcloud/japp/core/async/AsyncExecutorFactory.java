@@ -30,6 +30,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.itdevcloud.japp.core.api.rest.PkiController;
+import org.apache.logging.log4j.Logger;
+
 /**
  * This class is used to create/initiate async executors and shutdown created executors.
  * The client application should shutdown all executors when the client application is shutdown/stopped.
@@ -39,7 +42,8 @@ import org.apache.logging.log4j.Logger;
  */
 public class AsyncExecutorFactory  {
 
-	private static Logger logger = LogManager.getLogger(AsyncExecutorFactory.class);
+	//private static Logger logger = LogManager.getLogger(AsyncExecutorFactory.class);
+	private static final Logger logger = LogManager.getLogger(AsyncExecutorFactory.class);
 
 	private static Map<String, ThreadPoolExecutor> asyncExecutorMap;
 

@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.UUID;
 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,6 +32,7 @@ import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -51,8 +52,9 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  */
 
 @WebServlet(name = "loginServlet", urlPatterns = "/login")
-public class LoginServlet extends javax.servlet.http.HttpServlet {
+public class LoginServlet extends jakarta.servlet.http.HttpServlet {
 	private static final long serialVersionUID = 1L;
+	//private static final Logger logger = LogManager.getLogger(LoginServlet.class);
 	private static final Logger logger = LogManager.getLogger(LoginServlet.class);
 
 

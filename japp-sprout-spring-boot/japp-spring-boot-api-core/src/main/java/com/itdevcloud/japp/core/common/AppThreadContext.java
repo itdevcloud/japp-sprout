@@ -29,6 +29,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  */
 public class AppThreadContext {
 
+	//private static final Logger logger = LogManager.getLogger(AppThreadContext.class);
 	private static final Logger logger = LogManager.getLogger(AppThreadContext.class);
 
 	private static ThreadLocal<String> userIdContext = new ThreadLocal<String>();

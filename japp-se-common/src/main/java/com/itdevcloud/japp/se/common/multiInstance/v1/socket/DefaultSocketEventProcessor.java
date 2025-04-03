@@ -1,10 +1,10 @@
 package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 
 public class DefaultSocketEventProcessor implements SocketEventProcessorI {
 
-	private static final CommonLogger logger = CommonLogger.getLogger(DefaultSocketEventProcessor.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(DefaultSocketEventProcessor.class.getName());
 
 
 	@Override

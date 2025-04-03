@@ -320,7 +320,7 @@ public class CIDRAddress {
 
 	
 	public static void main(String[] args) {
-		CommonLogger.initJavaUtilLogger(null);
+		JulLogger.initJavaUtilLogger(null);
 		
 		CIDRAddress cIDRAddress = null;
 		String targetIP = null;

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,7 +30,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.core.processor.RequestProcessor;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -43,6 +45,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class AppConfigService {
 
+	//private static final Logger logger = LogManager.getLogger(AppConfigService.class);
 	private static final Logger logger = LogManager.getLogger(AppConfigService.class);
 
 	private static Properties systemProperties = null;

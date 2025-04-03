@@ -3,13 +3,13 @@ package com.itdevcloud.japp.se.common.multiInstance.repo;
 import java.util.Date;
 import java.util.Objects;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class EventProcessStatus extends EventInfo {
 
-	private static final CommonLogger logger = CommonLogger.getLogger(EventProcessStatus.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(EventProcessStatus.class.getName());
 	private String proccessedEventUid;
 	private String processor;
 	private String processStatus;

@@ -23,7 +23,7 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +37,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.HttpResponse;
+import com.itdevcloud.japp.core.iaa.service.PkiService;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.config.AppConfigService;
@@ -52,6 +54,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class AzureJwksService implements AppFactoryComponentI{
 
+	//private static final Logger logger = LogManager.getLogger(AzureJwksService.class);
 	private static final Logger logger = LogManager.getLogger(AzureJwksService.class);
 
 	// private String tenant = "common";
@@ -88,8 +91,8 @@ public class AzureJwksService implements AppFactoryComponentI{
 	 */
 	public String getAadAuthUri() {
 
-		logger.info("getAadAuthUri() begin...");
-		if (!StringUtils.isEmpty(aadAuthUrl)) {
+		logger.info("getAadAuthUri() begin............");
+		if (!StringUtil.isEmptyOrNull(aadAuthUrl)) {
 			logger.info("getAadAuthUri() get ...aadAuthUrl from property file = " + aadAuthUrl);
 			return aadAuthUrl;
 		}
@@ -99,27 +102,46 @@ public class AzureJwksService implements AppFactoryComponentI{
 		BufferedInputStream bis = null;
 		//List<AzureJwksKey> keys = null;
 		try {
+			if (StringUtil.isEmptyOrNull(aadOpenIdMetaDataUrl)) {
+				logger.info("getAadAuthUri() aadOpenIdMetaDataUrl is null or empty, do nothing...........");
+				return null;
+			}
+
 			// get meta data for the tenant
 			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
+			if (httpResponse == null) {
+				logger.info("getAadAuthUri() httpResponse is null or empty, do nothing...........");
+				return null;
+			}
+			
 			String openIdMetaData = httpResponse.getResposebody();
+			if (StringUtil.isEmptyOrNull(openIdMetaData)) {
+				logger.info("getAadAuthUri() openIdMetaData is null or empty, do nothing...........");
+				return null;
+			}
 
 			JsonObject obj = JsonParser.parseString(openIdMetaData).getAsJsonObject();
+			if (obj == null) {
+				logger.info("getAadAuthUri() JsonObject is null or empty, do nothing...........");
+				return null;
+			}
 
 			// get authUri
 			aadAuthUrl = obj.get("authorization_endpoint").getAsString();
-			logger.info("\ngetAadAuthUri() ..... authUrl = " + aadAuthUrl);
+			logger.info("\ngetAadAuthUri() .....from Entra ID response......... aadAuthUrl = " + aadAuthUrl);
 
 			logger.info("getAadAuthUri() end...");
 			return aadAuthUrl;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(e);
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
-			} else {
-				throw new RuntimeException(e);
-			}
-
+			logger.error(e, e);
+			return null;
+//			if (e instanceof RuntimeException) {
+//				throw (RuntimeException) e;
+//			} else {
+//				throw new RuntimeException(e);
+//			}
+//
 		} finally {
 			if (bis != null) {
 				try {
@@ -156,11 +178,27 @@ public class AzureJwksService implements AppFactoryComponentI{
 		BufferedInputStream bis = null;
 		//List<AzureJwksKey> keys = null;
 		try {
+			if (StringUtil.isEmptyOrNull(aadOpenIdMetaDataUrl)) {
+				logger.info("getAadAuthLogoutUri() -  Entra ID OpenIdMetaDataUrl is null or empty, do nothing...........");
+				return null;
+			}
 			// get meta data for the tenant
 			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
+			if (httpResponse == null) {
+				logger.info("getAadAuthLogoutUri() -  httpResponse is null or empty, do nothing...........");
+				return null;
+			}
 			String openIdMetaData = httpResponse.getResposebody();
+			if (StringUtil.isEmptyOrNull(openIdMetaData)) {
+				logger.info("getAadAuthLogoutUri() -  openIdMetaData is null or empty, do nothing...........");
+				return null;
+			}
 
-			JsonObject obj = new JsonParser().parse(openIdMetaData).getAsJsonObject();
+			JsonObject obj = JsonParser.parseString(openIdMetaData).getAsJsonObject();
+			if (obj == null) {
+				logger.info("getAadAuthLogoutUri() -  JsonObject is null or empty, do nothing...........");
+				return null;
+			}
 
 			// get authUri
 			aadAuthLogoutUrl = obj.get("end_session_endpoint").getAsString();
@@ -170,12 +208,13 @@ public class AzureJwksService implements AppFactoryComponentI{
 			return aadAuthLogoutUrl;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(e);
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
-			} else {
-				throw new RuntimeException(e);
-			}
+			logger.error(e, e);
+			return null;
+//			if (e instanceof RuntimeException) {
+//				throw (RuntimeException) e;
+//			} else {
+//				throw new RuntimeException(e);
+//			}
 
 		} finally {
 			if (bis != null) {
@@ -207,20 +246,47 @@ public class AzureJwksService implements AppFactoryComponentI{
 		BufferedInputStream bis = null;
 		List<AzureJwksKey> keys = null;
 		try {
+			if (StringUtil.isEmptyOrNull(aadOpenIdMetaDataUrl)) {
+				logger.info("getJwksKeys() -  EntraID OpenIdMetaDataUrl is null or empty, do nothing...........");
+				return null;
+			}
 			// get meta data for the tenant
 			logger.info("\ngetJwksKeys() ..... aadOpenIdMetaDataUrl = " + aadOpenIdMetaDataUrl);
+			
 			HttpResponse httpResponse = AppComponents.httpService.doGet(aadOpenIdMetaDataUrl, null, true);
+			if (httpResponse == null ) {
+				logger.info("getJwksKeys() -  httpResponse is null or empty, do nothing...........");
+				return null;
+			}
 			String openIdMetaData = httpResponse.getResposebody();
-
-			JsonObject obj = new JsonParser().parse(openIdMetaData).getAsJsonObject();
-
+			if (StringUtil.isEmptyOrNull(openIdMetaData)) {
+				logger.info("getJwksKeys() -  openIdMetaData is null or empty, do nothing...........");
+				return null;
+			}
+			JsonObject obj = JsonParser.parseString(openIdMetaData).getAsJsonObject();
+			if (obj == null) {
+				logger.info("getJwksKeys() -  JsonObject from httpresponse is null or empty, do nothing...........");
+				return null;
+			}
 			// get jwks key uri
 			String jwksUrl = obj.get("jwks_uri").getAsString();
 			logger.info("\ngetJwksKeys() ..... jwksUrl = " + jwksUrl);
+			if (StringUtil.isEmptyOrNull(jwksUrl)) {
+				logger.info("getJwksKeys() -  jwksUrl is null or empty, do nothing...........");
+				return null;
+			}
 
 			// get key json
 			HttpResponse jwksResponse = AppComponents.httpService.doGet(jwksUrl, null, true);
+			if (jwksResponse == null) {
+				logger.info("getJwksKeys() -  jwksResponse is null or empty, do nothing...........");
+				return null;
+			}
 			String jwks = jwksResponse.getResposebody();
+			if (StringUtil.isEmptyOrNull(jwks)) {
+				logger.info("getJwksKeys() -  jwks is null or empty, do nothing...........");
+				return null;
+			}
 			Gson gson = new GsonBuilder().serializeNulls().create();
 
 			AzureJwksKeys jwksKeys = gson.fromJson(jwks, AzureJwksKeys.class);
@@ -229,13 +295,15 @@ public class AzureJwksService implements AppFactoryComponentI{
 			if (jwksKeys == null) {
 				String err = "Can't retrive AAD JWKS keys........!!!!!!!!!!!!!!";
 				logger.error(err);
-				throw new RuntimeException(err);
+				//throw new RuntimeException(err);
+				return null;
 			}
 			keys = jwksKeys.getKeys();
 			if (keys == null || keys.isEmpty()) {
 				String err = "AAD JWKS keys has empty list.......!!!!!!!!!!!!!!";
 				logger.error(err);
-				throw new RuntimeException(err);
+				//throw new RuntimeException(err);
+				return null;
 			}
 			// process each key - to get certificate and public key
 			for (AzureJwksKey key : keys) {
@@ -244,7 +312,8 @@ public class AzureJwksService implements AppFactoryComponentI{
 				if (certStr == null || certStr.trim().equals("")) {
 					String err = "Can't Parse AzureJwksKey: ...Stop....!!!!!!!!!!!!!!" + key;
 					logger.error(err);
-					throw new RuntimeException(err);
+					//throw new RuntimeException(err);
+					return null;
 				}
 				Certificate cert = AppUtil.getCertificateFromString(certStr);
 				PublicKey publicKey = AppUtil.getPublicKeyFromCertificate(cert);
@@ -252,16 +321,17 @@ public class AzureJwksService implements AppFactoryComponentI{
 				key.setCertificate(cert);
 				key.setPublicKey(publicKey);
 			} // end for
-			logger.info("getJwksKeys() end...");
+			logger.info("getJwksKeys() end.............");
 			return keys;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(e);
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
-			} else {
-				throw new RuntimeException(e);
-			}
+			logger.error(e, e);
+			return null;
+//			if (e instanceof RuntimeException) {
+//				throw (RuntimeException) e;
+//			} else {
+//				throw new RuntimeException(e);
+//			}
 
 		} finally {
 			if (bis != null) {

@@ -25,13 +25,14 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,7 +64,8 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class HttpService implements AppFactoryComponentI {
 
-	private static final Logger log = LogManager.getLogger(HttpService.class);
+	//private static final Logger log = LogManager.getLogger(HttpService.class);
+	private static final Logger logger = LogManager.getLogger(HttpService.class);
 	
 	static {
 	    //for localhost testing only
@@ -71,7 +73,7 @@ public class HttpService implements AppFactoryComponentI {
 	    new javax.net.ssl.HostnameVerifier(){
 
 	        public boolean verify(String hostname,
-	                javax.net.ssl.SSLSession sslSession) {
+	        		javax.net.ssl.SSLSession sslSession) {
 	            if (hostname.equals("localhost")) {
 	                return true;
 	            }
@@ -91,16 +93,20 @@ public class HttpService implements AppFactoryComponentI {
 		if (StringUtil.isEmptyOrNull(httpProxyServer) || httpProxyPort == 0) {
 			return null;
 		}
-		log.info("getHttpProxy() - httpProxyServer = " + httpProxyServer + ", httpProxyPort = " + httpProxyPort);
+		logger.info("getHttpProxy() - httpProxyServer = " + httpProxyServer + ", httpProxyPort = " + httpProxyPort);
 		return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpProxyServer, httpProxyPort));
 	}
 
 	public HttpResponse doGet(String urlStr, Map<String, String> headers, boolean useProxy) {
-		log.debug("HttpService.doGet() ==== " + urlStr + ", useProxy=" + useProxy);
+		logger.debug("HttpService.doGet() ==== " + urlStr + ", useProxy=" + useProxy);
 		BufferedReader in = null;
 		HttpURLConnection conn = null;
+		if(StringUtil.isEmptyOrNull(urlStr)) {
+			logger.error("HttpService.doGet() urlStr is null, do nothing, return null....................... " );
+			return null;
+		}
 		try {
-			URL url = new URL(urlStr);
+			URL url = new URI(urlStr).toURL();
 			Proxy proxy = getHttpProxy();
 
 			if (proxy == null || !useProxy) {
@@ -120,8 +126,8 @@ public class HttpService implements AppFactoryComponentI {
 			}
 
 			int responseCode = conn.getResponseCode();
-			log.info("\nSending 'GET' request to URL : " + url);
-			log.info("Response Code : " + responseCode);
+			logger.info("\nSending 'GET' request to URL : " + url);
+			logger.info("Response Code : " + responseCode);
 			if (responseCode != 200) {
 				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR,
 						"doGet: " + urlStr + ", return Respone code: " + responseCode);
@@ -148,7 +154,7 @@ public class HttpService implements AppFactoryComponentI {
 			return httpResponse;
 
 		} catch (Throwable t) {
-			log.error(AppUtil.getStackTrace(t));
+			logger.error(AppUtil.getStackTrace(t));
 			throw AppUtil.throwRuntimeException(t);
 		} finally {
 			if (in != null) {
@@ -156,7 +162,7 @@ public class HttpService implements AppFactoryComponentI {
 					in.close();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
-					log.error(AppUtil.getStackTrace(e));
+					logger.error(AppUtil.getStackTrace(e));
 				}
 			}
 			if (conn != null) {
@@ -168,11 +174,15 @@ public class HttpService implements AppFactoryComponentI {
 
 
 	public HttpResponse doPost(String urlStr, Map<String, String> headers, Map<String, Object> params, boolean useProxy) {
-		log.debug("HttpService.doPost() ==== " + urlStr + ", useProxy=" + useProxy);
+		logger.debug("HttpService.doPost() ==== " + urlStr + ", useProxy=" + useProxy);
 		Reader in = null;
 		HttpURLConnection conn = null;
+		if(StringUtil.isEmptyOrNull(urlStr)) {
+			logger.error("HttpService.doPost() urlStr is null, do nothing, return null....................... " );
+			return null;
+		}
 		try {
-			URL url = new URL(urlStr);
+			URL url = new URI(urlStr).toURL();
 
 			StringBuilder postData = new StringBuilder();
 			if (params != null) {
@@ -233,14 +243,14 @@ public class HttpService implements AppFactoryComponentI {
 			httpResponse.setResposebody(sb.toString());
 			return httpResponse;
 		} catch (Throwable t) {
-			log.error(AppUtil.getStackTrace(t));
+			logger.error(AppUtil.getStackTrace(t));
 			throw AppUtil.throwRuntimeException(t);
 		} finally {
 			if (in != null) {
 				try {
 					in.close();
 				} catch (IOException e) {
-					log.error(AppUtil.getStackTrace(e));
+					logger.error(AppUtil.getStackTrace(e));
 				}
 			}
 			if (conn != null) {

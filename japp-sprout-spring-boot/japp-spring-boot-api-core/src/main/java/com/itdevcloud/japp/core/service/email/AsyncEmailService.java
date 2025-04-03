@@ -28,7 +28,9 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.core.service.config.DefaultConfigServiceHelper;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 
 /**
@@ -38,7 +40,8 @@ import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
  */
 @Component
 public class AsyncEmailService implements AppFactoryComponentI {
-	private Logger logger = LogManager.getLogger(AsyncEmailService.class);
+	//private Logger logger = LogManager.getLogger(AsyncEmailService.class);
+	private static final Logger logger = LogManager.getLogger(AsyncEmailService.class);
 
 	@Async
 	public Future<String> sendEmail(String subject, String contentType, String content, EmailAddress fromAddr, EmailAddress replyToAddr, List<EmailAddress> toAddrList, List<EmailAddress> ccAddrList,

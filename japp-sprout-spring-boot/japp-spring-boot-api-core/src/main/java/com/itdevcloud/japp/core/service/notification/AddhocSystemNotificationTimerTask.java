@@ -23,6 +23,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
+import org.apache.logging.log4j.Logger;
+import com.itdevcloud.japp.core.service.log.LogFileService;
 
 /**
  *
@@ -32,6 +34,7 @@ import com.itdevcloud.japp.core.common.AppComponents;
 @Component
 public class AddhocSystemNotificationTimerTask {
 
+	//private static final Logger logger = LogManager.getLogger(AddhocSystemNotificationTimerTask.class);
 	private static final Logger logger = LogManager.getLogger(AddhocSystemNotificationTimerTask.class);
 
 

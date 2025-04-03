@@ -20,19 +20,19 @@ import java.security.PublicKey;
 import java.util.Date;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.iaa.service.azure.AzureJwksKey;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
  * This cache will be refreshed daily. 
@@ -44,6 +44,7 @@ import com.itdevcloud.japp.core.iaa.service.azure.AzureJwksKey;
 public class AadJwksCache extends RefreshableCache {
 
 
+	//private static final Logger logger = LogManager.getLogger(AadJwksCache.class);
 	private static final Logger logger = LogManager.getLogger(AadJwksCache.class);
 
 	private static List<AzureJwksKey> aadJwksKeys = null;
@@ -89,8 +90,8 @@ public class AadJwksCache extends RefreshableCache {
 				String tmpAuthUri = AppComponents.azureJwksService.getAadAuthUri();
 				String tmpAuthLogoutUri = AppComponents.azureJwksService.getAadAuthLogoutUri();
 				String tmpClientId = AppComponents.azureJwksService.getAadClientId();
-				if (StringUtils.isEmpty(tmpAuthUri) || StringUtils.isEmpty(tmpClientId)||StringUtils.isEmpty(tmpAuthLogoutUri)) {
-					String info = "AadJwksCache.init()....cannot retrieveAAD Auth Uri, AuthLogoutUri,  or clientId, does not change these values in memeory.......!!!";
+				if (StringUtil.isEmptyOrNull(tmpAuthUri) || StringUtil.isEmptyOrNull(tmpClientId)||StringUtil.isEmptyOrNull(tmpAuthLogoutUri)) {
+					String info = "AadJwksCache.init()....cannot retrieveAAD Auth Uri, AuthLogoutUri, or clientId, does not change these values in memeory.......!!!";
 					logger.error(info);
 					AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE, info);
 					return;

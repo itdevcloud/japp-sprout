@@ -1,11 +1,11 @@
 package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 
-import com.itdevcloud.japp.se.common.service.CommonLogger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.service.ConfigurationManager;
 
 public class MultiInstanceSocketSupportConstant {
 	
-	private static final CommonLogger logger = CommonLogger
+	private static final JulLogger logger = JulLogger
 			.getLogger(MultiInstanceSocketSupportConstant.class.getName());
 
 

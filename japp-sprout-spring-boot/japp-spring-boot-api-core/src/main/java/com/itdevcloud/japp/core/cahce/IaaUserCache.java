@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,8 +30,10 @@ import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.iaa.service.IaaUser;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  *
  * @author Marvin Sun
@@ -41,7 +43,9 @@ import com.itdevcloud.japp.core.iaa.service.IaaUser;
 @Component
 public class IaaUserCache extends RefreshableCache {
 
+	//private static final Logger logger = LogManager.getLogger(IaaUserCache.class);
 	private static final Logger logger = LogManager.getLogger(IaaUserCache.class);
+	
 	// key login ID
 	private static Map<String, IaaUser> IaaUserMap = null;
 
@@ -102,7 +106,7 @@ public class IaaUserCache extends RefreshableCache {
 			return;
 		}
 		String userId = user.getUserId();
-		if (StringUtils.isEmpty(userId)) {
+		if (StringUtil.isEmptyOrNull(userId)) {
 			return;
 		}
 		waitForInit();
@@ -110,7 +114,7 @@ public class IaaUserCache extends RefreshableCache {
 	}
 	
 	public IaaUser getIaaUserByUserId(String userId) {
-		if (StringUtils.isEmpty(userId)) {
+		if (StringUtil.isEmptyOrNull(userId)) {
 			return null;
 		}
 		waitForInit();
@@ -119,7 +123,7 @@ public class IaaUserCache extends RefreshableCache {
 	}
 
 	public void removeIaaUserByUserId(String userId) {
-		if (StringUtils.isEmpty(userId)) {
+		if (StringUtil.isEmptyOrNull(userId)) {
 			return;
 		}
 		waitForInit();

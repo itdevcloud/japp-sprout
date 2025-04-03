@@ -23,6 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -35,6 +36,8 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 public class SystemNotification implements Serializable{
 
 	private static final long serialVersionUID = 1L;
+	
+	//private static final Logger logger = LogManager.getLogger(SystemNotification.class);
 	private static final Logger logger = LogManager.getLogger(SystemNotification.class);
 
 	private String category = null;

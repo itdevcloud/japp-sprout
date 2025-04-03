@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.itdevcloud.japp.core.api.bean.EchoRequest;
 import com.itdevcloud.japp.core.api.bean.EchoResponse;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import org.apache.logging.log4j.Logger;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,6 +33,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
 public class DefaultRestController extends BaseRestController {
 
+	//private static final Logger logger = LogManager.getLogger(DefaultRestController.class);
 	private static final Logger logger = LogManager.getLogger(DefaultRestController.class);
 
     @Operation(summary = "Echo a request", 

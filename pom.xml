@@ -41,10 +41,11 @@
 	</licenses>
 
 	<modules>
-		<!--
+		
 		<module>japp-se-common</module>
-     	 -->
+     	<!--
 		<module>japp-sprout-spring-boot</module>
+		-->
 	</modules>
 
 	<dependencies>
@@ -85,9 +86,10 @@
 							<execution>
 								<id>attach-sources</id>
 								<goals>
-									<goal>jar-no-fork</goal>
-									<!-- 									<goal>jar-no-fork</goal>
 									<goal>jar</goal>
+									<!-- 									
+									<goal>jar</goal>
+									<goal>jar-no-fork</goal>
 									-->
 								</goals>
 							</execution>
@@ -106,6 +108,11 @@
 								<goals>
 									<goal>jar</goal>
 								</goals>
+								<configuration>
+					                <additionalOptions>
+					                    <additionalOption>-Xdoclint:none</additionalOption>
+					                </additionalOptions>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>
@@ -161,7 +168,7 @@
 						<extensions>true</extensions>
 						<configuration>
 							<publishingServerId>central</publishingServerId>
-							 <deploymentName>se-common-deployment</deploymentName>
+							<deploymentName>se-common-deployment</deploymentName>
 							<!-- 
 							 <deploymentName>deployment</deploymentName>
 							 <autoPublish>true</autoPublish>

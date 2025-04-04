@@ -1,1 +1,0 @@
-mvn clean deploy -U -DskipTests -P ossrh-deploy

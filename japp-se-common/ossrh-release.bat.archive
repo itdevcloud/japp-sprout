@@ -1,1 +1,0 @@
-mvn nexus-staging:release -P ossrh-deploy

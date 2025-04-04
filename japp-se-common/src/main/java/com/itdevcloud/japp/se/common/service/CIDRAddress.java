@@ -5,18 +5,17 @@ import java.net.UnknownHostException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class CIDRAddress {
 
-	private static final Logger logger = Logger.getLogger(CIDRAddress.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(CIDRAddress.class.getName());
 	private String cidr = null;
 	private String cidrIp =null;
 	private int cidrMaskBiteNumber = -1;
 	
 	private InetAddress cidrInetAddress;
 	private byte[] cidrAddressBytes;
-	private String cidrInetAddressString;
+	//private String cidrInetAddressString;
 	
 	private InetAddress startInetAddress;
 	private byte[] startAddressBytes;
@@ -280,7 +279,7 @@ public class CIDRAddress {
 				}
 			}else {
 				bytes[i] = (byte) (bytes[i] + 1);
-				int k = bytes[i] & 0xFF;
+				//int k = bytes[i] & 0xFF;
 				break; 
 			}
 		}

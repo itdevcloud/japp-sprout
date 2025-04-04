@@ -6,8 +6,6 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
-
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
@@ -20,12 +18,13 @@ import com.azure.storage.blob.specialized.AppendBlobClient;
 import com.azure.storage.blob.specialized.BlobLeaseClient;
 import com.azure.storage.blob.specialized.BlobLeaseClientBuilder;
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventManagerConstant;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class AzureBlobService {
 
-	private static final Logger logger = Logger.getLogger(AzureBlobService.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(AzureBlobService.class.getName());
 	protected static DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
 	protected static final String STORAGE_URL = "https://msunpocblobstorage.blob.core.windows.net/";

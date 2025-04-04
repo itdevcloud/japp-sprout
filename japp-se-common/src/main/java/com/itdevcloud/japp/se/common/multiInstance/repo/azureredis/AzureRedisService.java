@@ -3,9 +3,8 @@ package com.itdevcloud.japp.se.common.multiInstance.repo.azureredis;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
-
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventManagerConstant;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import redis.clients.jedis.DefaultJedisClientConfig;
@@ -14,7 +13,7 @@ import redis.clients.jedis.exceptions.JedisException;
 
 public class AzureRedisService {
 
-	private static final Logger logger = Logger.getLogger(AzureRedisService.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(AzureRedisService.class.getName());
 
 	public static final String KEY_CONTENT_SEPARATOR = "§§";
 

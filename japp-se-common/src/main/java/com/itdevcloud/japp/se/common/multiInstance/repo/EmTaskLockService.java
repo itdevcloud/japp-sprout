@@ -3,21 +3,14 @@ package com.itdevcloud.japp.se.common.multiInstance.repo;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-
-import com.itdevcloud.japp.se.common.util.CommonUtil;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class EmTaskLockService {
 	
-	private static final Logger logger = Logger.getLogger(EmTaskLockService.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(EmTaskLockService.class.getName());
 	
 	private RepoBaseMiEventManager manager = null;
 	
@@ -126,8 +119,8 @@ public class EmTaskLockService {
 			logger.info("releaseTaskLock end:lockEventInfo is null. return <true>, total millis = " + (endTS - startTS));
 			return true;
 		}
-		EventInfo lockEvent = null;
-		EventInfo myLockEvent = null;
+//		EventInfo lockEvent = null;
+//		EventInfo myLockEvent = null;
 		List<EventInfo> newInfoList = new ArrayList<EventInfo>();
 		if (this.manager.appRepoLockService.aquireAppRepoLock(EventManagerConstant.EVENT_TYPE_LOCK)) {
 			try {

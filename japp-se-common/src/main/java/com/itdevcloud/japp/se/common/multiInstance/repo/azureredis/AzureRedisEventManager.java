@@ -1,27 +1,16 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo.azureredis;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventInfo;
 import com.itdevcloud.japp.se.common.multiInstance.repo.RepoBaseMiEventManager;
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventManagerConstant;
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventProcessor;
 import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
-import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class AzureRedisEventManager extends RepoBaseMiEventManager {
-	private static final Logger logger = Logger.getLogger(AzureRedisEventManager.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(AzureRedisEventManager.class.getName());
 
 	private AzureRedisService azureRedisService = null;
 

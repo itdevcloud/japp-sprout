@@ -91,9 +91,9 @@ public class MultiInstanceSocketSupportConstant {
 		DEFAULT_SOCKET_PORT = manager.getPropertyAsInt(prefix + "DEFAULT_SOCKET_PORT", 8800);
 		DEFAULT_SOCKET_TIMEOUT = manager.getPropertyAsInt(prefix + "DEFAULT_SOCKET_TIMEOUT", 30000);
 		
-		MAIN_INSTANCE_FILE_NAME = manager.getPropertyAsString(prefix + "MAIN_INSTANCE_FILE_NAME", "C:\\Users\\Sun\\Downloads\\Main_Instance_File.txt");
-		MAIN_INSTANCE_LIVE_CHECK_FILE_NAME = manager.getPropertyAsString(prefix + "MAIN_INSTANCE_LIVE_CHECK_FILE_NAME", "C:\\Users\\Sun\\Downloads\\Main_Instance_live_Check.txt");
-		INSTANCE_lOCK_FILE_NAME = manager.getPropertyAsString(prefix + "INSTANCE_lOCK_FILE_NAME", "C:\\Users\\Sun\\Downloads\\Multiple_Instance_Lock_File.txt");
+		MAIN_INSTANCE_FILE_NAME = manager.getPropertyAsString(prefix + "MAIN_INSTANCE_FILE_NAME", "C:\\Main_Instance_File.txt");
+		MAIN_INSTANCE_LIVE_CHECK_FILE_NAME = manager.getPropertyAsString(prefix + "MAIN_INSTANCE_LIVE_CHECK_FILE_NAME", "C:\\Main_Instance_live_Check.txt");
+		INSTANCE_lOCK_FILE_NAME = manager.getPropertyAsString(prefix + "INSTANCE_lOCK_FILE_NAME", "C:\\Multiple_Instance_Lock_File.txt");
 
 		MESSAGE_STATUS_CACHE_RETENTION_DAY = manager.getPropertyAsInt(prefix + "MESSAGE_STATUS_CACHE_RETENTION_DAY", 7);
 

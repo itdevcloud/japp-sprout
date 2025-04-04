@@ -2,21 +2,17 @@ package com.itdevcloud.japp.se.common.multiInstance.repo.azureblob;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
-
 import com.itdevcloud.japp.se.common.multiInstance.repo.DataInfo;
 import com.itdevcloud.japp.se.common.multiInstance.repo.RepoBaseMiEventManager;
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventManagerConstant;
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventProcessor;
 import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
-import com.itdevcloud.japp.se.common.util.FileUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class AzureBlobEventManager extends RepoBaseMiEventManager {
-	private static final Logger logger = Logger.getLogger(AzureBlobEventManager.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(AzureBlobEventManager.class.getName());
 
 //	public static final String BLOB_TYPE_REPO_LOCK = "BLOB_TYPE_REPO_LOCK";
 //	public static final String BLOB_TYPE_CONTENT = "BLOB_TYPE_CONTENT";

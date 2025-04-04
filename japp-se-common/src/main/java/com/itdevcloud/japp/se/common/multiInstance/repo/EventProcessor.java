@@ -1,10 +1,9 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo;
 
-import java.util.Date;
-import java.util.logging.Logger;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 
 public class EventProcessor {
-	private static final Logger logger = Logger.getLogger(EventProcessor.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(EventProcessor.class.getName());
 
 	public EventProcessStatus processEvent(EventInfo eventInfo) {
 		if(eventInfo == null) {

@@ -1,19 +1,17 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo;
 
-import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.logging.Logger;
-
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.RandomUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
-public class EventInfo implements Serializable{
+public class EventInfo {
 
-	private static final Logger logger = Logger.getLogger(EventInfo.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(EventInfo.class.getName());
 	//public static  final String eventLockInfoStringFormat = "name" + EventManagerConstant.CONTENT_SEPARATOR +" expiryDate" +  EventManagerConstant.CONTENT_SEPARATOR +" key" +  EventManagerConstant.CONTENT_SEPARATOR + "content";
 	//private static final String SPACE = " ";
 	

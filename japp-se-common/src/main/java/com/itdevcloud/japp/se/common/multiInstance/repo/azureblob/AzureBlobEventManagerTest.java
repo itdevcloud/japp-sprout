@@ -1,12 +1,10 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo.azureblob;
 
-import java.util.logging.Logger;
-
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventInfo;
 import com.itdevcloud.japp.se.common.service.JulLogger;
 
 public class AzureBlobEventManagerTest {
-	private static final Logger logger = Logger.getLogger(AzureBlobEventManagerTest.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(AzureBlobEventManagerTest.class.getName());
 
 	public static void main(String[] args) {
 

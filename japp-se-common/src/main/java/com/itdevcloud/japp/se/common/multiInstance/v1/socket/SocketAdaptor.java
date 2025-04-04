@@ -1,7 +1,6 @@
 package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -12,13 +11,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Date;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.itdevcloud.japp.se.common.security.Crypter;
 import com.itdevcloud.japp.se.common.security.Hasher;
-import com.itdevcloud.japp.se.common.service.CommonFactory;
 import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.DateUtils;
@@ -216,25 +213,26 @@ class SocketAdaptor {
 			logger.severe(err);
 			throw new RuntimeException(t);
 		}
+		
 		//no exception after this point
 		SocketAdaptorMessage responseMessage = null;
-		if (message == null) {
-			
-			responseMessage = new SocketAdaptorMessage();
-			String err = "Message is null, do nothing...";
-			responseMessage.setTransferStatus(MultiInstanceSocketSupportConstant.TRANSFER_STATUS_SUCCESS);
-			responseMessage.setProcessStatus(MultiInstanceSocketSupportConstant.PROCESS_STATUS_ERROR);
-			responseMessage.setResponseStatus(MultiInstanceSocketSupportConstant.RESPONSE_STATUS_ERROR);
-			responseMessage.setContent(err);
-			
-			logger.warning(err);
-			return responseMessage;
-		}
-		
 		String requestMessageStr = null;
 		String messageReceived = null;
 		boolean sendSuccss = false;
 		try {
+			if (message == null) {
+				
+				responseMessage = new SocketAdaptorMessage();
+				String err = "Message is null, do nothing...";
+				responseMessage.setTransferStatus(MultiInstanceSocketSupportConstant.TRANSFER_STATUS_SUCCESS);
+				responseMessage.setProcessStatus(MultiInstanceSocketSupportConstant.PROCESS_STATUS_ERROR);
+				responseMessage.setResponseStatus(MultiInstanceSocketSupportConstant.RESPONSE_STATUS_ERROR);
+				responseMessage.setContent(err);
+				
+				logger.warning(err);
+				return responseMessage;
+			}
+			
 			
 			requestMessageStr = SocketAdaptorMessage.getRequestMessageString(message);
 			if(MultiInstanceSocketSupportConstant.TYPE_PING.equalsIgnoreCase(message.getType())) {

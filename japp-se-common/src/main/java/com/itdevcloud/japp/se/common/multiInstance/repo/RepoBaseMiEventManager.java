@@ -3,14 +3,13 @@ package com.itdevcloud.japp.se.common.multiInstance.repo;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
-
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public abstract class RepoBaseMiEventManager extends Thread {
-	private static final Logger logger = Logger.getLogger(RepoBaseMiEventManager.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(RepoBaseMiEventManager.class.getName());
 
 	protected static boolean eventMonitorEnabled = false;
 
@@ -67,7 +66,7 @@ public abstract class RepoBaseMiEventManager extends Thread {
 		String tName = this.getClass().getSimpleName() + " Monitor Tread [" + this.appName + "-" + nowStr + "]";
 		this.setName(tName);
 
-		this.eventMonitorEnabled = false;
+		//this.eventMonitorEnabled = false;
 		this.monitorStartTimestamp = System.currentTimeMillis();
 		this.lastProcessTimestamp = this.monitorStartTimestamp;
 		this.processedEventList = new ArrayList<EventInfo>();
@@ -136,7 +135,7 @@ public abstract class RepoBaseMiEventManager extends Thread {
 		this.lastProcessTimestamp = this.monitorStartTimestamp;
 
 		try {
-			List<EventInfo> list = null;
+			//List<EventInfo> list = null;
 			while (eventMonitorEnabled) {
 				try {
 					// check manager is in good state or not, if not, retry connection

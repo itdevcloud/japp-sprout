@@ -27,9 +27,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import com.itdevcloud.japp.se.common.service.JulLogger;
 
 /**
  * Class Definition
@@ -39,7 +40,7 @@ import java.util.zip.ZipFile;
  */
 public class FileUtil {
 
-	private static Logger logger = Logger.getLogger(FileUtil.class.getName());
+	private static JulLogger logger = JulLogger.getLogger(FileUtil.class.getName());
 
 	public static void copy(String source, String destination) throws IOException {
 		copy(source, destination, null);

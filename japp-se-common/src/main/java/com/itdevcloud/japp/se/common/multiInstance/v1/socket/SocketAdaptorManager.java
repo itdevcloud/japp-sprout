@@ -1,7 +1,5 @@
 package com.itdevcloud.japp.se.common.multiInstance.v1.socket;
 
-import java.util.logging.Logger;
-
 import com.itdevcloud.japp.se.common.service.JulLogger;
 /**
  * @author Marvin Sun

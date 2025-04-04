@@ -1,14 +1,12 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo.azureredis;
 
 import java.util.List;
-import java.util.logging.Logger;
-
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventInfo;
 import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 
 public class AzureRedisEventManagerTest {
-	private static final Logger logger = Logger.getLogger(AzureRedisEventManagerTest.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(AzureRedisEventManagerTest.class.getName());
 
 	public static void main(String[] args) {
 

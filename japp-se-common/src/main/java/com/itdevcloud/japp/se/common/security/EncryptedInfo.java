@@ -16,10 +16,6 @@
  */
 package com.itdevcloud.japp.se.common.security;
 
-import javax.crypto.spec.IvParameterSpec;
-
-import com.itdevcloud.japp.se.common.util.StringUtil;
-
 /**
  * Class Definition
  *

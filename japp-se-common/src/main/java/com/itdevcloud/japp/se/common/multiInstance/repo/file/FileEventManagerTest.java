@@ -1,13 +1,6 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo.file;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-
-import com.itdevcloud.japp.se.common.multiInstance.repo.EventInfo;
 import com.itdevcloud.japp.se.common.service.JulLogger;
-import com.itdevcloud.japp.se.common.util.CommonUtil;
 
 public class FileEventManagerTest  {
 	private static final JulLogger logger = JulLogger.getLogger(FileEventManagerTest.class.getName());

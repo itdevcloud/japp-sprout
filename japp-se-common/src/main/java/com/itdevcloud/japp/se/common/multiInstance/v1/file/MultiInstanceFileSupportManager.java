@@ -75,13 +75,14 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.FileUtil;
 import com.itdevcloud.japp.se.common.util.RandomUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class MultiInstanceFileSupportManager extends Thread {
-	private static final Logger logger = Logger.getLogger(MultiInstanceFileSupportManager.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(MultiInstanceFileSupportManager.class.getName());
 
 	private static List<EventLockInfo> processedEventList = null;
 	private static boolean eventMonitorEnabled = true;

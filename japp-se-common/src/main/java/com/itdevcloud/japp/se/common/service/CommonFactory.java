@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Logger;
-
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -38,7 +36,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * </p>
  * 
  * <p>
- * In jeeCommon.jar file, we provide configuration, logging and email services by 
+ * In common jar file, we provide configuration, logging and email services by 
  * defining three interfaces: 
  * 1) IConfigurationManager
  * 2) ICommonLogger
@@ -84,10 +82,13 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
 public class CommonFactory {
+	
+	private static final JulLogger logger = JulLogger.getLogger(CommonFactory.class.getName());
+
 	public static final String COMMON_FACTORY_CONFIG_FILE_NAME = "commonFactory.properties";
 	public static final String COMMON_FACTORY_EXTERNAL_CONFIG_FILE = "japp.common.factory.external.file";
 	private static Properties jappCommonFactoryProperties = null;
-	private static final Logger logger = Logger.getLogger(CommonFactory.class.getName());
+	
 	private static Map<String, Class<?>> classesCache = new HashMap<String, Class<?>>();
 
 	public static <T> T getInstance(String implClassName) {

@@ -42,7 +42,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  */
 public class PropertyManager {
 
-	private static final Logger logger = Logger.getLogger(PropertyManager.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(PropertyManager.class.getName());
 	
 	private  Properties properties = null;
 

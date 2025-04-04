@@ -1,23 +1,13 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-
-import com.itdevcloud.japp.se.common.util.CommonUtil;
-import com.itdevcloud.japp.se.common.util.DateUtils;
-import com.itdevcloud.japp.se.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 
 public class EmAppRepoLockService {
 	
-	private static final Logger logger = Logger.getLogger(EmAppRepoLockService.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(EmAppRepoLockService.class.getName());
 	
 	private RepoBaseMiEventManager manager = null;
 	

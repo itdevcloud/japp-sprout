@@ -2,7 +2,6 @@ package com.itdevcloud.japp.se.common.multiInstance.repo;
 
 import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.service.ConfigurationManager;
-import com.itdevcloud.japp.se.common.util.DateUtils;
 
 public class EventManagerConstant {
 	

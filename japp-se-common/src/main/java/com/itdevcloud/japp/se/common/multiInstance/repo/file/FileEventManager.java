@@ -1,12 +1,8 @@
 package com.itdevcloud.japp.se.common.multiInstance.repo.file;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
-
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventInfo;
 import com.itdevcloud.japp.se.common.multiInstance.repo.RepoBaseMiEventManager;
 import com.itdevcloud.japp.se.common.multiInstance.repo.EventManagerConstant;
@@ -18,7 +14,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 
 public class FileEventManager extends RepoBaseMiEventManager {
 	
-	private static final Logger logger = Logger.getLogger(FileEventManager.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(FileEventManager.class.getName());
 	
 	private String fileRootPath = null;
 	private boolean isFileAccessible = false;

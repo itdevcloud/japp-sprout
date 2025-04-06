@@ -11,7 +11,7 @@ Description: TBA
 - Install GnuPG
 
 ## Build
-- Run build.bat - it will build and install japp-se-common.jar into apicore and apiapp's ./local_repo folder
+- Run build.bat - it will build and install japp-se-common.jar into apicore and apiapp and japp-app's ./local_repo folder
 
 ## Publish to central Library
 

@@ -13,31 +13,46 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppFactory;
 import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 
 @Component
 public class ReferenceCodeService implements AppFactoryComponentI {
 	
-	//private Logger logger = LogManager.getLogger(ReferenceCodeService.class);
 	private static final Logger logger = LogManager.getLogger(ReferenceCodeService.class);
 
-	public ArrayList<ReferenceCode> getReferenceCodeListByEntityType(String type) {
-		return AppComponents.referenceCodeCache.getReferenceCodeListByEntityType(type);
+	
+	public List<ReferenceCode> getReferenceCodeList(String codeDomain, String codeType) {
+		 return AppComponents.referenceCodeCache.getReferenceCodeList(codeDomain, codeType);
+	}
+	
+
+	public ReferenceCode getReferenceCode(String codeDomain, String codeType, String codeName) {
+		 return AppComponents.referenceCodeCache.getReferenceCode(codeDomain, codeType, codeName);
 	}
 
-	public ReferenceCode getReferenceCodeByCode(String type, String code) {
-		return AppComponents.referenceCodeCache.getReferenceCodeByCode(type, code);
+	public ReferenceCode getReferenceCode(long pk) {
+		 return AppComponents.referenceCodeCache.getReferenceCode(pk);
 	}
 
-	public ReferenceCode getReferenceCodeById(String id) {
-		return AppComponents.referenceCodeCache.getReferenceCodeById(id);
+
+	public ReferenceCode getParent(String codeDomain, String codeType, String codeName) {
+		 return AppComponents.referenceCodeCache.getParent(codeDomain, codeType, codeName);
 	}
 
-	public List<ReferenceCode> getChildrenReferenceCodeListByParentId(String parentId) {
-		return AppComponents.referenceCodeCache.getChildrenReferenceCodeListByParentId(parentId);
-	}
-	public List<ReferenceCode> getChildrenReferenceCodeListByParentCode(String parentType, String parentCode) {
-		return AppComponents.referenceCodeCache.getChildrenReferenceCodeListByParentCode(parentType, parentCode);
+	public ReferenceCode getParent(long pk) {
+		 return AppComponents.referenceCodeCache.getParent(pk);
 	}
 
+	public List<ReferenceCode> getChildren(long parentCodeId) {
+		 return AppComponents.referenceCodeCache.getChildren(parentCodeId);
+	}
+	
+	public List<ReferenceCode> getChildren(String codeDomain, String codeType, String codeName) {
+		 return AppComponents.referenceCodeCache.getChildren(codeDomain, codeType, codeName);
+	}
+
+
+
+	
 
 }

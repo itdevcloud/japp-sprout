@@ -42,7 +42,6 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
 @Component
 public class PkiKeyCache extends RefreshableCache{
 
-	//private static final Logger logger = LogManager.getLogger(PkiKeyCache.class);
 	private static final Logger logger = LogManager.getLogger(PkiKeyCache.class);
 
 	private static Key jappPrivateKey;
@@ -92,7 +91,9 @@ public class PkiKeyCache extends RefreshableCache{
 				lastUpdatedTS = endTS;
 
 				String str = "JappKeyCache.init() - end. total time = " + (endTS - startTS) + " millis. Result:"
-						+ "\nJappPublicKey = " + (jappPublicKey==null?null:"...");
+						+ "\njappPrivateKey = " + (jappPrivateKey==null?null:"******")
+						+ "\nJappPublicKey = " + (jappPublicKey==null?null:"******")
+						+ "\njappCertificate = " + (jappCertificate==null?null:"******");
 				String info = "JappKeyCache.init() - JAPP Key come from Azure Key Vault = " + comeFromKeyVault + ", total time = " + (endTS - startTS) + " millis. \n";
 
 				logger.info(str);

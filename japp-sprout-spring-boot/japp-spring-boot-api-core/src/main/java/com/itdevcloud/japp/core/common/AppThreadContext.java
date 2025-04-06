@@ -41,7 +41,7 @@ public class AppThreadContext {
 	public static IaaUser<?> getIaaUser() {
 		IaaUser<?> user = userContext.get();
 		if (user != null) {
-			user = AppUtil.GsonDeepCopy(user, null);
+			user = AppUtil.GsonDeepCopy(user);
 		}
 		return user;
 	}
@@ -50,7 +50,7 @@ public class AppThreadContext {
 		if (user == null) {
 			userContext.set(null);
 		}
-		IaaUser<?> u = AppUtil.GsonDeepCopy(user, null);
+		IaaUser<?> u = AppUtil.GsonDeepCopy(user);
 		userContext.set(u);
 	}
 
@@ -82,19 +82,30 @@ public class AppThreadContext {
 
 	public static TransactionContext getTransactionContext() {
 		TransactionContext txCtx = txContext.get();
+		TransactionContext targetCtx = null;
+		
+		//logger.debug("getTransactionContext() -----1----txCtx = " + txCtx);
+		
 		if (txCtx != null) {
-			txCtx = AppUtil.GsonDeepCopy(txCtx, null);
+			targetCtx = AppUtil.GsonDeepCopy(txCtx);
+			//logger.debug("getTransactionContext() -----2----targetCtx = " + targetCtx);
 		} else {
-			txCtx = new TransactionContext();
+			targetCtx = new TransactionContext();
 		}
-		return txCtx;
+		return targetCtx;
 	}
 
 	public static void setTransactionContext(TransactionContext txCtx) {
 		if (txCtx == null) {
 			txContext.set(null);
 		}
-		TransactionContext targetObj = AppUtil.GsonDeepCopy(txCtx, null);
+		
+		//logger.debug("setTransactionContext() -----1----txCtx = " + txCtx);
+		
+		TransactionContext targetObj = AppUtil.GsonDeepCopy(txCtx);
+		
+		//logger.debug("setTransactionContext() -----2----targetObj = " + targetObj);
+		
 		txContext.set(targetObj);
 	}
 

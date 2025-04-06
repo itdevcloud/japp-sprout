@@ -38,13 +38,13 @@ public class ConfigFactory {
 	
 	@Autowired
 	public ConfigFactory(AppConfigService configService) {
-		logger.info("init ConfigFactory begin......");
+		logger.info("init ConfigFactory begin.........");
 		if (configService == null ) {
 			throw new RuntimeException(
 					"There is no AppConfigService class initiated, please check code ==> \n");
 		}
 		appConfigService = configService;
-		logger.info("init ConfigFactory end......");
+		logger.info("init ConfigFactory end............");
 	}
 
 }

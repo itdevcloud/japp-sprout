@@ -16,8 +16,12 @@
  */
 package com.itdevcloud.japp.core.api.bean;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.ReferenceCode;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 /**
  *
  * @author Marvin Sun
@@ -25,30 +29,26 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-public class FindReferenceCodeRequest extends BaseRequest {
+public class GetChildrenReferenceCodeResponse extends BaseResponse {
 
 	private static final long serialVersionUID = 1L;
 
-	private String codeDomain;
-	private String codeType;
-	
-	public String getCodeDomain() {
-		return codeDomain;
+	private List<ReferenceCode> referenceCodeList = null;
+
+	public List<ReferenceCode> getReferenceCodeList() {
+		return referenceCodeList;
 	}
-	public void setCodeDomain(String codeDomain) {
-		this.codeDomain = codeDomain;
+
+	public void setReferenceCodeList(List<ReferenceCode> referenceCodeList) {
+		this.referenceCodeList = referenceCodeList;
 	}
-	public String getCodeType() {
-		return codeType;
-	}
-	public void setCodeType(String codeType) {
-		this.codeType = codeType;
-	}
+
 	@Override
 	public String toString() {
-		return "FindReferenceCodeRequest [codeDomain=" + codeDomain + ", codeType=" + codeType + ", Base="
-				+ super.toString() + "]";
+		return "GetChildrenReferenceCodeResponse [referenceCodeList=" + CommonUtil.listToString(referenceCodeList) + ", Base=" + super.toString()
+				+ "]";
 	}
-	
+
+
 
 }

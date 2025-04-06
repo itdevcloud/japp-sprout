@@ -23,7 +23,6 @@ import com.itdevcloud.japp.core.processor.RequestProcessor;
 public abstract class BaseRestController {
 
 
-	//private static final Logger logger = LogManager.getLogger(BaseRestController.class);
 	private static final Logger logger = LogManager.getLogger(BaseRestController.class);
 
 	public Object processRequest(BaseRequest request) {

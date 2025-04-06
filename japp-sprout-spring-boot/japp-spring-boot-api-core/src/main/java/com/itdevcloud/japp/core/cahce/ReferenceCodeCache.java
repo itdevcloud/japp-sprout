@@ -17,6 +17,7 @@
 package com.itdevcloud.japp.core.cahce;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,10 +32,12 @@ import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.api.vo.ReferenceCode;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppFactory;
 import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
+import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.ReferenceCodeServiceHelperI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -46,12 +49,10 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class ReferenceCodeCache extends RefreshableCache{
 
-
-	//private static final Logger logger = LogManager.getLogger(ReferenceCodeCache.class);
 	private static final Logger logger = LogManager.getLogger(ReferenceCodeCache.class);
 
-	// key = reference identifier,
-	private static Map<String, List<ReferenceCode>> referenceCodeMap = null;
+	// key = refence PK string
+	private static Map<String, ReferenceCode> referenceCodeMap = null;
 
 
 	@PostConstruct
@@ -79,14 +80,13 @@ public class ReferenceCodeCache extends RefreshableCache{
 		ReferenceCodeServiceHelperI helper = AppFactory.getComponent(ReferenceCodeServiceHelperI.class);	
 		try {
 			long startTS = System.currentTimeMillis();
-			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= 1000 * 60 * 5)) {
+			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL))) {
 				logger.debug("ReferenceCodeCache.init()......begin...........");
 
-				Map<String, List<ReferenceCode>> codeMap = helper.getReferenceCodeMapFromRepository();
-				codeMap = setParent(codeMap);
+				Map<String, ReferenceCode> rcMap = helper.getReferenceCodeMapFromRepository();
 
 				initInProcess = true;
-				referenceCodeMap = (codeMap==null?new HashMap<String, List<ReferenceCode>>():codeMap);
+				referenceCodeMap = (rcMap==null?new HashMap<String, ReferenceCode>():Collections.unmodifiableMap(rcMap));
 				initInProcess = false;
 
 				Date end = new Date();
@@ -110,140 +110,115 @@ public class ReferenceCodeCache extends RefreshableCache{
 		}
 	}
 
-	private Map<String, List<ReferenceCode>> setParent(Map<String, List<ReferenceCode>> codeMap) {
-		//note: should be only one level
-		if (codeMap == null || codeMap.isEmpty()) {
-			return null;
-		}
-		ArrayList<ReferenceCode> fullList = new ArrayList<ReferenceCode>();
-		ArrayList<ReferenceCode> tmpList = null;
 
-		for (String type : codeMap.keySet()) {
-			fullList.addAll(codeMap.get(type));
+	public List<ReferenceCode> getReferenceCodeList(String codeDomain, String codeType) {
+		waitForInit();
+		
+		logger.debug("getReferenceCodeList() - codeDomain = " + codeDomain + ", codeType =" + codeType);
+		
+		if(referenceCodeMap == null || referenceCodeMap.isEmpty()) {
+			return new ArrayList<ReferenceCode>();
 		}
-		if (fullList == null || fullList.isEmpty()) {
-			return null;
-		}
-
-		for (String type : codeMap.keySet()) {
-			tmpList = new ArrayList<ReferenceCode>();
-			tmpList.addAll(codeMap.get(type));
-			for(ReferenceCode rc: tmpList) {
-				if(rc != null && rc.getParentId() != null) {
-					for(ReferenceCode tmprc: fullList) {
-						String parentId = tmprc.getId();
-						if(parentId != null && parentId.equalsIgnoreCase(rc.getId())) {
-							rc.setParent(tmprc);
-						}
-					}
+		List<ReferenceCode> rcList =  new ArrayList<ReferenceCode>();
+		if (StringUtil.isEmptyOrNull(codeDomain) && StringUtil.isEmptyOrNull(codeType)) {
+			// return all.
+			rcList = new ArrayList<ReferenceCode>(referenceCodeMap.values());
+		}else if (!StringUtil.isEmptyOrNull(codeDomain) && StringUtil.isEmptyOrNull(codeType)) {
+			for(ReferenceCode rc: referenceCodeMap.values()) {
+				if(codeDomain.equalsIgnoreCase(rc.getCodeDomain())) {
+					rcList.add(rc);
 				}
 			}
-			codeMap.put(type, tmpList);
-		}
-		return codeMap;
-	}
-
-	public ArrayList<ReferenceCode> getReferenceCodeListByEntityType(String type) {
-		waitForInit();
-		if (StringUtil.isEmptyOrNull(type)) {
-			// return all.
-			ArrayList<ReferenceCode> crsReferenceCodeList = new ArrayList<ReferenceCode>();
-			for (String typeStr : referenceCodeMap.keySet()) {
-				crsReferenceCodeList.addAll(referenceCodeMap.get(typeStr));
+		}else if (StringUtil.isEmptyOrNull(codeDomain) && !StringUtil.isEmptyOrNull(codeType)) {
+			for(ReferenceCode rc: referenceCodeMap.values()) {
+				if(codeType.equalsIgnoreCase(rc.getCodeType())) {
+					rcList.add(rc);
+				}
 			}
-			return crsReferenceCodeList;
+		}else {
+			for(ReferenceCode rc: referenceCodeMap.values()) {
+				if(codeDomain.equalsIgnoreCase(rc.getCodeDomain()) && codeType.equalsIgnoreCase(rc.getCodeType())) {
+					rcList.add(rc);
+				}
+			}
 		}
-		List<ReferenceCode> codeList = referenceCodeMap.get(type);
-
-		if (codeList == null || codeList.isEmpty()) {
-			return null;
-		}
-		return new ArrayList<ReferenceCode>(codeList);
+		return rcList;
 	}
+	
 
-	public ReferenceCode getReferenceCodeByCode(String type, String code) {
+	public ReferenceCode getReferenceCode(String codeDomain, String codeType, String codeName) {
 		waitForInit();
-		logger.info("Type=" + type + " Code=" + code);
-		if (StringUtil.isEmptyOrNull(type) || referenceCodeMap == null || StringUtil.isEmptyOrNull(code)) {
+		logger.debug("getReferenceCode() - codeDomain = " + codeDomain + ", codeType =" + codeType + ", codeName = " + codeName);
+		if (StringUtil.isEmptyOrNull(codeDomain) && StringUtil.isEmptyOrNull(codeType) &&  StringUtil.isEmptyOrNull(codeName)) {
+			logger.error("getReferenceCode() - must provide codeDomain, codeType and codeName to get a reference code object!");
 			return null;
 		}
-		List<ReferenceCode> codeList = referenceCodeMap.get(type);
-		if (codeList == null || codeList.isEmpty()) {
-			return null;
-		}
-		for (ReferenceCode rc : codeList) {
-			if (code.equalsIgnoreCase(rc.getCode())) {
+		for(ReferenceCode rc: referenceCodeMap.values()) {
+			if(codeDomain.equalsIgnoreCase(rc.getCodeDomain()) && codeType.equalsIgnoreCase(rc.getCodeType()) && codeName.equalsIgnoreCase(rc.getCodeName())) {
 				return rc;
 			}
 		}
 		return null;
 	}
 
-	public ReferenceCode getReferenceCodeById(String id) {
+	public ReferenceCode getReferenceCode(long pk) {
 		waitForInit();
-		if (referenceCodeMap == null) {
+		
+		logger.debug("getReferenceCode() - pk = " + pk );
+		
+		if (referenceCodeMap == null ||referenceCodeMap.isEmpty()) {
 			return null;
 		}
-		for (String type : referenceCodeMap.keySet()) {
-			List<ReferenceCode> codeList = referenceCodeMap.get(type);
-			if (codeList == null || codeList.isEmpty()) {
-				continue;
-			}
-			for (ReferenceCode rc : codeList) {
-				if (id == rc.getId()) {
-					return rc;
-				}
-			}
-		}
-		return null;
+		ReferenceCode rc = referenceCodeMap.get("" + pk);
+		return rc;
 	}
 
-	public List<ReferenceCode> getChildrenReferenceCodeListByParentId(String parentId) {
-		waitForInit();
-		if (referenceCodeMap == null || parentId == null) {
+
+	public ReferenceCode getParent(String codeDomain, String codeType, String codeName) {
+		logger.debug("getParent() - codeDomain = " + codeDomain + ", codeType =" + codeType + ", codeName = " + codeName);
+
+		ReferenceCode rc = getReferenceCode(codeDomain, codeType, codeName);
+		if(rc == null ) {
 			return null;
 		}
-		List<ReferenceCode> tmpList = new ArrayList<ReferenceCode>();
-		for (String type : referenceCodeMap.keySet()) {
-			List<ReferenceCode> codeList = referenceCodeMap.get(type);
-			if (codeList == null || codeList.isEmpty()) {
-				continue;
-			}
-			for (ReferenceCode rc : codeList) {
-				if (parentId.equalsIgnoreCase(rc.getParentId())) {
-					tmpList.add(rc);
-				}
-			}
-		}
-
-		return (tmpList.isEmpty()?null:tmpList);
+		return getReferenceCode(rc.getParentCodeId());
 	}
 
-	public List<ReferenceCode> getChildrenReferenceCodeListByParentCode(String parentType, String parentCode) {
-		waitForInit();
-		if (referenceCodeMap == null || StringUtil.isEmptyOrNull(parentType)) {
+	public ReferenceCode getParent(long pk) {
+		logger.debug("getParent() - pk = " + pk );
+
+		ReferenceCode rc = getReferenceCode(pk);
+		if(rc == null ) {
 			return null;
 		}
-		List<ReferenceCode> tmpList = new ArrayList<ReferenceCode>();
-		for (String type : referenceCodeMap.keySet()) {
-			List<ReferenceCode> codeList = referenceCodeMap.get(type);
-			if ( codeList == null || codeList.isEmpty()) {
-				continue;
-			}
-			for (ReferenceCode rc : codeList) {
-				ReferenceCode parent = rc.getParent();
-				if (parent != null && parentType.equalsIgnoreCase(parent.getTypeId())) {
-					if(StringUtil.isEmptyOrNull(parentCode) || parentCode.equalsIgnoreCase(parent.getCode())) {
-						tmpList.add(rc);
-					}
-					continue;
-				}else {
-					continue;
-				}
-			}
-		}
+		return getReferenceCode(rc.getParentCodeId());
+	}
 
-		return (tmpList.isEmpty()?null:tmpList);
+	public List<ReferenceCode> getChildren(long parentCodeId) {
+		waitForInit();
+		logger.debug("getChildren() - parentCodeId = " + parentCodeId );
+
+		if(referenceCodeMap == null || referenceCodeMap.isEmpty()) {
+			return new ArrayList<ReferenceCode>();
+		}
+		List<ReferenceCode> rcList =  new ArrayList<ReferenceCode>();
+		for(ReferenceCode rc: referenceCodeMap.values()) {
+				if(rc.getParentCodeId() == parentCodeId) {
+					rcList.add(rc);
+				}
+		}
+		return rcList;
+	}
+	
+	public List<ReferenceCode> getChildren(String codeDomain, String codeType, String codeName) {
+		
+		logger.debug("getChildren() - codeDomain = " + codeDomain + ", codeType =" + codeType + ", codeName = " + codeName);
+		
+		ReferenceCode rc = getReferenceCode(codeDomain, codeType, codeName);
+		if(rc == null ) {
+			return null;
+		}
+		return getChildren(rc.getPk());
 	}
 
 

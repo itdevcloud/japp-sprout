@@ -1,81 +1,84 @@
-/*
- * Copyright (c) 2018 the original author(s). All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
 package com.itdevcloud.japp.core.api.vo;
 
-import java.io.Serializable;
+public class ReferenceCode extends BaseVO {
 
-/**
- *
- * @author Marvin Sun
- * @since 1.0.0
- */
-
-public class ReferenceCode implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private String id;
-	private String parentId;
-	private boolean isFinalized;
-	private String typeId;
-	private String code;
-	private String name;
-	private String i18nKey;
+
+	private String codeDomain;
+	private String codeType;
+	private String codeName;
+	private String nameI18nKey;
 	private String description;
-	private ReferenceCode parent;
+	private long parentCodeId;
+
 
 	public ReferenceCode() {
-	}
-
-	
-	public String getId() {
-		return id;
+		super();
 	}
 
 
-	public void setId(String id) {
-		if (isFinalized) {
+	public ReferenceCode(long pk, String codeDomain, String codeType, String codeName, String nameI18nKey, String description,
+			long parentCodeId) {
+		super();
+		this.pk = pk;
+		this.codeDomain = codeDomain;
+		this.codeType = codeType;
+		this.codeName = codeName;
+		this.nameI18nKey = nameI18nKey;
+		this.description = description;
+		this.parentCodeId = parentCodeId;
+	}
+
+
+	public String getCodeDomain() {
+		return codeDomain;
+	}
+
+
+	public void setCodeDomain(String codeDomain) {
+		if(isFinalized) {
 			return;
 		}
-		this.id = id;
+		this.codeDomain = codeDomain;
 	}
 
 
-	public String getParentId() {
-		return parentId;
+	public String getCodeType() {
+		return codeType;
 	}
 
 
-	public void setParentId(String parentId) {
-		if (isFinalized) {
+	public void setCodeType(String codeType) {
+		if(isFinalized) {
 			return;
 		}
-		this.parentId = parentId;
+		this.codeType = codeType;
 	}
 
 
-	public String getTypeId() {
-		return typeId;
+	public String getCodeName() {
+		return codeName;
 	}
 
 
-	public void setTypeId(String typeId) {
-		if (isFinalized) {
+	public void setCodeName(String codeName) {
+		if(isFinalized) {
 			return;
 		}
-		this.typeId = typeId;
+		this.codeName = codeName;
+	}
+
+
+	public String getNameI18nKey() {
+		return nameI18nKey;
+	}
+
+
+	public void setNameI18nKey(String nameI18nKey) {
+		if(isFinalized) {
+			return;
+		}
+		this.nameI18nKey = nameI18nKey;
 	}
 
 
@@ -85,93 +88,36 @@ public class ReferenceCode implements Serializable {
 
 
 	public void setDescription(String description) {
-		if (isFinalized) {
+		if(isFinalized) {
 			return;
 		}
 		this.description = description;
 	}
 
 
-	public boolean isFinalized() {
-		return isFinalized;
-	}
-
-	public void setFinalized(boolean isFinalized) {
-		this.isFinalized = isFinalized;
+	public long getParentCodeId() {
+		return parentCodeId;
 	}
 
 
-	public String getCode() {
-		return code;
-	}
-
-	public void setCode(String code) {
-		if (isFinalized) {
+	public void setParentCodeId(long parentCodeId) {
+		if(isFinalized) {
 			return;
 		}
-		this.code = code;
+		this.parentCodeId = parentCodeId;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		if (isFinalized) {
-			return;
-		}
-		this.name = name;
-	}
-
-
-	public String getI18nKey() {
-		return i18nKey;
-	}
-
-	public void setI18nKey(String i18nKey) {
-		if (isFinalized) {
-			return;
-		}
-		this.i18nKey = i18nKey;
-	}
-
-	public ReferenceCode getParent() {
-		return parent;
-	}
-
-	public void setParent(ReferenceCode parent) {
-//		if (isFinalized) {
-//			return;
-//		}
-		this.parent = parent;
+	@Override
+	public String getUID() {
+		return this.codeDomain + "-" + this.codeType + "-" + this.codeName;
 	}
 
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
+	public String toString() {
+		return "IaaReferenceCode [codeDomain=" + codeDomain + ", codeType=" + codeType + ", codeName=" + codeName
+				+ ", nameI18nKey=" + nameI18nKey + ", description=" + description + ", parentCodeId=" + parentCodeId
+				+ ", Base=" + super.toString() + "]";
 	}
-
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ReferenceCode other = (ReferenceCode) obj;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		return true;
-	}
-
 
 }

@@ -40,14 +40,12 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
  * which may cause cross-site scripts attack, or some special characters which may cause 400 Bad Request error.
  * <p>
  * This Filter's url pattern is "/*", which means this filter will check all incoming requests.
- * @author Ling Yang
  * @author Marvin Sun
  * @since 1.0.0
  */
 
 @WebFilter(filterName = "SpecialCharacterFilter", urlPatterns = "/*")
 public class SpecialCharacterFilter implements Filter {
-	//private static final Logger logger = LogManager.getLogger(SpecialCharacterFilter.class);
 	private static final Logger logger = LogManager.getLogger(SpecialCharacterFilter.class);
 
 

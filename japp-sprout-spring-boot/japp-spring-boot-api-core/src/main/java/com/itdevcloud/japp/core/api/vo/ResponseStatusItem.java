@@ -81,4 +81,10 @@ public class ResponseStatusItem implements Serializable {
 		this.itemProperties.put(key, value);
 	}
 
+	@Override
+	public String toString() {
+		return "ResponseStatusItem [itemCode=" + itemCode + ", itemMessage=" + itemMessage + ", itemProperties="
+				+ itemProperties + "]";
+	}
+
 }

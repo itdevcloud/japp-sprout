@@ -25,13 +25,21 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-public class FindReferenceCodeRequest extends BaseRequest {
+public class GetReferenceCodeRequest extends BaseRequest {
 
 	private static final long serialVersionUID = 1L;
 
+	private long id;
 	private String codeDomain;
 	private String codeType;
+	private String codeName;
 	
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
 	public String getCodeDomain() {
 		return codeDomain;
 	}
@@ -44,11 +52,19 @@ public class FindReferenceCodeRequest extends BaseRequest {
 	public void setCodeType(String codeType) {
 		this.codeType = codeType;
 	}
+	public String getCodeName() {
+		return codeName;
+	}
+	public void setCodeName(String codeName) {
+		this.codeName = codeName;
+	}
+	
 	@Override
 	public String toString() {
-		return "FindReferenceCodeRequest [codeDomain=" + codeDomain + ", codeType=" + codeType + ", Base="
-				+ super.toString() + "]";
+		return "GetReferenceCodeRequest [id=" + id + ", codeDomain=" + codeDomain + ", codeType=" + codeType
+				+ ", codeName=" + codeName + ", Base=" + super.toString() + "]";
 	}
+	
 	
 
 }

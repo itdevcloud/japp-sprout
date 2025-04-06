@@ -21,6 +21,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ReferenceCode;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 /**
  *
  * @author Marvin Sun
@@ -40,6 +41,12 @@ public class FindReferenceCodeResponse extends BaseResponse {
 
 	public void setReferenceCodeList(List<ReferenceCode> referenceCodeList) {
 		this.referenceCodeList = referenceCodeList;
+	}
+
+	@Override
+	public String toString() {
+		return "FindReferenceCodeResponse [referenceCodeList=" + CommonUtil.listToString(referenceCodeList) + ", Base=" + super.toString()
+				+ "]";
 	}
 
 

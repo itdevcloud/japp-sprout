@@ -16,6 +16,7 @@
  */
 package com.itdevcloud.japp.core.service.referencecode;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,8 +41,48 @@ public class DefaultReferenceCodeServiceHelper implements ReferenceCodeServiceHe
 
 
 	@Override
-	public Map<String, List<ReferenceCode>> getReferenceCodeMapFromRepository(){
-		return null;
+	public Map<String, ReferenceCode> getReferenceCodeMapFromRepository(){
+		
+		Map<String, ReferenceCode> testMap = new HashMap<String, ReferenceCode>();
+		
+		ReferenceCode rc = new ReferenceCode();
+		rc.setPk(1);
+		rc.setCodeDomain("TEST_DOMAIN_1");
+		rc.setCodeType("TEST_Type_1");
+		rc.setCodeName("TEST_Name_1");
+		testMap.put(""+rc.getPk(), rc);
+		
+		rc = new ReferenceCode();
+		rc.setPk(2);
+		rc.setCodeDomain("TEST_DOMAIN_2");
+		rc.setCodeType("TEST_Type_1");
+		rc.setCodeName("TEST_Name_2");
+		testMap.put(""+rc.getPk(), rc);
+
+		rc = new ReferenceCode();
+		rc.setPk(3);
+		rc.setCodeDomain("TEST_DOMAIN_3");
+		rc.setCodeType("TEST_Type_3");
+		rc.setCodeName("TEST_Name_3");
+		testMap.put(""+rc.getPk(), rc);
+
+		rc = new ReferenceCode();
+		rc.setPk(4);
+		rc.setCodeDomain("TEST_DOMAIN_4");
+		rc.setCodeType("TEST_Type_4");
+		rc.setCodeName("TEST_Name_4");
+		rc.setParentCodeId(1);
+		testMap.put(""+rc.getPk(), rc);
+
+		rc = new ReferenceCode();
+		rc.setPk(5);
+		rc.setCodeDomain("TEST_DOMAIN_4");
+		rc.setCodeType("TEST_Type_4");
+		rc.setCodeName("TEST_Name_5");
+		rc.setParentCodeId(1);
+		testMap.put(""+rc.getPk(), rc);
+		
+		return testMap;
 	}
 
 	@Override

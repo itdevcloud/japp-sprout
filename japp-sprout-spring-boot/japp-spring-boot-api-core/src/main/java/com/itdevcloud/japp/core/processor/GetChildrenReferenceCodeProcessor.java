@@ -27,11 +27,14 @@ import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.FindReferenceCodeRequest;
 import com.itdevcloud.japp.core.api.bean.FindReferenceCodeResponse;
+import com.itdevcloud.japp.core.api.bean.GetChildrenReferenceCodeRequest;
+import com.itdevcloud.japp.core.api.bean.GetChildrenReferenceCodeResponse;
 import com.itdevcloud.japp.core.api.vo.ReferenceCode;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.itdevcloud.japp.core.common.AppUtil;
 /**
  *
@@ -40,9 +43,9 @@ import com.itdevcloud.japp.core.common.AppUtil;
  */
 
 @Component
-public class FindReferenceCodeProcessor extends RequestProcessor {
+public class GetChildrenReferenceCodeProcessor extends RequestProcessor {
 
-	private static final Logger logger = LogManager.getLogger(FindReferenceCodeProcessor.class);
+	private static final Logger logger = LogManager.getLogger(GetChildrenReferenceCodeProcessor.class);
 
 	@Override
 	public BaseResponse processRequest(BaseRequest request) {
@@ -50,19 +53,24 @@ public class FindReferenceCodeProcessor extends RequestProcessor {
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
 				+ txnCtx.getTransactionId() + ">...... ");
 
-		FindReferenceCodeResponse response = new FindReferenceCodeResponse();
+		 GetChildrenReferenceCodeResponse response = new GetChildrenReferenceCodeResponse();
 		List<ReferenceCode> codeList = new ArrayList<ReferenceCode>();
 
 		if (request == null ) {
-			codeList = AppComponents.referenceCodeService.getReferenceCodeList(null, null);
-			response.setReferenceCodeList(codeList);
+			response.setReferenceCodeList(null);
 			response.setResponseStatus(
-					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "Request is null"));
 			return response;
 		}
 
-		FindReferenceCodeRequest req = (FindReferenceCodeRequest) request;
-		codeList = AppComponents.referenceCodeService.getReferenceCodeList(req.getCodeDomain(), req.getCodeType());
+		 GetChildrenReferenceCodeRequest req = ( GetChildrenReferenceCodeRequest) request;
+
+		if (!StringUtil.isEmptyOrNull(req.getCodeDomain()) && !StringUtil.isEmptyOrNull(req.getCodeType())
+				&& !StringUtil.isEmptyOrNull(req.getCodeName())) {
+			codeList = AppComponents.referenceCodeService.getChildren(req.getCodeDomain(), req.getCodeType(), req.getCodeName());
+		} else {
+			codeList = AppComponents.referenceCodeService.getChildren(req.getId());
+		}
 		response.setReferenceCodeList(codeList);
 		response.setResponseStatus(
 				AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));

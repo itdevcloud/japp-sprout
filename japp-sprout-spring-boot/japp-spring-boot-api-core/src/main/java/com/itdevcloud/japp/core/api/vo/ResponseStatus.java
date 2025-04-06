@@ -31,6 +31,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.itdevcloud.japp.se.common.service.PropertyManager;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 
@@ -125,4 +126,11 @@ public class ResponseStatus implements Serializable {
 		responseStatusItems.add(responseStatusItem);
 	}
 
+	@Override
+	public String toString() {
+		return "ResponseStatus [statusCode=" + statusCode + ", statusMessage=" + statusMessage
+				+ ", responseStatusItems=" + CommonUtil.listToString(responseStatusItems) + "]";
+	}
+
+	
 }

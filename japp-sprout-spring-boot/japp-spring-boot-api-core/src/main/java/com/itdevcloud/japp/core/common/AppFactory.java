@@ -55,7 +55,6 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class AppFactory {
 
-	//private static final Logger logger = LogManager.getLogger(AppFactory.class);
 	private static Logger logger = LogManager.getLogger(AppFactory.class);
 
 	private static Map<String, CommandInfo> commandInfoMap = null;
@@ -67,7 +66,7 @@ public class AppFactory {
 		factoryComponentList = componentList;
 		if (factoryComponentList == null || factoryComponentList.isEmpty()) {
 			throw new RuntimeException(
-					"There is no AppFactoryComponentI implemetation class detected, please check code ==> \n");
+					"There is no AppFactoryComponentI implemetation class detected, please check code! \n");
 		}
 	}
 
@@ -281,18 +280,19 @@ public class AppFactory {
 		return (T) classComponentMap.get(componentClass);
 	}
 
-	public static CommandInfo getCommandInfo(String requestSimpleName) {
-		if (StringUtil.isEmptyOrNull(requestSimpleName)) {
-			throw new RuntimeException("requestSimpleName is null, please check code!!!");
+	public static CommandInfo getCommandInfo(String command, String requestSimpleName) {
+		if (StringUtil.isEmptyOrNull(command) && StringUtil.isEmptyOrNull(requestSimpleName)) {
+			throw new RuntimeException("command or requestSimpleName is null, please check code!!!");
 		}
-		int idx = requestSimpleName.indexOf(AppUtil.REQUEST_POSTFIX);
-		if (idx <= 0) {
-			logger.error("AppFactory.getCommandInfo() - requestSimpleName parameter is not correct - <"
-					+ requestSimpleName + ">, ignored!");
-			return null;
+		if(StringUtil.isEmptyOrNull(command)) {
+			int idx = requestSimpleName.indexOf(AppUtil.REQUEST_POSTFIX);
+			if (idx <= 0) {
+				logger.error("AppFactory.getCommandInfo() - requestSimpleName parameter is not correct - <"
+						+ requestSimpleName + ">, ignored! no commandInfo returned. ");
+				return null;
+			}
+			command = requestSimpleName.substring(0, idx);
 		}
-		String command = requestSimpleName.substring(0, idx);
-
 		CommandInfo commandInfo = commandInfoMap.get(command.toLowerCase());
 		if (commandInfo == null) {
 			logger.error("Command - '" + command + "' is not supported, no commandInfo is found, check code!!!");

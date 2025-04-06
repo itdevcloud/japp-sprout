@@ -46,7 +46,6 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public abstract class BaseCommandController {
 
-	//private static final Logger logger = LogManager.getLogger(BaseCommandController.class);
 	private static final Logger logger = LogManager.getLogger(BaseCommandController.class);
 
 	public String processCommand(String command, String jsonRequest) {
@@ -136,7 +135,7 @@ public abstract class BaseCommandController {
 		if (StringUtil.isEmptyOrNull(command)) {
 			return null;
 		}
-		CommandInfo commandInfo = AppFactory.getCommandInfo(command);
+		CommandInfo commandInfo = AppFactory.getCommandInfo(command, null);
 		if (commandInfo == null) {
 			return null;
 		}
@@ -157,7 +156,7 @@ public abstract class BaseCommandController {
 		String requestSimpleName = request.getClass().getSimpleName();
 
 		BaseResponse response = null;
-		CommandInfo commandInfo = AppFactory.getCommandInfo(requestSimpleName);
+		CommandInfo commandInfo = AppFactory.getCommandInfo(null, requestSimpleName);
 		if (commandInfo == null) {
 			response = AppUtil.createBaseResponse(request.getCommand(),
 					ResponseStatus.STATUS_CODE_ERROR_VALIDATION,
@@ -184,7 +183,7 @@ public abstract class BaseCommandController {
 		if (StringUtil.isEmptyOrNull(command) || StringUtil.isEmptyOrNull(jsonRequest)) {
 			return null;
 		}
-		CommandInfo commandInfo = AppFactory.getCommandInfo(command);
+		CommandInfo commandInfo = AppFactory.getCommandInfo(command, null);
 		if (commandInfo == null) {
 			return null;
 		}

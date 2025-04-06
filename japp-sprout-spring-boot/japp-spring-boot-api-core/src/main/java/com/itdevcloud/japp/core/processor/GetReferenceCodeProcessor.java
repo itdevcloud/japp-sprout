@@ -27,12 +27,16 @@ import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.FindReferenceCodeRequest;
 import com.itdevcloud.japp.core.api.bean.FindReferenceCodeResponse;
+import com.itdevcloud.japp.core.api.bean.GetReferenceCodeRequest;
+import com.itdevcloud.japp.core.api.bean.GetReferenceCodeResponse;
 import com.itdevcloud.japp.core.api.vo.ReferenceCode;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 import com.itdevcloud.japp.core.common.TransactionContext;
+import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.itdevcloud.japp.core.common.AppUtil;
+
 /**
  *
  * @author Marvin Sun
@@ -40,9 +44,9 @@ import com.itdevcloud.japp.core.common.AppUtil;
  */
 
 @Component
-public class FindReferenceCodeProcessor extends RequestProcessor {
+public class GetReferenceCodeProcessor extends RequestProcessor {
 
-	private static final Logger logger = LogManager.getLogger(FindReferenceCodeProcessor.class);
+	private static final Logger logger = LogManager.getLogger(GetReferenceCodeProcessor.class);
 
 	@Override
 	public BaseResponse processRequest(BaseRequest request) {
@@ -50,20 +54,25 @@ public class FindReferenceCodeProcessor extends RequestProcessor {
 		logger.debug(this.getClass().getSimpleName() + " begin to process request...<txId = "
 				+ txnCtx.getTransactionId() + ">...... ");
 
-		FindReferenceCodeResponse response = new FindReferenceCodeResponse();
-		List<ReferenceCode> codeList = new ArrayList<ReferenceCode>();
+		GetReferenceCodeResponse response = new GetReferenceCodeResponse();
+		ReferenceCode code = null;
 
-		if (request == null ) {
-			codeList = AppComponents.referenceCodeService.getReferenceCodeList(null, null);
-			response.setReferenceCodeList(codeList);
+		if (request == null) {
+			response.setReferenceCode(null);
 			response.setResponseStatus(
-					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
+					AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_ERROR_VALIDATION, "Request is null"));
 			return response;
 		}
 
-		FindReferenceCodeRequest req = (FindReferenceCodeRequest) request;
-		codeList = AppComponents.referenceCodeService.getReferenceCodeList(req.getCodeDomain(), req.getCodeType());
-		response.setReferenceCodeList(codeList);
+		GetReferenceCodeRequest req = (GetReferenceCodeRequest) request;
+		if (!StringUtil.isEmptyOrNull(req.getCodeDomain()) && !StringUtil.isEmptyOrNull(req.getCodeType())
+				&& !StringUtil.isEmptyOrNull(req.getCodeName())) {
+			code = AppComponents.referenceCodeService.getReferenceCode(req.getCodeDomain(), req.getCodeType(),
+					req.getCodeName());
+		} else {
+			code = AppComponents.referenceCodeService.getReferenceCode(req.getId());
+		}
+		response.setReferenceCode(code);
 		response.setResponseStatus(
 				AppUtil.createResponseStatus(ResponseStatus.STATUS_CODE_SUCCESS, "Command Processed"));
 		return response;

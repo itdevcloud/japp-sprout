@@ -49,8 +49,10 @@ public class BaseRequest implements Serializable, AppFactoryComponentI {
 		this.command = command;
 	}
 
-
-
+	@Override
+	public String toString() {
+		return "BaseRequest [command=" + command + "]";
+	}
 
 
 }

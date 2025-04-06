@@ -16,23 +16,19 @@
  */
 package com.itdevcloud.japp.core.api.rest;
 
-import java.security.KeyRep;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.itdevcloud.japp.core.cahce.PkiKeyCache;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
-import org.apache.logging.log4j.Logger;
+import com.itdevcloud.japp.se.common.util.PkiUtil;
+import com.itdevcloud.japp.se.common.vo.PkiPemVO;
 
 /**
  *
@@ -41,32 +37,31 @@ import org.apache.logging.log4j.Logger;
  */
 
 @RestController
-@RequestMapping(value = "/open")
+//@RequestMapping(value = "/open")
+@RequestMapping(value = "/${" + AppConfigKeys.JAPPCORE_APP_API_CONTROLLER_PATH_ROOT + "}/open")
 public class PkiController {
 
-	//private static final Logger logger = LogManager.getLogger(PkiController.class);
 	private static final Logger logger = LogManager.getLogger(PkiController.class);
 	
 
-	@GetMapping(value="/key")
-	public PublicKey getPublicKey() {
-		logger.debug("PkiController.getPublicKey() - start......");
+	@GetMapping(value="/publickey")
+	public PkiPemVO getPublicKey() {
+		logger.debug("PkiController.getPublicKey() - start............");
+		
 		PublicKey key = AppComponents.pkiKeyCache.getJappPublicKey();
-		return key;
+		
+		PkiPemVO pkiPemVO = PkiUtil.getPublicKeyPemString(key);
+		
+		return pkiPemVO;
 	}
 	
-	@GetMapping(value="/keyrep")
-	public KeyRep getKeyRep() {
-		logger.debug("PkiController.getKeyRep() - start......");
-		PublicKey key = AppComponents.pkiKeyCache.getJappPublicKey();
-		KeyRep keyRep = new KeyRep(KeyRep.Type.PUBLIC, key.getAlgorithm(), key.getFormat(), key.getEncoded());
-		return keyRep;
-	}
 	
 	@GetMapping(value="/certificate")
-	public Certificate getCertificate() {
+	public PkiPemVO getCertificate() {
 		logger.debug("PkiController.getCertificate() - start......");
-		return AppComponents.pkiKeyCache.getJappCertificate();
+		Certificate certificate = AppComponents.pkiKeyCache.getJappCertificate();
+		PkiPemVO pkiPemVO = PkiUtil.getCertificateAndPublicKeyPemString(certificate, false);
+		return pkiPemVO;
 	}
 
 }

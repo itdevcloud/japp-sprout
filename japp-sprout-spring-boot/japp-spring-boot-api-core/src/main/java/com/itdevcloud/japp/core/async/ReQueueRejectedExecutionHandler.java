@@ -21,7 +21,6 @@ import com.itdevcloud.japp.core.common.AppUtil;
  */
 public class ReQueueRejectedExecutionHandler implements RejectedExecutionHandler {
 
-	//private static Logger logger = LogManager.getLogger(ReQueueRejectedExecutionHandler.class);
 	private static final Logger logger = LogManager.getLogger(ReQueueRejectedExecutionHandler.class);
 
 	@Override
@@ -30,8 +29,8 @@ public class ReQueueRejectedExecutionHandler implements RejectedExecutionHandler
 			try {
 				executor.getQueue().put(r);
 			} catch (Throwable t) {
-				logger.error(AppUtil.getStackTrace(t));
-				throw AppUtil.throwRuntimeException(t);
+				logger.error("ReQueueRejectedExecutionHandler(0 reQueue failed with error: " + t, t);
+				//throw AppUtil.throwRuntimeException(t);
 			}
 		}
 	}

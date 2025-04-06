@@ -23,9 +23,7 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -33,7 +31,6 @@ import org.springframework.stereotype.Component;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import com.itdevcloud.japp.core.common.AppFactory;
-import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
@@ -47,7 +44,6 @@ import com.itdevcloud.japp.core.service.customization.StartupServiceHelperI;
 @Component
 public class StartupService implements AppFactoryComponentI {
 
-	//private static final Logger logger = LogManager.getLogger(StartupService.class);
 	private static final Logger logger = LogManager.getLogger(StartupService.class);
 
 	private static Map<String, String> infoMap = new HashMap<String, String>();
@@ -97,7 +93,7 @@ public class StartupService implements AppFactoryComponentI {
 			AppComponents.emailService.sendITNotification(subject, info);
 			logger.info("sendStartupNotification() - end....");
 		} catch (Throwable t) {
-			logger.error(AppUtil.getStackTrace(t));
+			logger.error("sendStartupNotification()......Error: " + t, t);
 		}
 	}
 	

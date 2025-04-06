@@ -44,7 +44,6 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 public class AadJwksCache extends RefreshableCache {
 
 
-	//private static final Logger logger = LogManager.getLogger(AadJwksCache.class);
 	private static final Logger logger = LogManager.getLogger(AadJwksCache.class);
 
 	private static List<AzureJwksKey> aadJwksKeys = null;

@@ -14,22 +14,40 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.service.customization;
+package com.itdevcloud.japp.core.api.bean;
 
-import java.util.Map;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.ReferenceCode;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 /**
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
 
-public interface ReferenceCodeServiceHelperI extends CustomizableComponentI {
+@Component
+public class GetReferenceCodeResponse extends BaseResponse {
 
-	public Map<String, ReferenceCode> getReferenceCodeMapFromRepository();
+	private static final long serialVersionUID = 1L;
 
-	public boolean hasReferenceCodeChanged(long lastCheckTS);
+	private ReferenceCode referenceCode = null;
+
+	public ReferenceCode getReferenceCode() {
+		return referenceCode;
+	}
+
+	public void setReferenceCode(ReferenceCode referenceCode) {
+		this.referenceCode = referenceCode;
+	}
+
+	@Override
+	public String toString() {
+		return "GetReferenceCodeResponse [referenceCode=" + referenceCode + ", Base=" + super.toString() + "]";
+	}
+
 
 
 

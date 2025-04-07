@@ -6,44 +6,46 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.itdevcloud.japp.se.common.util.CommonUtil;
+import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  * 
  * @author SunMa
  *
- * This class is an implementation of IConfigurationManager interface.
+ *         This class is an implementation of IConfigurationManager interface.
  * 
- * The configuration loading process:
+ *         The configuration loading process:
  * 
- * 1. load system and environment properties(variables)
- * 2. 2.1)load commonConfig.properties from classpath, if fail, throws RuntimeException
- * 	  2.2)load included file(s) if has any
- * 3. 3.1)load external property file defined in commonConfig.properties file (key = japp.common.config.external.file), 
- *    if fail, loading process stop.
- *    3.2)load included file(s) if has any
+ *         1. load system and environment properties(variables) 2. 2.1)load
+ *         commonConfig.properties from classpath, if fail, throws
+ *         RuntimeException 2.2)load included file(s) if has any 3. 3.1)load
+ *         external property file defined in commonConfig.properties file (key =
+ *         japp.common.config.external.file), if fail, loading process stop.
+ *         3.2)load included file(s) if has any
  * 
- * Configuration loading Features:
+ *         Configuration loading Features:
  * 
- * 1. Support include zero or more property files. (use prefix "japp.config.includes." for key name
- *    will cause loading process search and loading properties from another file.
- *    Support two search machenisiam.
- *    e.g.
- *    #load from classpath
- *    jee.config.includes.a=classpath:sample-application-external-common-config.properties
- *    #load from path (use variables)
- *    jee.config.includes.b=${jee.common.config.unittest.dummy.config.root}/${jee.common.config.unittest.dummy.config.file}
- *    
- * 2. Support using variables (system or user defined)
- *    e.g.
- *    common_root="c:/common
- *    jee.config.includes.c=${common_root}/aaa.properties
+ *         1. Support include zero or more property files. (use prefix
+ *         "japp.config.includes." for key name will cause loading process
+ *         search and loading properties from another file. Support two search
+ *         machenisiam. e.g. #load from classpath
+ *         jee.config.includes.a=classpath:sample-application-external-common-config.properties
+ *         #load from path (use variables)
+ *         jee.config.includes.b=${jee.common.config.unittest.dummy.config.root}/${jee.common.config.unittest.dummy.config.file}
  * 
- * 3. support prefix (for property key name) check. (just give warning information)
+ *         2. Support using variables (system or user defined) e.g.
+ *         common_root="c:/common
+ *         jee.config.includes.c=${common_root}/aaa.properties
+ * 
+ *         3. support prefix (for property key name) check. (just give warning
+ *         information)
  * 
  */
 public class ConfigurationManager {
@@ -56,59 +58,56 @@ public class ConfigurationManager {
 
 	public static final String JAPP_CONFIG_INCLUDES_PREFIX = "japp.common.includes.";
 
-	private static Properties commonConfigProperties = null;
-	
+	private static Properties tempConfigProperties = null;
+
+	private static Map<String, String> commonConfigMap = null;
+
 	private static ConfigurationManager instance = null;
-	
+
 	static {
-		getConfigProperties();
+		tempConfigProperties = null;
+		commonConfigMap = null;
+		loadConfigProperties();
 	}
 
 	private ConfigurationManager() {
-		
+		loadConfigProperties();
 	}
+
 	public static ConfigurationManager getInstance() {
-		if(instance == null) {
+		if (instance == null) {
 			instance = new ConfigurationManager();
 		}
 		return instance;
 	}
+
 	/**
-	 * Searches for the property with the specified prefix in this property list.
-	 * If the key is not found in this property list, a empty property is returned.
+	 * Searches for the property with the specified prefix in this property list. If
+	 * the key is not found in this property list, a empty property is returned.
+	 * 
 	 * @param prefix - the prefix of the property sought after
-	 * @return A list of properties matching the given prefix.  However, the
-	 * given prefix is stripped from the name of the returned properties.
+	 * @return A list of properties matching the given prefix. However, the given
+	 *         prefix is stripped from the name of the returned properties.
 	 */
-	public Properties getProperties(String prefix) {
-		Properties props = new Properties();
-		Properties[] allProperties = getAllProperties();
-		for (int i = 0; i < allProperties.length; i++) {
-			Properties properties = allProperties[i];
-			Enumeration keys = properties.propertyNames();
-			while (keys.hasMoreElements()) {
-				String key = (String) keys.nextElement();
-				if (key.startsWith(prefix)) {
-					String cnxKey = key.substring(prefix.length());
-					String value = properties.getProperty(key);
-					props.put(cnxKey, value);
-				}
+	public Map<String, String> getProperties(String prefix) {
+		if (commonConfigMap == null || commonConfigMap.isEmpty()) {
+			return null;
+		}
+		Map<String, String> map = new HashMap<String, String>();
+		for (String key : commonConfigMap.keySet()) {
+			if (StringUtil.isEmptyOrNull(prefix) || key.startsWith(prefix)) {
+				map.put(key, commonConfigMap.get(key));
 			}
 		}
-		return props;
+		return map.isEmpty() ? null : Collections.unmodifiableMap(map);
 	}
 
-	/** Returns all the properties that this class maintains. */
-	private Properties[] getAllProperties() {
-		Properties[] props = { commonConfigProperties };
-		return props;
-	}
 
 	public String getPropertyAsString(String propertyName, String defaultValue) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.info("Can not find or get empty value for the property( " + propertyName + " ) from configration file, use default value ("
-					+ defaultValue + ").");
+			logger.info("Can not find or get empty value for the property( " + propertyName
+					+ " ) from configration file, use default value (" + defaultValue + ").");
 			return defaultValue;
 		}
 		return value;
@@ -128,7 +127,8 @@ public class ConfigurationManager {
 	public int getPropertyAsInt(String propertyName, int defaultValue) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.info("Can not get property ( " + propertyName + " ) from configration file, use default value (" + defaultValue + ").");
+			logger.info("Can not get property ( " + propertyName + " ) from configration file, use default value ("
+					+ defaultValue + ").");
 			return defaultValue;
 		}
 		int retValue = defaultValue;
@@ -137,8 +137,8 @@ public class ConfigurationManager {
 		} catch (Exception e) {
 			logger.severe("Can not convert property into int (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not convert property into int (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not convert property into int (property = " + propertyName + ", value = "
+					+ value + " ) from configration file, please check configuration file.");
 		}
 		return retValue;
 	}
@@ -146,8 +146,10 @@ public class ConfigurationManager {
 	public int getRequiredPropertyAsInt(String propertyName) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.severe("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
+			logger.severe("Can not get property ( " + propertyName
+					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not get property ( " + propertyName
+					+ " ) from configration file, please check configuration file.");
 		}
 		int retValue = 0;
 		try {
@@ -155,8 +157,8 @@ public class ConfigurationManager {
 		} catch (Exception e) {
 			logger.severe("Can not convert property into int (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not convert property into int (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not convert property into int (property = " + propertyName + ", value = "
+					+ value + " ) from configration file, please check configuration file.");
 		}
 		return retValue;
 	}
@@ -164,7 +166,8 @@ public class ConfigurationManager {
 	public double getPropertyAsDouble(String propertyName, double defaultValue) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.info("Can not get property ( " + propertyName + " ) from configration file, use default value (" + defaultValue + ").");
+			logger.info("Can not get property ( " + propertyName + " ) from configration file, use default value ("
+					+ defaultValue + ").");
 			return defaultValue;
 		}
 		double retValue = defaultValue;
@@ -173,8 +176,8 @@ public class ConfigurationManager {
 		} catch (Exception e) {
 			logger.severe("Can not convert property into double (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not convert property into double (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not convert property into double (property = " + propertyName + ", value = "
+					+ value + " ) from configration file, please check configuration file.");
 		}
 		return retValue;
 	}
@@ -182,8 +185,10 @@ public class ConfigurationManager {
 	public double getRequiredPropertyAsDouble(String propertyName) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.severe("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
+			logger.severe("Can not get property ( " + propertyName
+					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not get property ( " + propertyName
+					+ " ) from configration file, please check configuration file.");
 		}
 		double retValue = 0;
 		try {
@@ -191,8 +196,8 @@ public class ConfigurationManager {
 		} catch (Exception e) {
 			logger.severe("Can not convert property into double (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not convert property into double (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not convert property into double (property = " + propertyName + ", value = "
+					+ value + " ) from configration file, please check configuration file.");
 		}
 		return retValue;
 	}
@@ -200,7 +205,8 @@ public class ConfigurationManager {
 	public BigDecimal getPropertyAsBigDecimal(String propertyName, BigDecimal defaultValue) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.info("Can not get property ( " + propertyName + " ) from configration file, use default value (" + defaultValue + ").");
+			logger.info("Can not get property ( " + propertyName + " ) from configration file, use default value ("
+					+ defaultValue + ").");
 			return defaultValue;
 		}
 		BigDecimal retValue = defaultValue;
@@ -209,8 +215,8 @@ public class ConfigurationManager {
 		} catch (Exception e) {
 			logger.severe("Can not convert property into double (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not convert property into BigDecimal (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not convert property into BigDecimal (property = " + propertyName
+					+ ", value = " + value + " ) from configration file, please check configuration file.");
 		}
 		return retValue;
 	}
@@ -218,8 +224,10 @@ public class ConfigurationManager {
 	public BigDecimal getRequiredPropertyAsBigDecimal(String propertyName) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.severe("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
+			logger.severe("Can not get property ( " + propertyName
+					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not get property ( " + propertyName
+					+ " ) from configration file, please check configuration file.");
 		}
 		BigDecimal retValue = new BigDecimal(0);
 		try {
@@ -227,8 +235,8 @@ public class ConfigurationManager {
 		} catch (Exception e) {
 			logger.severe("Can not convert property into double (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not convert property into BigDecimal (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not convert property into BigDecimal (property = " + propertyName
+					+ ", value = " + value + " ) from configration file, please check configuration file.");
 		}
 		return retValue;
 	}
@@ -236,7 +244,8 @@ public class ConfigurationManager {
 	public boolean getPropertyAsBoolean(String propertyName, boolean defaultValue) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.info("Can not get property ( " + propertyName + " ) from configration file, use default value (" + defaultValue + ").");
+			logger.info("Can not get property ( " + propertyName + " ) from configration file, use default value ("
+					+ defaultValue + ").");
 			return defaultValue;
 		}
 		boolean retValue = false;
@@ -245,8 +254,8 @@ public class ConfigurationManager {
 		} catch (Exception e) {
 			logger.severe("Can not convert property into int (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not convert property into int (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not convert property into int (property = " + propertyName + ", value = "
+					+ value + " ) from configration file, please check configuration file.");
 		}
 		return retValue;
 	}
@@ -254,8 +263,10 @@ public class ConfigurationManager {
 	public boolean getRequiredPropertyAsBoolean(String propertyName) {
 		String value = getCommonConfigProperty(propertyName);
 		if (value == null || (value = value.trim()).equals("")) {
-			logger.severe("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not get property ( " + propertyName + " ) from configration file, please check configuration file.");
+			logger.severe("Can not get property ( " + propertyName
+					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not get property ( " + propertyName
+					+ " ) from configration file, please check configuration file.");
 		}
 		boolean retValue = false;
 		try {
@@ -263,17 +274,17 @@ public class ConfigurationManager {
 		} catch (Exception e) {
 			logger.severe("Can not convert property into boolean (property = " + propertyName + ", value = " + value
 					+ " ) from configration file, please check configuration file.");
-			throw new RuntimeException("Can not convert property into boolean (property = " + propertyName + ", value = " + value
-					+ " ) from configration file, please check configuration file.");
+			throw new RuntimeException("Can not convert property into boolean (property = " + propertyName
+					+ ", value = " + value + " ) from configration file, please check configuration file.");
 		}
 		return retValue;
 	}
 
 	private String getCommonConfigProperty(String propertyName) {
-		if (propertyName == null || (propertyName = propertyName.trim()).equals("")) {
+		if (propertyName == null || (propertyName = propertyName.trim()).equals("") || commonConfigMap == null) {
 			return null;
 		}
-		return commonConfigProperties.getProperty(propertyName);
+		return commonConfigMap.get(propertyName);
 	}
 
 	public String printConfiguration() {
@@ -281,22 +292,23 @@ public class ConfigurationManager {
 	}
 
 	public void resetConfiguration() {
-		commonConfigProperties = null;
-		getConfigProperties();
+		commonConfigMap = null;
+		tempConfigProperties = null;
+		loadConfigProperties();
 	}
 
-	private static Properties getConfigProperties() {
-		if (commonConfigProperties != null) {
-			return new Properties(commonConfigProperties);
+	private static void loadConfigProperties() {
+		if (commonConfigMap != null) {
+			return;
 		}
 		logger.finer("Loading configuration properties start........");
-		//load system properties
-		commonConfigProperties = new Properties(System.getProperties());
-		
-		//load system environment variables
+		// load system properties
+		tempConfigProperties = new Properties(System.getProperties());
+
+		// load system environment variables
 		Map<String, String> env = System.getenv();
 		for (String key : env.keySet()) {
-			commonConfigProperties.setProperty(key, env.get(key));
+			tempConfigProperties.setProperty(key, env.get(key));
 		}
 
 		Properties tmpProperties = new Properties();
@@ -304,10 +316,10 @@ public class ConfigurationManager {
 		try {
 			in = ConfigurationManager.class.getResourceAsStream("/" + JAPP_COMMON_CONFIG_FILE_NAME);
 			logger.info("loading property file '/" + JAPP_COMMON_CONFIG_FILE_NAME + "' from classpath...");
-			commonConfigProperties.load(in);
+			tempConfigProperties.load(in);
 			in.close();
 
-			//just check and warn
+			// just check and warn
 			tmpProperties.clear();
 			in = ConfigurationManager.class.getResourceAsStream("/" + JAPP_COMMON_CONFIG_FILE_NAME);
 			tmpProperties.load(in);
@@ -315,7 +327,8 @@ public class ConfigurationManager {
 			in = null;
 			checkPropertyPrefix(tmpProperties);
 		} catch (Exception e) {
-			throw new RuntimeException("can not load property file '/" + JAPP_COMMON_CONFIG_FILE_NAME + "' from classpath.", e);
+			throw new RuntimeException(
+					"can not load property file '/" + JAPP_COMMON_CONFIG_FILE_NAME + "' from classpath.", e);
 		} finally {
 			if (in != null) {
 				try {
@@ -328,22 +341,23 @@ public class ConfigurationManager {
 		}
 		resolveVariables();
 		resolveIncludes();
-		String externalFile = commonConfigProperties.getProperty(JAPP_COMMON_EXTERNAL_CONFIG_FILE);
+		String externalFile = tempConfigProperties.getProperty(JAPP_COMMON_EXTERNAL_CONFIG_FILE);
 		if (externalFile != null && !(externalFile = externalFile.trim()).equals("")) {
 			if (externalFile.equalsIgnoreCase(JAPP_COMMON_CONFIG_FILE_NAME)) {
-				throw new RuntimeException("external property file name '" + externalFile + "' should not be same as " + JAPP_COMMON_CONFIG_FILE_NAME);
+				throw new RuntimeException("external property file name '" + externalFile + "' should not be same as "
+						+ JAPP_COMMON_CONFIG_FILE_NAME);
 			}
-			//load external properties
+			// load external properties
 			try {
 				in = CommonFactory.class.getResourceAsStream("/" + externalFile);
 				logger.info("loading property file '/" + externalFile + "' from classpath...");
 				if (in == null) {
 					logger.warning("can not find property file '/" + externalFile + "' from classpath.");
 				} else {
-					commonConfigProperties.load(in);
+					tempConfigProperties.load(in);
 					in.close();
-					
-					//just check and warn
+
+					// just check and warn
 					tmpProperties.clear();
 					in = CommonFactory.class.getResourceAsStream("/" + externalFile);
 					tmpProperties.load(in);
@@ -366,34 +380,36 @@ public class ConfigurationManager {
 			resolveVariables();
 			resolveIncludes();
 		} else {
-			logger.info("There is no external configuration file defined. Check property '" + JAPP_COMMON_EXTERNAL_CONFIG_FILE + "'...");
+			logger.info("There is no external configuration file defined. Check property '"
+					+ JAPP_COMMON_EXTERNAL_CONFIG_FILE + "'...");
 		}
 		logger.finer("\n" + printCommonConfigProperties());
 		logger.finer("Loading configuration properties end........");
-		return new Properties(commonConfigProperties);
+
+		commonConfigMap = CommonUtil.propertiesToMap(tempConfigProperties, true);
+		tempConfigProperties = null;
+		return;
 	}
 
 	private static String printCommonConfigProperties() {
-		//logger.fine("printCommonConfigProperties() begins...");
-		getConfigProperties();
+		// logger.fine("printCommonConfigProperties() begins...");
+		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+			return "Configuration Properties = []";
+		}
 		StringBuffer strBuffer = new StringBuffer();
 		strBuffer.append("Configuration Properties = ");
-		if (commonConfigProperties == null) {
-			strBuffer.append(" null");
-			return strBuffer.toString();
-		}
-		Set e = commonConfigProperties.keySet();
+		Set e = commonConfigMap.keySet();
 		List<String> keyList = new ArrayList(e);
 		Collections.sort(keyList);
 		for (String key : keyList) {
-			strBuffer.append("\n****" + key + " = " + commonConfigProperties.getProperty(key));
+			strBuffer.append("\n****" + key + " = " + commonConfigMap.get(key));
 		}
-		//logger.fine("printCommonConfigProperties() ends...");
+		// logger.fine("printCommonConfigProperties() ends...");
 		return strBuffer.toString();
 	}
 
 	private static void checkPropertyPrefix(Properties properties) {
-		//logger.fine("checkPropertyPrefix() begin...");
+		// logger.fine("checkPropertyPrefix() begin...");
 		if (properties == null) {
 			return;
 		}
@@ -414,13 +430,13 @@ public class ConfigurationManager {
 	}
 
 	private static void resolveVariables() {
-		Set<?> e = commonConfigProperties.keySet();
+		Set<?> e = tempConfigProperties.keySet();
 		List<String> keyList = new ArrayList(e);
 		String value = null;
 		for (String key : keyList) {
-			value = commonConfigProperties.getProperty(key);
+			value = tempConfigProperties.getProperty(key);
 			value = resolveVariable(value);
-			commonConfigProperties.put(key, value);
+			tempConfigProperties.put(key, value);
 		}
 		return;
 	}
@@ -428,7 +444,7 @@ public class ConfigurationManager {
 	private static String resolveVariable(String value) {
 		String variableName = getVariableName(value);
 		if (variableName == null) {
-			//no variables in the String
+			// no variables in the String
 			return value;
 		}
 		logger.fine("resolve variable ${" + variableName + "}...");
@@ -453,13 +469,13 @@ public class ConfigurationManager {
 		if (idx1 == 0 || !value.substring(idx1 - 1, idx1).equals("\\")) {
 			int idx2 = value.indexOf("}", idx1);
 			if (idx2 < 0 || (idx2 == (idx1 + 2))) {
-				//${} or ${...
+				// ${} or ${...
 				return null;
 			}
 			value = value.substring(idx1 + 2, idx2);
 			return value;
 		}
-		//case \${
+		// case \${
 		value = value.substring(idx1 + 1);
 		return getVariableName(value);
 	}
@@ -470,7 +486,7 @@ public class ConfigurationManager {
 			logger.fine("variable =${" + variableName + "}, value = " + value);
 			return value;
 		}
-		value = commonConfigProperties.getProperty(variableName);
+		value = tempConfigProperties.getProperty(variableName);
 		if (value != null) {
 			logger.fine("variable =${" + variableName + "}, value (come from configuration file)= '" + value + "'");
 			return value;
@@ -488,7 +504,7 @@ public class ConfigurationManager {
 	}
 
 	private static void resolveIncludes() {
-		Set<?> e = commonConfigProperties.keySet();
+		Set<?> e = tempConfigProperties.keySet();
 		List<String> keyList = new ArrayList(e);
 		Collections.sort(keyList);
 		String fileName = null;
@@ -498,8 +514,8 @@ public class ConfigurationManager {
 		for (int j = 0; j < size; j++) {
 			key = keyList.get(j);
 			if (key.startsWith(JAPP_CONFIG_INCLUDES_PREFIX)) {
-				fileName = commonConfigProperties.getProperty(key);
-				commonConfigProperties.remove(key);
+				fileName = tempConfigProperties.getProperty(key);
+				tempConfigProperties.remove(key);
 				keyList.remove(key);
 				size--;
 				logger.fine("loading included configuration file, key = '" + key + "' file = " + fileName + "...");
@@ -528,7 +544,7 @@ public class ConfigurationManager {
 			if (in == null) {
 				throw new RuntimeException("cannot find property file " + fileName);
 			}
-			commonConfigProperties.load(in);
+			tempConfigProperties.load(in);
 			in.close();
 			tmpProperties.clear();
 			if (originalName.startsWith("classpath:")) {
@@ -559,168 +575,198 @@ public class ConfigurationManager {
 		return;
 	}
 
-	public String getRequiredPropertyAsString(String prefix, String propertyName) {
-		logger.fine("prefix: " + prefix);
-		if (prefix == null) {
-			return getRequiredPropertyAsString(propertyName);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getRequiredPropertyAsString(newPropertyName);
-		} else {
-			return getRequiredPropertyAsString(propertyName);
-		}
-	}
-
-	public String getPropertyAsString(String prefix, String propertyName, String defaultValue) {
-		logger.fine("prefix: " + prefix);
-		if (prefix == null) {
-			return getPropertyAsString(propertyName, defaultValue);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getPropertyAsString(newPropertyName, defaultValue);
-		} else {
-			return getPropertyAsString(propertyName, defaultValue);
-		}
-	}
-
-	public int getRequiredPropertyAsInt(String prefix, String propertyName) {
-
-		logger.fine("prefix: " + prefix);
-
-		if (prefix == null) {
-			return getRequiredPropertyAsInt(propertyName);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getRequiredPropertyAsInt(newPropertyName);
-		} else {
-			return getRequiredPropertyAsInt(propertyName);
-		}
-
-	}
-
-	public int getPropertyAsInt(String prefix, String propertyName, int defaultValue) {
-		logger.fine("prefix: " + prefix);
-
-		if (prefix == null) {
-			return getPropertyAsInt(propertyName, defaultValue);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getPropertyAsInt(newPropertyName, defaultValue);
-		} else {
-			return getPropertyAsInt(propertyName, defaultValue);
-		}
-	}
-
-	public BigDecimal getPropertyAsBigDecimal(String prefix, String propertyName, BigDecimal defaultValue) {
-		logger.fine("prefix: " + prefix);
-		if (prefix == null) {
-			return getPropertyAsBigDecimal(propertyName, defaultValue);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getPropertyAsBigDecimal(newPropertyName, defaultValue);
-		} else {
-			return getPropertyAsBigDecimal(propertyName, defaultValue);
-		}
-	}
-
-	public BigDecimal getRequiredPropertyAsBigDecimal(String prefix, String propertyName) {
-		logger.fine("prefix: " + prefix);
-		if (prefix == null) {
-			return getRequiredPropertyAsBigDecimal(propertyName);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getRequiredPropertyAsBigDecimal(newPropertyName);
-		} else {
-			return getRequiredPropertyAsBigDecimal(propertyName);
-		}
-	}
-
-	public boolean getPropertyAsBoolean(String prefix, String propertyName, boolean defaultValue) {
-		logger.fine("prefix: " + prefix);
-		if (prefix == null) {
-			return getPropertyAsBoolean(propertyName, defaultValue);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getPropertyAsBoolean(newPropertyName, defaultValue);
-		} else {
-			return getPropertyAsBoolean(propertyName, defaultValue);
-		}
-	}
-
-	public boolean getRequiredPropertyAsBoolean(String prefix, String propertyName) {
-		logger.fine("prefix: " + prefix);
-		if (prefix == null) {
-			return getRequiredPropertyAsBoolean(propertyName);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getRequiredPropertyAsBoolean(newPropertyName);
-		} else {
-			return getRequiredPropertyAsBoolean(propertyName);
-		}
-	}
-
-	public double getPropertyAsDouble(String prefix, String propertyName, double defaultValue) {
-		logger.fine("prefix: " + prefix);
-		if (prefix == null) {
-			return getPropertyAsDouble(propertyName, defaultValue);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getPropertyAsDouble(newPropertyName, defaultValue);
-		} else {
-			return getPropertyAsDouble(propertyName, defaultValue);
-		}
-	}
-
-	public double getRequiredPropertyAsDouble(String prefix, String propertyName) {
-		logger.fine("prefix: " + prefix);
-		if (prefix == null) {
-			return getRequiredPropertyAsDouble(propertyName);
-		}
-
-		prefix = prefix.trim();
-		String newPropertyName = prefix + "." + propertyName;
-
-		if (commonConfigProperties.containsKey(newPropertyName)) {
-			return getRequiredPropertyAsDouble(newPropertyName);
-		} else {
-			return getRequiredPropertyAsDouble(propertyName);
-		}
-	}
+//	public String getRequiredPropertyAsString(String prefix, String propertyName) {
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return null;
+//		}
+//		if (prefix == null) {
+//			return getRequiredPropertyAsString(propertyName);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getRequiredPropertyAsString(newPropertyName);
+//		} else {
+//			return getRequiredPropertyAsString(propertyName);
+//		}
+//	}
+//
+//	public String getPropertyAsString(String prefix, String propertyName, String defaultValue) {
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return null;
+//		}
+//		if (prefix == null) {
+//			return getPropertyAsString(propertyName, defaultValue);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getPropertyAsString(newPropertyName, defaultValue);
+//		} else {
+//			return getPropertyAsString(propertyName, defaultValue);
+//		}
+//	}
+//
+//	public int getRequiredPropertyAsInt(String prefix, String propertyName) {
+//
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return null;
+//		}
+//
+//		if (prefix == null) {
+//			return getRequiredPropertyAsInt(propertyName);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getRequiredPropertyAsInt(newPropertyName);
+//		} else {
+//			return getRequiredPropertyAsInt(propertyName);
+//		}
+//
+//	}
+//
+//	public int getPropertyAsInt(String prefix, String propertyName, int defaultValue) {
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return null;
+//		}
+//
+//		if (prefix == null) {
+//			return getPropertyAsInt(propertyName, defaultValue);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getPropertyAsInt(newPropertyName, defaultValue);
+//		} else {
+//			return getPropertyAsInt(propertyName, defaultValue);
+//		}
+//	}
+//
+//	public BigDecimal getPropertyAsBigDecimal(String prefix, String propertyName, BigDecimal defaultValue) {
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return null;
+//		}
+//		if (prefix == null) {
+//			return getPropertyAsBigDecimal(propertyName, defaultValue);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getPropertyAsBigDecimal(newPropertyName, defaultValue);
+//		} else {
+//			return getPropertyAsBigDecimal(propertyName, defaultValue);
+//		}
+//	}
+//
+//	public BigDecimal getRequiredPropertyAsBigDecimal(String prefix, String propertyName) {
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return null;
+//		}
+//		if (prefix == null) {
+//			return getRequiredPropertyAsBigDecimal(propertyName);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getRequiredPropertyAsBigDecimal(newPropertyName);
+//		} else {
+//			return getRequiredPropertyAsBigDecimal(propertyName);
+//		}
+//	}
+//
+//	public boolean getPropertyAsBoolean(String prefix, String propertyName, boolean defaultValue) {
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return defaultValue;
+//		}
+//		if (prefix == null) {
+//			return getPropertyAsBoolean(propertyName, defaultValue);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getPropertyAsBoolean(newPropertyName, defaultValue);
+//		} else {
+//			return getPropertyAsBoolean(propertyName, defaultValue);
+//		}
+//	}
+//
+//	public boolean getRequiredPropertyAsBoolean(String prefix, String propertyName) {
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return false;
+//		}
+//		if (prefix == null) {
+//			return getRequiredPropertyAsBoolean(propertyName);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getRequiredPropertyAsBoolean(newPropertyName);
+//		} else {
+//			return getRequiredPropertyAsBoolean(propertyName);
+//		}
+//	}
+//
+//	public double getPropertyAsDouble(String prefix, String propertyName, double defaultValue) {
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return defaultValue;
+//		}
+//		if (prefix == null) {
+//			return getPropertyAsDouble(propertyName, defaultValue);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getPropertyAsDouble(newPropertyName, defaultValue);
+//		} else {
+//			return getPropertyAsDouble(propertyName, defaultValue);
+//		}
+//	}
+//
+//	public double getRequiredPropertyAsDouble(String prefix, String propertyName) {
+//		logger.fine("prefix: " + prefix);
+//		if(commonConfigMap == null || commonConfigMap.isEmpty()) {
+//			return 0;
+//		}
+//		if (prefix == null) {
+//			return getRequiredPropertyAsDouble(propertyName);
+//		}
+//
+//		prefix = prefix.trim();
+//		String newPropertyName = prefix + "." + propertyName;
+//
+//		if (commonConfigMap.containsKey(newPropertyName)) {
+//			return getRequiredPropertyAsDouble(newPropertyName);
+//		} else {
+//			return getRequiredPropertyAsDouble(propertyName);
+//		}
+//	}
 
 }

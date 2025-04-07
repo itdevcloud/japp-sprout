@@ -1,5 +1,7 @@
 package com.itdevcloud.japp.core.api.vo;
 
+import com.itdevcloud.japp.se.common.vo.BaseVO;
+
 public class ReferenceCode extends BaseVO {
 
 	private static final long serialVersionUID = 1L;

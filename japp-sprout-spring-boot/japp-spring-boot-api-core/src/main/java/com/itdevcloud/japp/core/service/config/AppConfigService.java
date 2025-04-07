@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
+import com.itdevcloud.japp.se.common.service.ConfigurationManager;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -41,14 +42,14 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class AppConfigService {
 
-	//private static final Logger logger = LogManager.getLogger(AppConfigService.class);
 	private static final Logger logger = LogManager.getLogger(AppConfigService.class);
 
 	private static Properties systemProperties = null;
 	private static Map<String, String> osEnv = null;
 	private static Map<String, String> configMapFromAppRepository = null;
+	private static ConfigurationManager configurationManager = null;
 
-	//env includes string property files
+	//env includes spring boot property files
 	@Autowired
 	private Environment env;
 
@@ -79,24 +80,34 @@ public class AppConfigService {
 		configMapFromAppRepository = configServiceHelper.createConfigMapFromAppRepository();
 		osEnv = System.getenv();
 		systemProperties = System.getProperties();
+		configurationManager = ConfigurationManager.getInstance();
+		
 	}
 
 	private String getProperty(String key) {
 		if (StringUtil.isEmptyOrNull(key)) {
-			logger.error("getProperty() - '" + key + "' failed: key is NULL, check code!" );
+			logger.error("getProperty() - '" + key + "' failed: key is empty or NULL, check code!" );
 			return null;
 		}
+		//1. get from repository first
 		String valueStr = (configMapFromAppRepository==null?null:configMapFromAppRepository.get(key));
-		//somehow spring env not working based on the doc
+		//do not use empty at here, maybe user like to use ""
+		//2. system property: -D)
 		if (valueStr == null ) {
 			valueStr = (systemProperties==null?null:systemProperties.getProperty(key));
 		}
+		//3. OS ENV
 		if (valueStr == null ) {
 			valueStr = (osEnv==null?null:osEnv.get(key));
 		}
-		//do not use empty at here, maybe user like to use ""
+		//somehow spring env not working based on the doc
+		//4. Spring ENV (includes application.properties
 		if (valueStr == null ) {
 			valueStr = env.getProperty(key);
+		}
+		//5. Common property file
+		if (valueStr == null ) {
+			valueStr = configurationManager.getPropertyAsString(key, null);
 		}
 		return valueStr;
 	}
@@ -127,6 +138,23 @@ public class AppConfigService {
 			return defaultValue;
 		}
 	}
+	public Long getPropertyAsLong(String key) {
+		return getPropertyAsLong(key, 0L);
+	}
+	public Long getPropertyAsLong(String key, Long defaultValue) {
+		String valueStr = getProperty(key);
+		if (valueStr == null) {
+			return defaultValue;
+		}
+		try {
+			Long value = Long.valueOf(valueStr);
+			return value;
+		} catch (Exception e) {
+			logger.error("get property '" + key + "' failed with exception: " + AppUtil.getStackTrace(e));
+			return defaultValue;
+		}
+	}
+
 	public Double getPropertyAsDouble(String key) {
 		return getPropertyAsDouble(key, 0.0);
 	}

@@ -30,7 +30,9 @@ import java.net.ServerSocket;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -72,7 +74,7 @@ public class CommonUtil {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		t.printStackTrace(pw);
-		//String str = t.getMessage() + "\n" + sw.toString();
+		// String str = t.getMessage() + "\n" + sw.toString();
 		String str = sw.toString();
 		pw.close();
 		try {
@@ -135,6 +137,23 @@ public class CommonUtil {
 			sb.append(objectToString(value, level + 1) + "\n");
 		}
 		return sb.toString();
+	}
+
+	public static Map<String, String> propertiesToMap(Properties properties, boolean immutable) {
+		if (properties == null || properties.isEmpty()) {
+			return null;
+		}
+		Map<String, String> map = new HashMap<String, String>();
+		Set<Object> keySet = properties.keySet();
+		for (Object key : keySet) {
+			Object value = properties.getProperty((String) key);
+			map.put((String) key, value == null ? "" : (String) value);
+		}
+		if (immutable) {
+			return Collections.unmodifiableMap(map);
+		} else {
+			return map;
+		}
 	}
 
 	public static String mapToString(Map<?, ?> map, int level) {
@@ -328,7 +347,7 @@ public class CommonUtil {
 		 * port), 1); return true; } catch (Exception ex) { return false; }
 		 */
 
-	       System.out.println("Check port availability......port # " + port );
+		System.out.println("Check port availability......port # " + port);
 		if (port < 1024 || port > 65535) {
 			return false;
 		}
@@ -355,7 +374,7 @@ public class CommonUtil {
 				}
 			}
 		}
-        System.out.println("port # " + port + " is not available.......");
+		System.out.println("port # " + port + " is not available.......");
 		return false;
 	}
 

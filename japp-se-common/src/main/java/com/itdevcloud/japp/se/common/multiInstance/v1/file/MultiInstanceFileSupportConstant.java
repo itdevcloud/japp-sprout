@@ -37,7 +37,7 @@ public class MultiInstanceFileSupportConstant {
 	}
 	
 	public static void init() {
-		ConfigurationManager manager = new ConfigurationManager();
+		ConfigurationManager manager = ConfigurationManager.getInstance();
 		String prefix = "multi.instance.support.file.";
 		
 		INSTANCE_lOCK_FILE_NAME = manager.getPropertyAsString(prefix + "INSTANCE_lOCK_FILE_NAME", "C:\\temp\\test-lock.txt");

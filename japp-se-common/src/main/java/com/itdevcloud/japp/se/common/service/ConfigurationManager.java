@@ -57,11 +57,22 @@ public class ConfigurationManager {
 	public static final String JAPP_CONFIG_INCLUDES_PREFIX = "japp.common.includes.";
 
 	private static Properties commonConfigProperties = null;
-
+	
+	private static ConfigurationManager instance = null;
+	
 	static {
 		getConfigProperties();
 	}
 
+	private ConfigurationManager() {
+		
+	}
+	public static ConfigurationManager getInstance() {
+		if(instance == null) {
+			instance = new ConfigurationManager();
+		}
+		return instance;
+	}
 	/**
 	 * Searches for the property with the specified prefix in this property list.
 	 * If the key is not found in this property list, a empty property is returned.

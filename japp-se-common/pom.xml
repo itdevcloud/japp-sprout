@@ -39,6 +39,7 @@
 		    <version>12.29.0</version>
 		  </dependency>
 	</dependencies>
+	<!--
 	<build>
 		<resources>
 			<resource>
@@ -50,4 +51,5 @@
 			</resource>
 		</resources>
 	</build>
+	-->
 </project>

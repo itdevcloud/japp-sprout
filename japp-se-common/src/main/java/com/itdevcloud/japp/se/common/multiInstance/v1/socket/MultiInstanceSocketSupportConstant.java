@@ -81,7 +81,7 @@ public class MultiInstanceSocketSupportConstant {
 	}
 	
 	public static void init() {
-		ConfigurationManager manager = new ConfigurationManager();
+		ConfigurationManager manager = ConfigurationManager.getInstance();
 		String prefix = "multi.instance.support.socket.";
 		
 		DEFAULT_SOCKET_MAX_PING_INTERVAL_MILLISECOND = manager.getPropertyAsInt(prefix + "DEFAULT_SOCKET_MAX_PING_INTERVAL_MILLISECOND", 30000);

@@ -8,14 +8,15 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
-import java.util.logging.Logger;
-
+import com.itdevcloud.japp.se.common.service.CommonConstant;
+import com.itdevcloud.japp.se.common.service.ConfigurationManager;
+import com.itdevcloud.japp.se.common.service.JulLogger;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.itdevcloud.japp.se.common.vo.AttributeVO;
 import com.itdevcloud.japp.se.common.vo.BaseVO;
 
 public abstract class JdbcBaseDAO {
-	private static final Logger logger = Logger.getLogger(JdbcBaseDAO.class.getName());
+	private static final JulLogger logger = JulLogger.getLogger(JdbcBaseDAO.class.getName());
 	//private static final IaaConfigManager configManager = IaaConfigManager.getIntance();
 
 	private static final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
@@ -24,8 +25,22 @@ public abstract class JdbcBaseDAO {
 	private String dbUser;
 	private String dbPassword;
 
+	public void jdbcInit() {
+		jdbcInit(null, null, null);
+	}
+
 	public void jdbcInit(String dbURL, String dbUser, String dbPassword) {
 		logger.info("jdbcInit() ... ...");
+		ConfigurationManager manager = ConfigurationManager.getInstance();
+		if(StringUtil.isEmptyOrNull(dbURL)) {
+			dbURL = manager.getPropertyAsString(CommonConstant.CONFIG_DB_JDBC_URL, null);
+		}
+		if(StringUtil.isEmptyOrNull(dbUser)) {
+			dbUser = manager.getPropertyAsString(CommonConstant.CONFIG_DB_JDBC_USER, null);
+		}
+		if(StringUtil.isEmptyOrNull(dbPassword)) {
+			dbPassword = manager.getPropertyAsString(CommonConstant.CONFIG_DB_JDBC_PASSWORD, null);
+		}
 		this.dbURL = dbURL;
 		this.dbUser = dbUser;
 		this.dbPassword = dbPassword;
@@ -43,7 +58,7 @@ public abstract class JdbcBaseDAO {
 			return conn;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.warning(e.getMessage());
+			logger.warning("getConnection()......failed with error: " + e.getMessage(), e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -95,7 +110,7 @@ public abstract class JdbcBaseDAO {
 		} 
 
 	}
-	protected void setIaaAttributeFromResultSet(ResultSet rs, int startPosition, long mainEntityId, AttributeVO vo) {
+	protected void setAttributeVOFromResultSet(ResultSet rs, int startPosition, long mainEntityId, AttributeVO vo) {
 		try {
 			vo.setMainEntityId(mainEntityId);
 			vo.setPk(rs.getLong(startPosition));

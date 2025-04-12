@@ -74,6 +74,16 @@ public class MfaInfo {
 	}
 
 	
+	public MfaTOTP getMfaTotp() {
+		return mfaTotp;
+	}
+
+
+	public MfaOTP getMfaOtp() {
+		return mfaOtp;
+	}
+
+
 	@Override
 	public String toString() {
 		return "MfaInfo [mfaTotp = " + mfaTotp + ", mfaOtp = " + mfaOtp ;

@@ -44,10 +44,10 @@ import com.itdevcloud.japp.core.service.customization.CustomizableComponentI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
- * This is a factory class for classes which implement
- * AppFactoryComponentI interface. this class is useful for getting 
- * class instance outside of IOC container.
- * to avoid dead loop, this class should not be used in class initiating process
+ * This is a factory class for classes which implement AppFactoryComponentI
+ * interface. this class is useful for getting class instance outside of IOC
+ * container. to avoid dead loop, this class should not be used in class
+ * initiating process
  * 
  * @author Marvin Sun
  * @since 1.0.0
@@ -102,7 +102,8 @@ public class AppFactory {
 				processedList.add(service);
 				customizableServiceMap.put(serviceInterfaceClass, processedList);
 			} else {
-				//logger.info("AppFactory: component - " + component.getClass().getSimpleName());
+				// logger.info("AppFactory: component - " +
+				// component.getClass().getSimpleName());
 				classComponentMap.put(getSpringIocImplOriginalClass(component.getClass()), component);
 			}
 
@@ -127,26 +128,26 @@ public class AppFactory {
 				}
 			}
 		}
-		//print out AppFactory Components
+		// print out AppFactory Components
 		Set<Class<?>> keyClassSet = classComponentMap.keySet();
-		Object [] keyClassArr = keyClassSet.toArray();
+		Object[] keyClassArr = keyClassSet.toArray();
 
 		String[] classNameArr = new String[keyClassSet.size()];
 		String str = "AppFactory supported component: ";
-		for (int i = 0 ; i < keyClassSet.size(); i++) {
-			classNameArr[i] = ((Class<?>)keyClassArr[i]).getSimpleName();
+		for (int i = 0; i < keyClassSet.size(); i++) {
+			classNameArr[i] = ((Class<?>) keyClassArr[i]).getSimpleName();
 		}
 		Arrays.sort(classNameArr);
-		for (int i = 0 ; i < keyClassSet.size(); i++) {
-			if(i != 0)
-			str = str + "," + classNameArr[i];
+		for (int i = 0; i < keyClassSet.size(); i++) {
+			if (i != 0)
+				str = str + "," + classNameArr[i];
 		}
 		str = str + "\nTOTAL Factory Component Number = " + keyClassArr.length;
 		logger.debug(str);
 
 		initAppComponents();
-		
-		if( processorErrorList != null && !processorErrorList.isEmpty()) {
+
+		if (processorErrorList != null && !processorErrorList.isEmpty()) {
 			String errStr = "Following processors can not be succefully parsed - error detected when parse command, request or response object, check code!\n";
 			for (String error : processorErrorList) {
 				errStr = errStr + error + "\n";
@@ -155,7 +156,7 @@ public class AppFactory {
 		}
 
 		Set<String> keySet = commandInfoMap.keySet();
-		logger.info("AppFactory.init() - supported command set size = " + commandInfoMap.size() + " - " + keySet );
+		logger.info("AppFactory.init() - supported command set size = " + commandInfoMap.size() + " - " + keySet);
 		String jsonTemplate = "AppFactory.init() - supported command Json Request Template: ";
 		Gson gson = new GsonBuilder().serializeNulls().create();
 		for (String keyStr : keySet) {
@@ -169,22 +170,23 @@ public class AppFactory {
 
 		return;
 	}
-	
-	/* 
-	 * This is specific for Spring container - sometimes it implements class automatically, 
-	 * we need to get original class
+
+	/*
+	 * This is specific for Spring container - sometimes it implements class
+	 * automatically, we need to get original class
 	 */
-	private Class<?> getSpringIocImplOriginalClass(Class<?> clazz){
-		if(clazz == null) {
+	private Class<?> getSpringIocImplOriginalClass(Class<?> clazz) {
+		if (clazz == null) {
 			return null;
 		}
 		String name = clazz.getSimpleName();
 		int idx = name.indexOf("$$");
-		if(idx > 0) {
+		if (idx > 0) {
 			clazz = clazz.getSuperclass();
 		}
 		return clazz;
 	}
+
 	private CommandInfo getCommandInfo(RequestProcessor processor) {
 
 		if (processor == null) {
@@ -236,7 +238,7 @@ public class AppFactory {
 		}
 		return null;
 	}
-	
+
 	private void initAppComponents() {
 
 		Field[] declaredFields = AppComponents.class.getDeclaredFields();
@@ -254,7 +256,8 @@ public class AppFactory {
 						field.set(null, obj);
 						logger.debug("init field successfully: '" + field.getName() + "' ");
 					} else {
-						errorFieldList.add("Field Name: '" + field.getName() + ", class '" + field.getType().getSimpleName());
+						errorFieldList
+								.add("Field Name: '" + field.getName() + ", class '" + field.getType().getSimpleName());
 					}
 				}
 			}
@@ -262,15 +265,32 @@ public class AppFactory {
 			logger.error("initAppComponents() - failed, exception: " + AppUtil.getStackTrace(e));
 			throw AppUtil.throwRuntimeException(e);
 		}
-		if(!errorFieldList.isEmpty()) {
+		if (!errorFieldList.isEmpty()) {
 			String errStr = "Following Fields cannot be initialized, check code!\n";
-			for(String fieldStr: errorFieldList) {
+			for (String fieldStr : errorFieldList) {
 				errStr = errStr + fieldStr + "\n";
 			}
 			throw new RuntimeException(errStr);
 		}
 		return;
 	}
+
+//	public static <T> List<T> getAppFactoryComponents(Class<T> componentClass) {
+//		if (componentClass == null) {
+//			return null;
+//		}
+//		List<T> list = new ArrayList<T>();
+//		for (Object component : classComponentMap.values()) {
+//			if(component instanceof T )
+//			try {
+//				T obj = (T) component;
+//				list.add(obj);
+//			} catch (ClassCastException e) {
+//				continue;
+//			}
+//		}
+//		return list;
+//	}
 
 	public static <T> T getComponent(Class<T> componentClass) {
 		if (componentClass == null) {
@@ -283,7 +303,7 @@ public class AppFactory {
 		if (StringUtil.isEmptyOrNull(command) && StringUtil.isEmptyOrNull(requestSimpleName)) {
 			throw new RuntimeException("command or requestSimpleName is null, please check code!!!");
 		}
-		if(StringUtil.isEmptyOrNull(command)) {
+		if (StringUtil.isEmptyOrNull(command)) {
 			int idx = requestSimpleName.indexOf(AppUtil.REQUEST_POSTFIX);
 			if (idx <= 0) {
 				logger.error("AppFactory.getCommandInfo() - requestSimpleName parameter is not correct - <"
@@ -298,35 +318,34 @@ public class AppFactory {
 		}
 		return commandInfo;
 	}
-	
+
 	public static RequestProcessor getRequestProcessor(String requestSimpleName) {
 		if (commandInfoMap == null || commandInfoMap.isEmpty() || StringUtil.isEmptyOrNull(requestSimpleName)) {
-			throw new RuntimeException(
-					"commandInfoMap is null or empty, or command is null, please check code!!!");
+			throw new RuntimeException("commandInfoMap is null or empty, or command is null, please check code!!!");
 		}
 		int idx = requestSimpleName.indexOf("Request");
 		if (idx <= 0) {
-			String errStr = "getRequestProcessor() - requestSimpleName is not correct - <"
-					+ requestSimpleName + ">, check code!";
+			String errStr = "getRequestProcessor() - requestSimpleName is not correct - <" + requestSimpleName
+					+ ">, check code!";
 			logger.error(errStr);
-			//throw new RuntimeException(errStr);
+			// throw new RuntimeException(errStr);
 			return null;
 		}
 		String command = requestSimpleName.substring(0, idx);
 
 		CommandInfo commandInfo = commandInfoMap.get(command.toLowerCase());
-		RequestProcessor processor = commandInfo==null?null:commandInfo.getProcessor();
+		RequestProcessor processor = commandInfo == null ? null : commandInfo.getProcessor();
 		if (processor != null) {
 			return processor;
 		} else {
-			String errStr = "Request - '" + requestSimpleName + "' is not supported, no processor is found, check code!!!";
+			String errStr = "Request - '" + requestSimpleName
+					+ "' is not supported, no processor is found, check code!!!";
 			logger.error(errStr);
-			//throw new RuntimeException(errStr);
+			// throw new RuntimeException(errStr);
 			return null;
 
 		}
 	}
-
 
 	@SuppressWarnings("unchecked")
 	public static <T> T getInstance(Class<T> interfaceImpl, Class<?>[] parameterTypes, Object[] initargs) {

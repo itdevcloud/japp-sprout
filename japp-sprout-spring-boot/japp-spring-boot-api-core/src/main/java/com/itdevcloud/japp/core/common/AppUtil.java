@@ -526,9 +526,10 @@ public class AppUtil {
 
 		String appMfaDefaultType = ConfigFactory.appConfigService
 				.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_MFA_DEFAULT_TYPE, MfaVO.MFA_TYPE_OTP);
-
-		List<MfaVO> userMfaVOList = iaaUser.getMfaVOList();
-		if (!appMfaEnabled && (userMfaVOList == null || userMfaVOList.isEmpty())) {
+		
+		MfaInfo mfaInfo = iaaUser.getMfaInfo();
+		List<MfaVO> userMfaVOList = mfaInfo == null?null:mfaInfo.getMfaVOList();
+		if (!appMfaEnabled && (mfaInfo == null || userMfaVOList.isEmpty())) {
 			// MFA is not enabled for the app and for the user, do nothing;
 			logger.debug("MFA is not enabled for the user and for the app, do nothing......");
 			return false;

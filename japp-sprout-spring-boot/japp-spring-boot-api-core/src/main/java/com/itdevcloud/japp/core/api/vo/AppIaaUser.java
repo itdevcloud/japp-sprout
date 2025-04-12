@@ -48,7 +48,7 @@ public class AppIaaUser extends BaseVO {
 	private String phone;
 	private String cidrWhitelist;
 	private String assignedAgCodes;
-	private List<MfaVO> mfaVOList;
+	private MfaInfo mfaInfo;
 	
 	
 	public String getSessionId() {
@@ -145,52 +145,14 @@ public class AppIaaUser extends BaseVO {
 	public void setHashedAlgorithm(String hashedAlgorithm) {
 		this.hashedAlgorithm = hashedAlgorithm;
 	}
-	public MfaVO getMfaVO(String type) {
-		if(StringUtil.isEmptyOrNull(type) || this.mfaVOList == null) {
-			return null;
-		}
-		for(MfaVO vo: mfaVOList) {
-			if(type.equalsIgnoreCase(vo.getType())) {
-				return vo;
-			}
-		}
-		return null;
-	}
-	public void addMfaVO(MfaVO mfaVO) {
-		if(mfaVO == null) {
-			return;
-		}
-		if(this.mfaVOList == null) {
-			this.mfaVOList = new ArrayList<MfaVO>();
-			this.mfaVOList.add(mfaVO);
-			return;
-		}
-		//one entry per type in the list
-		int idx = this.mfaVOList.indexOf(mfaVO);
-		if(idx < 0 ) {
-			this.mfaVOList.add(mfaVO);
-			return;
-		}
-		return;
-	}
-	
-	public List<MfaVO> getMfaVOList() {
-		return mfaVOList;
-	}
-	public void setMfaVOList(List<MfaVO> mfaVOList) {
-		if(mfaVOList == null || mfaVOList.isEmpty()) {
-			this.mfaVOList = mfaVOList;
-			return;
-		}
-		this.mfaVOList = new ArrayList<MfaVO>();
-		for(MfaVO vo: mfaVOList) {
-			//one entry per type in the list
-			addMfaVO(vo);
-		}
-		return;
-	}
 	
 	
+	public MfaInfo getMfaInfo() {
+		return mfaInfo;
+	}
+	public void setMfaInfo(MfaInfo mfaInfo) {
+		this.mfaInfo = mfaInfo;
+	}
 	@Override
 	public String getUID() {
 		return userIaaUID;
@@ -201,7 +163,7 @@ public class AppIaaUser extends BaseVO {
 				+ ", loginProvider=" + loginProvider + ", appId=" + appId + ", userType=" + userType + ", name=" + name
 				+ ", email=" + email + ", phone=" + phone + ", cidrWhitelist=" + cidrWhitelist + ", sessionId="
 				+ assignedAgCodes + ", assignedAgCodes="
-						+ sessionId + ", mfaVOList=" + CommonUtil.listToString(mfaVOList, 0) + "]";
+						+ sessionId + ", mfaInfo=" + mfaInfo + "]";
 	}
 
 

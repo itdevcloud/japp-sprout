@@ -6,6 +6,7 @@
 package com.itdevcloud.japp.core.iaa.web;
 
 import java.io.IOException;
+import java.util.List;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.jboss.aerogear.security.otp.Totp;
 
 import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.MfaInfo;
 import com.itdevcloud.japp.core.api.vo.MfaTOTP;
 import com.itdevcloud.japp.core.api.vo.MfaVO;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
@@ -77,11 +79,21 @@ public class TotpAuthnServlet extends jakarta.servlet.http.HttpServlet {
 			String totpCodeFromReq = httpRequest.getParameter("totp-code");
 
 			AppIaaUser iaaUser = AppUtil.getAppIaaUserFromSessionRepository(sessionIdFromReq);
-			MfaTOTP mfaTotp = (MfaTOTP) iaaUser.getMfaVO(MfaVO.MFA_TYPE_TOTP);
-			String totpSecret = mfaTotp.getSecret();
+
+			MfaInfo mfaInfo = iaaUser.getMfaInfo();
+			MfaTOTP mfaTotp = mfaInfo==null?null:mfaInfo.getMfaTotp();
+			String totpSecret = mfaTotp == null?null:mfaTotp.getSecret();
+			
+			if (StringUtil.isEmptyOrNull(totpSecret)) {
+				String err = "no TOTP secret is setup for the user, '" + iaaUser.getUserIaaUID() + "'......";
+				logger.error(err);
+				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, err);
+				return;
+			}
+
 			Totp totp = new Totp(totpSecret);
 
-			if (StringUtil.isEmptyOrNull(totpSecret) || totp == null) {
+			if (totp == null) {
 				String err = "no TOTP secret is setup for the user, '" + iaaUser.getUserIaaUID() + "'......";
 				logger.error(err);
 				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY, err);

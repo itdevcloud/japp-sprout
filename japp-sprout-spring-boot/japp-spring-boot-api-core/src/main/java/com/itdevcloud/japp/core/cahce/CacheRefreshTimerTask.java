@@ -31,14 +31,16 @@ import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
+import com.itdevcloud.japp.core.common.AppFactory;
+
 import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 
 /**
  * This class is used to refresh various caches based on pre-defined schedules.
  *
- * It provides the support for daily cache refresh (reload all data) and 
- * regular cache refresh (only load the latest updated data since lastUpdateTimeStamp).
+ * It provides the support for daily cache refresh (reload all data) and regular
+ * cache refresh (only load the latest updated data since lastUpdateTimeStamp).
  * 
  * @author Marvin Sun
  * @since 1.0.0
@@ -51,35 +53,53 @@ public class CacheRefreshTimerTask {
 	private static String dailyRefreshDate = null;
 	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 
-
 	private List<RefreshableCache> cacheList;
 
 	@Autowired
 	public CacheRefreshTimerTask(List<RefreshableCache> cacheList) {
 		this.cacheList = cacheList;
+
+		// spring boot container only has one instance, otherwise the instances in the
+		// list are different than the instance in AppCompont object
+		// following code can approve it:
+//		for (RefreshableCache cache : cacheList) {
+//			RefreshableCache tmpCache = AppFactory.getComponent(cache.getClass());
+//			if (tmpCache == null) {
+//				logger.error("No Instance found in AppFactory - " + cache.getClass().getSimpleName()
+//						+ " instance not found in AppFactory!");
+//			} else if (cache == tmpCache) {
+//				logger.info("RefreshableCache - " + cache.getClass().getSimpleName()
+//						+ " instances are identical instances!");
+//			} else {
+//				logger.error(
+//						"RefreshableCache - " + cache.getClass().getSimpleName() + " instances are differe instances!");
+//			}
+//		}
+
 	}
 
 	@PostConstruct
 	public void init() {
 	}
-	
+
 	private String getCacheListInfoString() {
 		StringBuffer sb = new StringBuffer();
-		if(cacheList == null || cacheList.isEmpty()) {
+		if (cacheList == null || cacheList.isEmpty()) {
 			sb.append("CacheRefreshTimerTask - cacheList is null or empty, do nothing......");
-		}else {
+		} else {
 			sb.append("CacheRefreshTimerTask.run() - cacheList size = " + cacheList.size());
 			for (RefreshableCache cache : cacheList) {
-				//make sure load interval configuration
+				// make sure load interval configuration
 				cache.init();
-				sb.append("\n - "+cache.getCacheSimpleName() + ", Refresh Interval = " + cache.getRefreshInterval() + " mins......");
+				sb.append("\n - " + cache.getCacheSimpleName() + ", Refresh Interval = " + cache.getRefreshInterval()
+						+ " mins......");
 			}
 		}
 		return sb.toString();
 	}
-	
-	//10 mins
-	@Scheduled(fixedDelayString = "${jappcore.cache.refresh.least.interval.:10}", timeUnit = TimeUnit.MINUTES )
+
+	// 10 mins
+	@Scheduled(fixedDelayString = "${jappcore.cache.refresh.least.interval.:10}", timeUnit = TimeUnit.MINUTES)
 	public void run() {
 		boolean enableCacheDailyRefresh = ConfigFactory.appConfigService
 				.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_CACHE_DAILY_REFRESH_ENABLED);
@@ -93,7 +113,7 @@ public class CacheRefreshTimerTask {
 		if (enableCacheDailyRefresh && (dailyRefreshDate == null || refreshDateInt < todayInt)) {
 			logger.info("CacheRefreshTimerTask.run() - Daily refresh start............");
 			logger.info(getCacheListInfoString());
-			
+
 			for (RefreshableCache cache : cacheList) {
 				// force to refresh anyway by set lastUpdatedTS = -1
 				cache.setLastUpdatedTS(-1);
@@ -105,7 +125,7 @@ public class CacheRefreshTimerTask {
 			logger.info("CacheRefreshTimerTask.run() - Daily refresh end........ took " + (endTS - nowTS) + " ms.");
 		} else {
 			for (RefreshableCache cache : cacheList) {
-					cache.refreshCache();
+				cache.refreshCache();
 			}
 		}
 

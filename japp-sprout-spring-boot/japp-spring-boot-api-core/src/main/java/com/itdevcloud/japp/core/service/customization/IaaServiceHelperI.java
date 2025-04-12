@@ -19,6 +19,8 @@ package com.itdevcloud.japp.core.service.customization;
 import java.util.List;
 import java.util.Map;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.MfaVO;
 import com.itdevcloud.japp.core.iaa.service.IaaUser;
 import com.itdevcloud.japp.core.iaa.service.UserAppSpMap;
 /**
@@ -28,24 +30,28 @@ import com.itdevcloud.japp.core.iaa.service.UserAppSpMap;
  */
 public interface IaaServiceHelperI extends CustomizableComponentI {
 
-	public Map<String, Object> getJappTokenClaims(IaaUser iaaUser);
+	public Map<String, Object> getJappTokenClaims(AppIaaUser iaaUser);
 	
-	public IaaUser getIaaUserFromRepositoryByUserId(String userId);
+	public AppIaaUser getIaaUserFromRepositoryByUserIaaUID(String userIaaUID);
+	public AppIaaUser getIaaUserFromRepositoryByLoginId(String loginId, String authnProvider);
 	
-	public IaaUser getIaaUserFromRepositoryByLoginId(String loginId, String... args);
-	
-	public String getIaaUserIdByLoginId(String loginId, String... args);
-	
-	public List<UserAppSpMap> getAuthenticationSpType(String loginId, String... args);
-	
+//	public String getIaaUserIdByLoginId(String loginId, String... args);
+//	
+//	public List<UserAppSpMap> getAuthenticationSpType(String loginId, String... args);
+//	
 	public List<String> getUpdatedIaaUsers(long lastCheckTimestamp);
 
-	public String getAndSend2ndfactorValue(IaaUser iIaaUser, String SecondFactorType);
-
-	public String getHashed2ndFactorValueFromRepositoryByUserId(String userId);
+//	public String getAndSend2ndfactorValue(AppIaaUser iIaaUser, String SecondFactorType);
+//
+//	public String getHashed2ndFactorValueFromRepositoryByUserId(String userId);
 
 	public boolean isAccessAllowed(String userId, String targetNodeId, String targetRoles);
 	
-	public IaaUser getDummyIaaUserByUserId(String userId);
+	public AppIaaUser getDummyIaaUserByUserId(String userId);
+	
+	public List<MfaVO> getMfaInfoFromSessionRepository(String userSessionId);
+	public void addOrUpdateMfaInfoToSessionRepository(String userSessionId, MfaVO mfaVO);
+	public String getUserIaaUIDFromSessionRepository(String userSessionId);
+	public void setUserIaaUIDToSessionRepository(String userIaaUID);
 
 }

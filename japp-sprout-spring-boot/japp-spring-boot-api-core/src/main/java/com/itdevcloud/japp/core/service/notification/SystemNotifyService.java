@@ -60,6 +60,7 @@ public class SystemNotifyService implements AppFactoryComponentI{
 	
 	@PostConstruct
 	public void init() {
+		//try to avoid using AppConfig Service, AppComponents.appConfigCache may be not fully initiated yet
 	}
 
 	/**

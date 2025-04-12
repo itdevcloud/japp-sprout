@@ -40,7 +40,7 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
  * @since 1.0.0
  */
 @Component
-public class PkiKeyCache extends RefreshableCache{
+public class PkiKeyCache extends RefreshableCache {
 
 	private static final Logger logger = LogManager.getLogger(PkiKeyCache.class);
 
@@ -48,64 +48,40 @@ public class PkiKeyCache extends RefreshableCache{
 	private static PublicKey jappPublicKey;
 	private static Certificate jappCertificate;
 
-
 	@PostConstruct
 	private void initService() {
 	}
 
 	@Override
-	public void refreshCache() {
-		if (lastUpdatedTS == -1) {
-			initCache();
-		}else {
-			logger.info("PkiKeyCache.refreshCache() - only daily referesh is requried, do nothing...");
-		}
+	protected String createDisplayString() {
+		String str = "jappCertificate=" + (jappCertificate==null?null:"***") + ", jappPublicKey=" + (jappPublicKey==null?null:"***") + 
+				", jappPrivateKey=" + (jappPrivateKey==null?null:"***")  ;
+		return str;
 	}
 
 	@Override
-	public synchronized void initCache() {
+	public synchronized void refreshCache() {
 		try {
-			long startTS = System.currentTimeMillis();
-			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL))) {
-				logger.debug("PkiKeyCache.init() - begin...........");
 
-				AppComponents.pkiService.retrieveJappKeyPair();
-				Key tmpJappPrivateKey = AppComponents.pkiService.getJappPrivateKey();
-				PublicKey tempJappPublicKey = AppComponents.pkiService.getJappPublicKey();
-				Certificate tempJappCertificate = AppComponents.pkiService.getJappCertificate();
-				boolean comeFromKeyVault = AppComponents.pkiService.isComeFromKeyVault();
-				if (tmpJappPrivateKey == null || tempJappPublicKey == null) {
-					String info = "JappKeyCache.init() - cannot retrieve JappPrivateKey, JappsPublicKey, does not change current Japp Key Cache.......!!!";
-					logger.error(info);
-					AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE, info);
-					return;
-				}
-				initInProcess = true;
-				jappPrivateKey = tmpJappPrivateKey;
-				jappPublicKey = tempJappPublicKey;
-				jappCertificate = tempJappCertificate;
-				initInProcess = false;
-
-				Date end = new Date();
-				long endTS = end.getTime();
-				lastUpdatedTS = endTS;
-
-				String str = "JappKeyCache.init() - end. total time = " + (endTS - startTS) + " millis. Result:"
-						+ "\njappPrivateKey = " + (jappPrivateKey==null?null:"******")
-						+ "\nJappPublicKey = " + (jappPublicKey==null?null:"******")
-						+ "\njappCertificate = " + (jappCertificate==null?null:"******");
-				String info = "JappKeyCache.init() - JAPP Key come from Azure Key Vault = " + comeFromKeyVault + ", total time = " + (endTS - startTS) + " millis. \n";
-
-				logger.info(str);
-				AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE, info);
+			AppComponents.pkiService.retrieveJappKeyPair();
+			Key tmpJappPrivateKey = AppComponents.pkiService.getJappPrivateKey();
+			PublicKey tempJappPublicKey = AppComponents.pkiService.getJappPublicKey();
+			Certificate tempJappCertificate = AppComponents.pkiService.getJappCertificate();
+			boolean comeFromKeyVault = AppComponents.pkiService.isComeFromKeyVault();
+			if (tmpJappPrivateKey == null || tempJappPublicKey == null) {
+				String info = "JappKeyCache.init() - cannot retrieve JappPrivateKey, JappsPublicKey, does not change current Japp Key Cache.......!!!";
+				logger.error(info);
+				AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE,
+						info);
+				return;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			String errStr = AppUtil.getStackTrace(e);
-			logger.error(errStr);
-			AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE, errStr);
+			jappPrivateKey = tmpJappPrivateKey;
+			jappPublicKey = tempJappPublicKey;
+			jappCertificate = tempJappCertificate;
+		} catch (Throwable t) {
+			String err = "refreshCache() wirh error: " + t;
+			logger.error(err, t);
 		} finally {
-			initInProcess = false;
 		}
 	}
 
@@ -119,15 +95,12 @@ public class PkiKeyCache extends RefreshableCache{
 		return jappPublicKey;
 	}
 
-
 	public Certificate getJappCertificate() {
 		return jappCertificate;
 	}
 
-
 	public void setJappCertificate(Certificate jappCertificate) {
 		PkiKeyCache.jappCertificate = jappCertificate;
 	}
-
 
 }

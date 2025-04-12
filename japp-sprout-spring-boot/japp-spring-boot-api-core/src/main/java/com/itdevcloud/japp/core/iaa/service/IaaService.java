@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import jakarta.annotation.PostConstruct;
 
@@ -27,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
@@ -49,14 +51,14 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class IaaService implements AppFactoryComponentI {
 
-	//private static final Logger logger = LogManager.getLogger(IaaService.class);
 	private static final Logger logger = LogManager.getLogger(IaaService.class);
 
 	@PostConstruct
 	public void init() {
+		//try to avoid using AppConfig Service, AppComponents.appConfigCache may be not fully initiated yet
 	}
 	
-	public IaaUser loginByLoginIdPassword(String loginId, String password, String... loginSpType) {
+	public AppIaaUser loginByLoginIdPassword(String loginId, String password, String authnProvider) {
 		if (StringUtil.isEmptyOrNull(loginId) || StringUtil.isEmptyOrNull(password)) {
 			String err = "loginByLoginIdPassword() - The login and/or password is null or empty. check code!";
 			logger.error(err);
@@ -65,62 +67,62 @@ public class IaaService implements AppFactoryComponentI {
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
 
 		//cache should not be used for login 
-		String hashedPwd = Hasher.hashPassword(password);;
-		IaaUser user = helper.getIaaUserFromRepositoryByLoginId(loginId, loginSpType);
-		if (user == null) {
+		AppIaaUser iaaUser = helper.getIaaUserFromRepositoryByLoginId(loginId, authnProvider);
+		if (iaaUser == null) {
 			logger.info("loginByLoginIdPassword() - The user loginId = '" + loginId + "' is not found in the repository.....");
 			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR,
 					"The user '" + loginId + "' is not found in repository....");
 		}
-		if (!hashedPwd.equals(user.getCurrentHashedPassword())) {
+		String hashedPwd = Hasher.getHash(password, iaaUser.getHashedAlgorithm());
+		if (!hashedPwd.equals(iaaUser.getHashedPassword())) {
 			logger.info("loginByLoginIdPassword() - password does not match for login user '" + loginId
 					+ "' from repository.....");
 			return null;
 		} else {
-			AppComponents.iaaUserCache.addIaaUser(user);
-			AppThreadContext.setIaaUser(user);
-			return user;
+			AppComponents.iaaUserCache.addIaaUser(iaaUser);
+			AppThreadContext.setAppIaaUser(iaaUser);
+			return iaaUser;
 		}
 	}
 
-	public IaaUser getIaaUserByUserId(String userId) {
+	public AppIaaUser getIaaUserByUserId(String userId) {
 		if (StringUtil.isEmptyOrNull(userId)) {
 			String err = "getIaaUserByUserId() - The user \" + userId + \"is null or empty. check code!";
 			logger.error(err);
 			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, err);
 		}
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		IaaUser user = AppComponents.iaaUserCache.getIaaUserByUserId(userId);
+		AppIaaUser user = AppComponents.iaaUserCache.getIaaUserByUserId(userId);
 		if (user == null) {
-			user = helper.getIaaUserFromRepositoryByUserId(userId);
+			user = helper.getIaaUserFromRepositoryByUserIaaUID(userId);
 		}
 		if (user == null) {
 			logger.info("getIaaUser() - The user '" + userId + "' is not found.");
 			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "The user '" + userId + "' is not found.");
 		}
 		AppComponents.iaaUserCache.addIaaUser(user);
-		AppThreadContext.setIaaUser(user);
+		AppThreadContext.setAppIaaUser(user);
 		return user;
 	}
 	
-	public IaaUser getIaaUserByLoginId(String loginId, String... loginProvider) {
+	public AppIaaUser getIaaUserByLoginId(String loginId, String authnProvider) {
 		if (StringUtil.isEmptyOrNull(loginId)) {
 			String err = "getIaaUserByLoginId() - The user \" + loginId + \"is null or empty. check code!";
 			logger.error(err);
 			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, err);
 		}
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		IaaUser user = helper.getIaaUserFromRepositoryByLoginId(loginId, loginProvider);
+		AppIaaUser user = helper.getIaaUserFromRepositoryByLoginId(loginId, authnProvider);
 		if (user == null) {
 			logger.info("getIaaUser() - The user is not found. for login Id: " + loginId);
 			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SYSTEM_ERROR, "The user is not found. for login Id: " + loginId);
 		}
 		AppComponents.iaaUserCache.addIaaUser(user);
-		AppThreadContext.setIaaUser(user);
+		AppThreadContext.setAppIaaUser(user);
 		return user;
 	}
 
-	public Map<String, Object> getTokenClaims(IaaUser iaaUser) {
+	public Map<String, Object> getTokenClaims(AppIaaUser iaaUser) {
 		if (iaaUser == null) {
 			return null;
 		}
@@ -130,54 +132,55 @@ public class IaaService implements AppFactoryComponentI {
 		if(claims == null) {
 			claims = new HashMap<>();
 		}
+		if(!claims.containsKey("jti")) {
+			claims.put("jti", UUID.randomUUID().toString());
+		}
 		if(!claims.containsKey("userId")) {
-			claims.put("userId", iaaUser.getUserId());
+			claims.put("userId", iaaUser.getUserIaaUID());
 		}
 		if(!claims.containsKey("user")) {
-			claims.put("user", iaaUser.getCurrentLoginId());
+			claims.put("user", iaaUser.getLoginId());
 		}
 		if(!claims.containsKey("email")) {
 			claims.put("email", iaaUser.getEmail());
 		}
-		if(!claims.containsKey("firstName")) {
-			claims.put("firstName", iaaUser.getFirstName());
+		if(!claims.containsKey("name")) {
+			claims.put("name", iaaUser.getName());
 		}
-		if(!claims.containsKey("lastName")) {
-			claims.put("lastName", iaaUser.getLastName());
-		}
-		if(!claims.containsKey("busRole")) {
-			claims.put("busRole", iaaUser.getBusinessRoles());
-		}
-		if(!claims.containsKey("appRole")) {
-			claims.put("appRole", iaaUser.getApplicationRoles());
-		}
+
+//		if(!claims.containsKey("busRole")) {
+//			claims.put("busRole", iaaUser.getBusinessRoles());
+//		}
+//		if(!claims.containsKey("appRole")) {
+//			claims.put("appRole", iaaUser.getApplicationRoles());
+//		}
 		return claims;
 	}
 	//target role could be business role or application role
-	public boolean isAccessAllowed(String targetRole) {
-		IaaUser user = AppThreadContext.getIaaUser();
-		if (user == null) {
-			logger.info("isAccessAllowed() - The user can't be retrieved from ThreadContext, return false.");
-			return false;
-		}
-		Set<String> brSet = user.getBusinessRoles();
-		if (brSet == null || brSet.isEmpty()) {
-			logger.info("isAccessAllowed() -  The user is not assigned to any business role........" + user);
-			return false;
-		}
-		if (brSet.contains(targetRole)) {
-			return true;
-		}
-		Set<String> arSet = user.getApplicationRoles();
-		if (arSet == null || arSet.isEmpty()) {
-			logger.info("isAccessAllowed() -  The user is not assigned to any application role........" + user);
-			return false;
-		}
-		if (arSet.contains(targetRole)) {
-			return true;
-		}
-		return false;
-	}
+//	public boolean isAccessAllowed(String targetRole) {
+//		AppIaaUser user = AppThreadContext.getAppIaaUser();
+//		if (user == null) {
+//			logger.info("isAccessAllowed() - The user can't be retrieved from ThreadContext, return false.");
+//			return false;
+//		}
+//		Set<String> brSet = user.getBusinessRoles();
+//		if (brSet == null || brSet.isEmpty()) {
+//			logger.info("isAccessAllowed() -  The user is not assigned to any business role........" + user);
+//			return false;
+//		}
+//		if (brSet.contains(targetRole)) {
+//			return true;
+//		}
+//		Set<String> arSet = user.getApplicationRoles();
+//		if (arSet == null || arSet.isEmpty()) {
+//			logger.info("isAccessAllowed() -  The user is not assigned to any application role........" + user);
+//			return false;
+//		}
+//		if (arSet.contains(targetRole)) {
+//			return true;
+//		}
+//		return false;
+//	}
 	
 	public boolean isAccessAllowed(String userId, String targetNodeId, String targetRole) {
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
@@ -190,19 +193,19 @@ public class IaaService implements AppFactoryComponentI {
 		return helper.getUpdatedIaaUsers(lastCheckTimestamp);
 	}
 	
-	public String getAndSend2ndfactorValue(IaaUser iaaUser, String SecondFactorType) {
-		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		return helper.getAndSend2ndfactorValue(iaaUser, SecondFactorType);
-	}
+//	public String getAndSend2ndfactorValue(AppIaaUser iaaUser, String SecondFactorType) {
+//		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
+//		return helper.getAndSend2ndfactorValue(iaaUser, SecondFactorType);
+//	}
 	
-	public IaaUser getDummyIaaUserByUserId(String userId) {
+	public AppIaaUser getDummyIaaUserByUserId(String userId) {
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
 		return helper.getDummyIaaUserByUserId(userId);
 	}
 	
-	public String getHashed2ndFactorValueFromRepositoryByUserId(String userId) {
-		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		return helper.getHashed2ndFactorValueFromRepositoryByUserId(userId);
-	}
+//	public String getHashed2ndFactorValueFromRepositoryByUserId(String userId) {
+//		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
+//		return helper.getHashed2ndFactorValueFromRepositoryByUserId(userId);
+//	}
 
 }

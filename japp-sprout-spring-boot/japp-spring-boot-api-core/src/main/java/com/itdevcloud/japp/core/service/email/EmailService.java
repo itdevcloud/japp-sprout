@@ -87,6 +87,7 @@ public class EmailService implements AppFactoryComponentI{
 
 	@PostConstruct
 	public void init() {
+		//try to avoid using AppConfig Service, AppComponents.appConfigCache may be not fully initiated yet
 		emailServiceProviderName = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_EMAIL_PROVIDER);
 		busEmailToAddrs = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_EMAIL_BUS_TOADDRESSES);
 		itEmailToAddrs = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_EMAIL_IT_TOADDRESSES);

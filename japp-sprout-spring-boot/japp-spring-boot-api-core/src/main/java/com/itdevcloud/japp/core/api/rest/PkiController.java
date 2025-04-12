@@ -51,6 +51,7 @@ public class PkiController {
 		PublicKey key = AppComponents.pkiKeyCache.getJappPublicKey();
 		
 		PkiPemVO pkiPemVO = PkiUtil.getPublicKeyPemString(key);
+		logger.debug("PkiController.getPublicKey() - end............");
 		
 		return pkiPemVO;
 	}
@@ -61,6 +62,7 @@ public class PkiController {
 		logger.debug("PkiController.getCertificate() - start......");
 		Certificate certificate = AppComponents.pkiKeyCache.getJappCertificate();
 		PkiPemVO pkiPemVO = PkiUtil.getCertificateAndPublicKeyPemString(certificate, false);
+		logger.debug("PkiController.getCertificate() - end......");
 		return pkiPemVO;
 	}
 

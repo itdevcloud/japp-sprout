@@ -46,28 +46,28 @@ public class DefaultReferenceCodeServiceHelper implements ReferenceCodeServiceHe
 		Map<String, ReferenceCode> testMap = new HashMap<String, ReferenceCode>();
 		
 		ReferenceCode rc = new ReferenceCode();
-		rc.setPk(1);
+		rc.setPk(1L);
 		rc.setCodeDomain("TEST_DOMAIN_1");
 		rc.setCodeType("TEST_Type_1");
 		rc.setCodeName("TEST_Name_1");
 		testMap.put(""+rc.getPk(), rc);
 		
 		rc = new ReferenceCode();
-		rc.setPk(2);
+		rc.setPk(2L);
 		rc.setCodeDomain("TEST_DOMAIN_2");
 		rc.setCodeType("TEST_Type_1");
 		rc.setCodeName("TEST_Name_2");
 		testMap.put(""+rc.getPk(), rc);
 
 		rc = new ReferenceCode();
-		rc.setPk(3);
+		rc.setPk(3L);
 		rc.setCodeDomain("TEST_DOMAIN_3");
 		rc.setCodeType("TEST_Type_3");
 		rc.setCodeName("TEST_Name_3");
 		testMap.put(""+rc.getPk(), rc);
 
 		rc = new ReferenceCode();
-		rc.setPk(4);
+		rc.setPk(4L);
 		rc.setCodeDomain("TEST_DOMAIN_4");
 		rc.setCodeType("TEST_Type_4");
 		rc.setCodeName("TEST_Name_4");
@@ -75,7 +75,7 @@ public class DefaultReferenceCodeServiceHelper implements ReferenceCodeServiceHe
 		testMap.put(""+rc.getPk(), rc);
 
 		rc = new ReferenceCode();
-		rc.setPk(5);
+		rc.setPk(5L);
 		rc.setCodeDomain("TEST_DOMAIN_4");
 		rc.setCodeType("TEST_Type_4");
 		rc.setCodeName("TEST_Name_5");

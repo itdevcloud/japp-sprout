@@ -20,7 +20,7 @@
 
 
 	<modules>
-	<!--
+		<!--
 		<module>japp-spring-boot-api-core</module> 
 		 <module>japp-spring-boot-api-app</module> 
 			<module>japp-spring-boot-api-app-gen</module> -->
@@ -146,12 +146,19 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
+			<exclusions>
+				<exclusion>
+					<!--use project log4j directly -->
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
-		
+
 		<!-- not spring boot dependencies, require provide version number -->
 		<!-- Azure Starters -->
 		<dependency>

@@ -70,6 +70,7 @@ public class AzureJwksService implements AppFactoryComponentI{
 	
 	@PostConstruct
 	private void init() {
+		//try to avoid using AppConfig Service, AppComponents.appConfigCache may be not fully initiated yet
 		logger.info("AzureJwksService.init().....begin........");
 		aadOpenIdMetaDataUrl = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.AAD_OPEN_ID_METADATA_URL);
 		aadClientId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.AAD_CLIENT_ID);
@@ -290,7 +291,6 @@ public class AzureJwksService implements AppFactoryComponentI{
 			Gson gson = new GsonBuilder().serializeNulls().create();
 
 			AzureJwksKeys jwksKeys = gson.fromJson(jwks, AzureJwksKeys.class);
-			logger.info("getJwksKeys() ..... jwksKeys = \n" + jwksKeys);
 
 			if (jwksKeys == null) {
 				String err = "Can't retrive AAD JWKS keys........!!!!!!!!!!!!!!";
@@ -317,10 +317,10 @@ public class AzureJwksService implements AppFactoryComponentI{
 				}
 				Certificate cert = AppUtil.getCertificateFromString(certStr);
 				PublicKey publicKey = AppUtil.getPublicKeyFromCertificate(cert);
-
 				key.setCertificate(cert);
 				key.setPublicKey(publicKey);
 			} // end for
+			logger.info("getJwksKeys() ..... jwksKeys = \n" + jwksKeys);
 			logger.info("getJwksKeys() end.............");
 			return keys;
 		} catch (Exception e) {

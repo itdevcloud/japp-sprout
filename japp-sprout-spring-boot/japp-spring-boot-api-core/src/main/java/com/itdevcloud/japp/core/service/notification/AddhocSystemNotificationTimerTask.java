@@ -48,7 +48,7 @@ public class AddhocSystemNotificationTimerTask {
 		long start = System.currentTimeMillis();
 		AppComponents.systemNotifyService.sendNotification(false);
 		long end1 = System.currentTimeMillis();
-		logger.info("CacheRefreshTimerTask run End...... took " + (end1 - start) + " ms.");
+		logger.info("AddhocSystemNotificationTimerTask run End...... took " + (end1 - start) + " ms.");
 
 	}
 }

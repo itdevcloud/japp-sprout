@@ -114,23 +114,25 @@ public abstract class JdbcBaseDAO {
 		try {
 			vo.setMainEntityId(mainEntityId);
 			vo.setPk(rs.getLong(startPosition));
-			vo.setTypeId(rs.getLong(startPosition+1));
-			vo.setTypeCode(rs.getString(startPosition+2));
-			vo.setSequence(rs.getInt(startPosition+3));
-			vo.setValue(rs.getString(startPosition+4));
-			vo.setDisplayOrder(rs.getInt(startPosition+5));
-			vo.setDescription(rs.getString(startPosition+6));
-			String str = rs.getString(startPosition+7);
+			vo.setDomainId(rs.getLong(startPosition+1));
+			vo.setDomainCode(rs.getString(startPosition+2));
+			vo.setTypeId(rs.getLong(startPosition+3));
+			vo.setTypeCode(rs.getString(startPosition+4));
+			vo.setSequence(rs.getInt(startPosition+5));
+			vo.setValue(rs.getString(startPosition+6));
+			vo.setDisplayOrder(rs.getInt(startPosition+7));
+			vo.setDescription(rs.getString(startPosition+8));
+			String str = rs.getString(startPosition+9);
 			if(StringUtil.isEmptyOrNull(str) || !str.trim().equalsIgnoreCase("Y")) {
 				vo.setRequireUnique(false);
 			}else {
 				vo.setRequireUnique(true);
 			}
 			
-			setVoDatesFromResultSet(rs, startPosition+8, vo);
+			setVoDatesFromResultSet(rs, startPosition+10, vo);
 			
 		} catch (Throwable t) {
-			logger.severe("Fail to setIaaAttributeFromResultSet() , exception " + t);
+			logger.severe("Fail to setAttributeVOFromResultSet() , exception " + t);
 			throw new RuntimeException(t);
 		} 
 

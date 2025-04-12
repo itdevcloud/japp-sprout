@@ -14,35 +14,21 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.api.bean;
+package com.itdevcloud.japp.core.service.customization;
 
-import org.springframework.stereotype.Component;
-
-import com.itdevcloud.japp.core.api.vo.AppIaaUser;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
-
+import com.itdevcloud.japp.core.api.vo.MfaInfo;
 /**
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
+public interface SessionServiceHelperI extends CustomizableComponentI {
 
-@Component
-public class GetIaaProfileResponse extends BaseResponse {
-
-
-	private AppIaaUser iaaUser;
-
-	public AppIaaUser getIaaUser() {
-		return iaaUser;
-	}
-
-	public void setIaaUser(AppIaaUser iaaUser) {
-		this.iaaUser = iaaUser;
-	}
-
-
-
-
+	public MfaInfo getMfaInfoFromSessionRepo(String userSessionId);
+	public void setMfaInfoToSessionRepo(String userSessionId, MfaInfo mfaInfo);
+	//public void addOrUpdateMfaInfoToSessionRepo(String userSessionId, MfaVO mfaVO);
+	
+	public String getValueFromSessionRepo(String userSessionId, String key);
+	public void setValueToSessionRepo(String userSessionId, String key, String value);
 
 }

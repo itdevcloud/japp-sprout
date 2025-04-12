@@ -103,8 +103,10 @@ public class AzureJwksKey {
 	public String toString() {
 		//		return "AzureJwksKey [kty=" + kty + ", use=" + use + ", kid=" + kid + ", x5t=" + x5t + ", n=" + n + ", e=" + e
 		//				+ ", x5c=" + x5c + ", certificate=" + certificate + ", publicKey=" + publicKey + "]";
-		return "AzureJwksKey [kty=" + kty + ", use=" + use + ", kid=" + kid + ", x5t=" + x5t + ", n=" + n + ", e=" + e
-				+ ", x5c=" + x5c + ", certificate=..., publicKey=...]";
+		return "AzureJwksKey [kty=" + (kty==null?null:"***") + ", use=" + (use==null?null:"***") + ", kid=" + (kid==null?null:"***") + 
+				", x5t=" + (x5t==null?null:"***") + ", n=" + (n==null?null:"***") + ", e=" + (e==null?null:"***")
+				+ ", x5c=" + (x5c==null?null:"***") + ", certificate=" + (certificate==null?null:"***") + 
+				", publicKey=" + (publicKey==null?null:"***") + " ]";
 	}
 
 

@@ -3,12 +3,14 @@ package com.itdevcloud.japp.se.common.util;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -104,6 +106,48 @@ public class PkiUtil {
 			}
 		}
 	}
+	public static Certificate getCertificateFromInputStream(InputStream certificateIS) {
+		if (certificateIS == null) {
+			logger.warning("getCertificateFromInputStream() - certificateIS is null, return null.......");
+			return null;
+		}
+		BufferedInputStream bis = new BufferedInputStream(certificateIS);
+		CertificateFactory cf = null;
+		Certificate certificate = null;
+		
+		try {
+			while (bis.available() <= 0) {
+				logger.severe("invalid x509 certificate..............");
+				return null;
+			}
+			cf = CertificateFactory.getInstance("X.509");
+			certificate = cf.generateCertificate(bis);
+
+			bis.close();
+			bis = null;
+			certificateIS.close();
+			certificateIS = null;
+			return certificate;
+		} catch (Throwable t) {
+			logger.severe("Can not get Certificate from Input Stream, error: " + t, t);
+			return null;
+		} finally {
+			if (bis != null) {
+				try {
+					bis.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (certificateIS != null) {
+				try {
+					certificateIS.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
 	public static PublicKey getPublicKeyFromCertificate(Certificate certificate) {
 		if (certificate == null) {
@@ -142,7 +186,7 @@ public class PkiUtil {
 
 	public static PkiPemVO getCertificateAndPublicKeyPemString(Certificate certificate, boolean includesKey) {
 		if (certificate == null) {
-			logger.warning("getCertificatePemString() - certificate is null, return null.......");
+			logger.warning("getCertificateAndPublicKeyPemString() - certificate is null, return null.......");
 			return null;
 		}
 		PkiPemVO pkiPemVO = null;
@@ -156,7 +200,6 @@ public class PkiUtil {
 			byte[] bytes = certificate.getEncoded();
 			String encodedCert = null;
 			if (bytes != null) {
-				logger.warning("getCertificatePemString() - can not get encoded bytes, return null.......");
 				encodedCert = new String(Base64.getEncoder().encodeToString(bytes));
 				encodedCert = certPrefix + System.lineSeparator() + encodedCert + System.lineSeparator()
 						+ certSuffix;

@@ -18,6 +18,8 @@ package com.itdevcloud.japp.core.iaa.web;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -33,6 +35,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.MfaVO;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
@@ -45,7 +49,6 @@ import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.iaa.service.IaaUser;
-import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
 import com.itdevcloud.japp.core.service.notification.SystemNotification;
 import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -62,14 +65,15 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * process the request, otherwise, it will return 401 or 403 Error to the
  * client.
  * <p>
- * This Filter's url pattern is "/${apiroot}/api/*". All requests with url beginning with
- * "api" will trigger this filter. If you need a api service to bypass this
- * filter, define this api's url not starting with "api".
+ * This Filter's url pattern is "/${apiroot}/api/*". All requests with url
+ * beginning with "api" will trigger this filter. If you need a api service to
+ * bypass this filter, define this api's url not starting with "api".
  * <p>
  * This Filter logs the total processing time. If it is too long, a performance
  * alert/warning will be sent.
  * 
- *  * @author Ling Yang
+ * * @author Ling Yang
+ * 
  * @author Marvin Sun
  * @since 1.0.0
  */
@@ -80,7 +84,6 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @WebFilter(filterName = "JappApiAuthenticationFilter", urlPatterns = "/jappcore/api/*")
 public class AuthenticationFilter implements Filter {
 
-	//private static final Logger logger = LogManager.getLogger(AuthenticationFilter.class);
 	private static final Logger logger = LogManager.getLogger(AuthenticationFilter.class);
 
 	@Override
@@ -113,7 +116,8 @@ public class AuthenticationFilter implements Filter {
 			String queryStr = httpRequest.getQueryString();
 
 			logger.info("JappApiAuthenticationFilter.doFilter====method=" + httpRequest.getMethod());
-			String origin = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
+			String origin = ConfigFactory.appConfigService
+					.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_ORIGIN);
 
 			// control for CORS flow
 			if (httpRequest.getMethod().equals("OPTIONS")) {
@@ -131,7 +135,7 @@ public class AuthenticationFilter implements Filter {
 				httpResponse.addHeader("Cache-Control", "no-cache");
 			}
 
-			IaaUser iaaUser = null;
+			AppIaaUser iaaUser = null;
 
 			// check skip auth
 			boolean enableAuth = ConfigFactory.appConfigService
@@ -155,10 +159,6 @@ public class AuthenticationFilter implements Filter {
 							"Authentication Failed. code E205");
 					return;
 				}
-
-				String newToken = null;
-				String provider = ConfigFactory.appConfigService
-						.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER);
 				// retrieve userInfo for Authorization
 				// token subject must be userId!!!
 				String userId = AppThreadContext.getTokenSubject();
@@ -198,7 +198,8 @@ public class AuthenticationFilter implements Filter {
 				if (!AppComponents.commonService.matchUserIpWhiteList(httpRequest, iaaUser)) {
 					logger.error(
 							"Authorization Failed. code E210 - request IP is not on the user's IP white list, user userId '"
-									+ iaaUser.getUserId() + "', IP = " + AppUtil.getClientIp(httpRequest) + ".....");
+									+ iaaUser.getUserIaaUID() + "', IP = " + AppUtil.getClientIp(httpRequest)
+									+ ".....");
 					AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
 							"Authorization Failed. code E210");
 					return;
@@ -207,21 +208,21 @@ public class AuthenticationFilter implements Filter {
 				if (AppComponents.commonService.inMaintenanceMode(httpResponse, userId)) {
 					return;
 				}
+				boolean autoRenew = ConfigFactory.appConfigService
+						.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_TOKEN_RENEW_AUTO);
+				if (autoRenew) {
+					// generate new JWT token.
+					String newToken = AppComponents.jwtService.issueJappToken(iaaUser);
 
-				// generate new JWT token.
-				SecondFactorInfo secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
-				newToken = AppComponents.jwtService.issueToken(iaaUser,
-						AppComponents.pkiKeyCache.getJappPrivateKey(), ConfigFactory.appConfigService
-								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH),
-						secondFactorInfo);
-				httpResponse.addHeader("Token", newToken);
-				// httpResponse.addHeader("Access-Control-Allow-Origin",
-				// authParameters.getAngularOrigin());
-				// httpResponse.addHeader("Access-Control-Allow-Headers",
-				// "X-Requested-With,Origin,Content-Type, Accept, Token");
-				httpResponse.addHeader("Access-Control-Expose-Headers", "Token");
+					httpResponse.addHeader("Japp-Token", newToken);
+					// httpResponse.addHeader("Access-Control-Allow-Origin",
+					// authParameters.getAngularOrigin());
+					// httpResponse.addHeader("Access-Control-Allow-Headers",
+					// "X-Requested-With,Origin,Content-Type, Accept, Token");
+					httpResponse.addHeader("Access-Control-Expose-Headers", "Japp-Token");
 
-				logger.info("JappAuthenticationFilter - Issue new token........");
+					logger.info("JappAuthenticationFilter - Issue new token........");
+				}
 
 			} else {
 
@@ -234,11 +235,10 @@ public class AuthenticationFilter implements Filter {
 				if (AppComponents.commonService.inMaintenanceMode(httpResponse, userId)) {
 					return;
 				}
-				logger.warn(
-						"JappAuthenticationFilter - back-end skip auth.......!!!!!!!, get dummy user with userId = "
-								+ userId);
+				logger.warn("JappAuthenticationFilter - back-end skip auth.......!!!!!!!, get dummy user with userId = "
+						+ userId);
 
-				AppThreadContext.setIaaUser(iaaUser);
+				AppThreadContext.setAppIaaUser(iaaUser);
 			}
 
 			chain.doFilter(request, httpResponse);// sends request to next resource

@@ -23,6 +23,7 @@ import com.sampleapiapp.api.bean.LoginRequest;
 import com.sampleapiapp.api.bean.LoginResponse;
 import com.sampleapiapp.api.vo.ResponseHeader;
 import com.sampleapiapp.validator.LoginValidator;
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 
 @Component
@@ -72,7 +73,7 @@ public class LoginProcessor extends RequestProcessor {
 		// ====== business logic starts ======
 		String username = request.getUsername();
 		String password = request.getPassword();
-		IaaUser iaaUser = null;
+		AppIaaUser iaaUser = null;
 		try {
 			iaaUser = iaaService.loginByLoginIdPassword(username, password);
 			if (iaaUser == null) {

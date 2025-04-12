@@ -28,7 +28,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
-import com.itdevcloud.japp.core.cahce.AadJwksCache;
+import com.itdevcloud.japp.core.cahce.EntraIdJwksCache;
 import com.itdevcloud.japp.core.common.CommonService;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;

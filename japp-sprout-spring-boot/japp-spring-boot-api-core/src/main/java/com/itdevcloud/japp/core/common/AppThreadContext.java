@@ -19,7 +19,7 @@ package com.itdevcloud.japp.core.common;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 /**
@@ -34,23 +34,23 @@ public class AppThreadContext {
 
 	private static ThreadLocal<String> userIdContext = new ThreadLocal<String>();
 	private static ThreadLocal<String> tokenSubjectContext = new ThreadLocal<String>();
-	private static ThreadLocal<IaaUser> userContext = new ThreadLocal<IaaUser>();
+	private static ThreadLocal<AppIaaUser> userContext = new ThreadLocal<AppIaaUser>();
 
 	private static ThreadLocal<TransactionContext> txContext = new ThreadLocal<TransactionContext>();
 
-	public static IaaUser<?> getIaaUser() {
-		IaaUser<?> user = userContext.get();
+	public static AppIaaUser getAppIaaUser() {
+		AppIaaUser user = userContext.get();
 		if (user != null) {
 			user = AppUtil.GsonDeepCopy(user);
 		}
 		return user;
 	}
 
-	public static void setIaaUser(IaaUser<?> user) {
+	public static void setAppIaaUser(AppIaaUser user) {
 		if (user == null) {
 			userContext.set(null);
 		}
-		IaaUser<?> u = AppUtil.GsonDeepCopy(user);
+		AppIaaUser u = AppUtil.GsonDeepCopy(user);
 		userContext.set(u);
 	}
 
@@ -65,13 +65,13 @@ public class AppThreadContext {
 	public static String getUserId() {
 		String id = userIdContext.get();
 		if(StringUtil.isEmptyOrNull(id)) {
-			IaaUser user = userContext.get();
+			AppIaaUser user = userContext.get();
 			if (user != null) {
-				id = user.getUserId();
+				id = user.getUID();
 			}
 		}
 		if(StringUtil.isEmptyOrNull(id)) {
-			id = "unknown";
+			id = "uid-unknown";
 		}
 		return new String(id);
 	}

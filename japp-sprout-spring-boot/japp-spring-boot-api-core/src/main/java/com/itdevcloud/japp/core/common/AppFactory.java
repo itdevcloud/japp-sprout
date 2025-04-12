@@ -72,7 +72,7 @@ public class AppFactory {
 
 	@PostConstruct
 	private void init() {
-		logger.info("AppFactory.init() - begin........");
+		logger.info("AppFactory.init() - begin........componentList size = " + factoryComponentList.size());
 
 		commandInfoMap = new HashMap<String, CommandInfo>();
 		classComponentMap = new HashMap<Class<?>, AppFactoryComponentI>();
@@ -94,7 +94,7 @@ public class AppFactory {
 				continue;
 			} else if (component instanceof CustomizableComponentI) {
 				CustomizableComponentI service = (CustomizableComponentI) component;
-				Class<?> serviceInterfaceClass = (service).getInterfaceClass();
+				Class<?> serviceInterfaceClass = service.getInterfaceClass();
 				List<CustomizableComponentI> processedList = customizableServiceMap.get(serviceInterfaceClass);
 				if (processedList == null) {
 					processedList = new ArrayList<CustomizableComponentI>();
@@ -153,11 +153,10 @@ public class AppFactory {
 			}
 			logger.error(errStr);
 		}
-		logger.info("commandInfoMap - size = " + commandInfoMap.size());
 
 		Set<String> keySet = commandInfoMap.keySet();
-		logger.info("AppFactory.init() - supported command set = " + keySet + "\n");
-		String jsonTemplate = "AppFactory.init() - supported command Json Request Template: \n";
+		logger.info("AppFactory.init() - supported command set size = " + commandInfoMap.size() + " - " + keySet );
+		String jsonTemplate = "AppFactory.init() - supported command Json Request Template: ";
 		Gson gson = new GsonBuilder().serializeNulls().create();
 		for (String keyStr : keySet) {
 			CommandInfo commandInfo = commandInfoMap.get(keyStr);

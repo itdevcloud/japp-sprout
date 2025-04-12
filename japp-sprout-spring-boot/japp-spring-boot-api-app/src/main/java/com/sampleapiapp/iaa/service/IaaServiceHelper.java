@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
@@ -56,12 +57,12 @@ public class IaaServiceHelper implements IaaServiceHelperI{
 	}
 	
 	@Override
-	public IaaUser getIaaUserFromRepositoryByUserId(String userId) {
+	public AppIaaUser getIaaUserFromRepositoryByUserIaaUID(String userId) {
 		logger.info("getIaaUserFromRepository() begins ...");
 		long start = System.currentTimeMillis();
 
 
-			IaaUser iaaUser = null;
+		AppIaaUser iaaUser = null;
 //
 //			try {
 //
@@ -120,7 +121,7 @@ public class IaaServiceHelper implements IaaServiceHelperI{
 	}
 
 	@Override
-	public String getAndSend2ndfactorValue(IaaUser iaaUser, String secondFactorType) {
+	public String getAndSend2ndfactorValue(AppIaaUser iaaUser, String secondFactorType) {
 		// TODO Auto-generated method stub
 		if (AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE.equalsIgnoreCase(secondFactorType)) {
 			String email = (iaaUser == null ? null : iaaUser.getEmail());
@@ -149,13 +150,13 @@ public class IaaServiceHelper implements IaaServiceHelperI{
 	}
 
 	@Override
-	public IaaUser getDummyIaaUserByUserId(String userId) {
-		IaaUser iaaUser = new IaaUser();
+	public AppIaaUser getDummyIaaUserByUserId(String userId) {
+		AppIaaUser iaaUser = new AppIaaUser();
 		if (StringUtil.isEmptyOrNull(userId)) {
-			iaaUser.setUserId("userId-1");
+			iaaUser.setUserIaaUID("userId-1");
 			iaaUser.setCurrentLoginId("loginId-1");
 		} else {
-			iaaUser.setUserId(userId);
+			iaaUser.setUserIaaUID(userId);
 			iaaUser.setCurrentLoginId(userId);
 		}
 		iaaUser.setCurrentHashedPassword(Hasher.hashPassword("12345"));
@@ -178,13 +179,13 @@ public class IaaServiceHelper implements IaaServiceHelperI{
 	}
 
 	@Override
-	public Map<String, Object> getJappTokenClaims(IaaUser iaaUser) {
+	public Map<String, Object> getJappTokenClaims(AppIaaUser iaaUser) {
 		if (iaaUser == null) {
 			return null;
 		}
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("loginId", iaaUser.getCurrentLoginId());
-		claims.put("userId", iaaUser.getUserId());
+		claims.put("userId", iaaUser.getUserIaaUID());
 		claims.put("email", iaaUser.getEmail());
 		claims.put("firstName", iaaUser.getFirstName());
 		claims.put("lastName", iaaUser.getLastName());
@@ -209,8 +210,8 @@ public class IaaServiceHelper implements IaaServiceHelperI{
 	}
 
 	@Override
-	public IaaUser getIaaUserFromRepositoryByLoginId(String loginId, String... loginSpType) {
-		return getIaaUserFromRepositoryByUserId(loginId);
+	public AppIaaUser getIaaUserFromRepositoryByLoginId(String loginId, String... loginSpType) {
+		return getIaaUserFromRepositoryByUserIaaUID(loginId);
 	}
 
 	@Override

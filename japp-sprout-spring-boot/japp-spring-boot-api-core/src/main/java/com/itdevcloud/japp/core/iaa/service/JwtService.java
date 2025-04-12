@@ -16,14 +16,10 @@
  */
 package com.itdevcloud.japp.core.iaa.service;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.Key;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -37,6 +33,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.MfaVO;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
@@ -44,13 +42,14 @@ import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.core.common.AppException;
 import com.itdevcloud.japp.core.common.AppThreadContext;
 
-import org.apache.logging.log4j.Logger;
-
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.se.common.security.Hasher;
+import com.itdevcloud.japp.se.common.util.DateUtils;
+import com.itdevcloud.japp.se.common.util.PkiUtil;
+import com.itdevcloud.japp.se.common.util.RandomUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import io.jsonwebtoken.Claims;
@@ -58,8 +57,6 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
 /**
  *
  * @author Marvin Sun
@@ -68,16 +65,17 @@ import io.jsonwebtoken.SignatureException;
 
 @Component
 public class JwtService implements AppFactoryComponentI {
-	//private static final Logger logger = LogManager.getLogger(JwtService.class);
 	private static final Logger logger = LogManager.getLogger(JwtService.class);
 
 
 	@PostConstruct
 	public void init() {
+		//try to avoid using AppConfig Service, AppComponents.appConfigCache may be not fully initiated yet
 	}
 
-	public boolean isValidAadIdToken(String idToken) {
+	public boolean isValidEntraIdToken(String idToken) {
 		try {
+			logger.debug("isValidAadIdToken.............begin....");
 			if (idToken == null || idToken.trim().isEmpty()) {
 				return false;
 			}
@@ -94,7 +92,7 @@ public class JwtService implements AppFactoryComponentI {
 			boolean isValid = isValidTokenByPublicKey(idToken, publicKey);
 
 			if (!isValid) {
-				logger.error("idToken is not Valid..........");
+				logger.error("Entra idToken is not Valid..........");
 				return false;
 			}
 			Set<String> audSet = claims.getAudience();
@@ -117,8 +115,8 @@ public class JwtService implements AppFactoryComponentI {
 			}
 			return true;
 
-		} catch (SignatureException e) {
-			logger.error(e);
+		} catch (Throwable t) {
+			logger.error(t);
 			return false;
 		}
 
@@ -141,49 +139,28 @@ public class JwtService implements AppFactoryComponentI {
 			}
 			AppThreadContext.setTokenSubject(subject);
 			return true;
-		} catch (SignatureException e) {
-			logger.error(e);
+		} catch (Throwable t) {
+			logger.error(t);
 			return false;
 		}
 
 	}
 
-	public boolean isValidTokenByCertificate(String token, InputStream certificate) {
+	public boolean isValidTokenByCertificate(String token, Certificate certificate) {
 		logger.debug("isValidTokenByCertificate.............begin....");
 		if (token == null || certificate == null) {
 			return false;
 		}
-		BufferedInputStream bis = new BufferedInputStream(certificate);
-		CertificateFactory cf = null;
-		Certificate cert = null;
-		
-		try {
-			while (bis.available() <= 0) {
-				logger.error("invalid x509 certificate..............");
-				return false;
-			}
-			cf = CertificateFactory.getInstance("X.509");
-			cert = cf.generateCertificate(bis);
+		return isValidTokenByPublicKey(token, certificate.getPublicKey());
+	}
 
-			bis.close();
-			bis = null;
-			certificate.close();
-			certificate = null;
-
-		} catch (IOException e1) {
-			logger.error(e1);
-			return false;
-		} catch (CertificateException e) {
-			logger.error(e);
+	public boolean isValidTokenByCertificate(String token, InputStream certificateIS) {
+		logger.debug("isValidTokenByCertificate.............begin....");
+		if (token == null || certificateIS == null) {
 			return false;
 		}
-		
-//		logger.debug("Certificate===========" + cert.toString());
-		PublicKey publicKey = cert.getPublicKey();
-//		logger.debug("pubic key===========" + publicKey.toString());
-
-		return isValidTokenByPublicKey(token, publicKey);
-
+		Certificate certificate = PkiUtil.getCertificateFromInputStream(certificateIS);
+		return isValidTokenByCertificate(token, certificate) ;
 	}
 	
 	/**
@@ -260,19 +237,21 @@ public class JwtService implements AppFactoryComponentI {
 			}
 
 			// check 2nd factor
-			SecondFactorInfo secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
-			logger.debug("validateJappToken() - secondFactorInfo = " + secondFactorInfo);
-			boolean isVerified = secondFactorInfo.isVerified();
-			String type = secondFactorInfo.getType();
-			String value = secondFactorInfo.getValue();
-			if (StringUtil.isEmptyOrNull(type) || type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)
-					|| isVerified) {
-				logger.debug("validateJappToken() - no 2nd factor type in token or token has been verified, return true");
-				return true;
-			} else {
-				logger.error("validateJappToken() - 2nd factor value is not verified, return false...3....");
-				return false;
-			}
+//			MfaInfo secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
+//			logger.debug("validateJappToken() - secondFactorInfo = " + secondFactorInfo);
+//			boolean isVerified = secondFactorInfo.isVerified();
+//			String type = secondFactorInfo.getType();
+//			String value = secondFactorInfo.getValue();
+//			if (StringUtil.isEmptyOrNull(type) || type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)
+//					|| isVerified) {
+//				logger.debug("validateJappToken() - no 2nd factor type in token or token has been verified, return true");
+//				return true;
+//			} else {
+//				logger.error("validateJappToken() - 2nd factor value is not verified, return false...3....");
+//				return false;
+//			}
+			return true;
+			
 		} catch (Throwable t) {
 			logger.error(AppUtil.getStackTrace(t));
 			return false;
@@ -282,7 +261,7 @@ public class JwtService implements AppFactoryComponentI {
 	/**
 	 * Create a new token by updating the expire time, and second factor authentication information in a existing token.
 	 */
-	public String updateToken(String token, Key privateKey, int expireMinutes, SecondFactorInfo secondFactorInfo) {
+	public String updateToken(String token, Key privateKey, int expireMinutes, MfaVO secondFactorInfo) {
 		if (StringUtil.isEmptyOrNull(token)) {
 			return null;
 		}
@@ -309,11 +288,11 @@ public class JwtService implements AppFactoryComponentI {
 			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID, ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
 			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_IP, clientIP);
 
-			claims = add2ndFactorClaims(claims, secondFactorInfo);
+			//claims = add2ndFactorClaims(claims, secondFactorInfo);
 
 			// setClaims first
-			String newToken = Jwts.builder().setClaims(claims).setIssuedAt(new Date()).setExpiration(expiryDate)
-					.signWith(SignatureAlgorithm.RS256, privateKey).compact();
+			String newToken = Jwts.builder().claims(claims).issuedAt(new Date()).expiration(expiryDate)
+					.signWith(privateKey).compact();
 			return newToken;
 		} catch (Throwable t) {
 			logger.error(AppUtil.getStackTrace(t));
@@ -353,8 +332,8 @@ public class JwtService implements AppFactoryComponentI {
 
 			Key privateKey = AppComponents.pkiKeyCache.getJappPrivateKey();
 			// setClaims first
-			String newToken = Jwts.builder().setClaims(claims).setIssuedAt(new Date()).setExpiration(expiryDate)
-					.signWith(SignatureAlgorithm.RS256, privateKey).compact();
+			String newToken = Jwts.builder().claims(claims).issuedAt(new Date()).expiration(expiryDate)
+					.signWith(privateKey).compact();
 			return newToken;
 		} catch (Throwable t) {
 			logger.error(AppUtil.getStackTrace(t));
@@ -365,7 +344,7 @@ public class JwtService implements AppFactoryComponentI {
 	/**
 	 * Issue a JAPP JWT token
 	 */ 
-	public String issueJappToken(IaaUser iaaUser) {
+	public String issueJappToken(AppIaaUser iaaUser) {
 		logger.info("issueJappToken() - begin......");
 		if (iaaUser == null) {
 			logger.info("issueJappToken() - iaaUser is null, return null...");
@@ -373,31 +352,9 @@ public class JwtService implements AppFactoryComponentI {
 		String token = null;
 		int expireMins = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
 		try {
-			String secondFactorType = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_2NDFACTOR_TYPE);
-			SecondFactorInfo secondFactorInfo = new SecondFactorInfo();
-			String user2ndFactorType = iaaUser.getTwoFactorAuthType();
-			
-			if (user2ndFactorType.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)){
-				if ((secondFactorType.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE))){
-					secondFactorInfo.setType(secondFactorType);
-					secondFactorInfo.setVerified(false);
-					secondFactorInfo.setValue(null);
-					expireMins = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
-				}else {
-					secondFactorInfo.setType(secondFactorType);
-					secondFactorInfo.setVerified(false);
-					String tmpV = AppComponents.iaaService.getAndSend2ndfactorValue(iaaUser, secondFactorType);
-					secondFactorInfo.setValue(Hasher.hashPassword(tmpV));
-				}
-			} else {
-				secondFactorInfo.setType(user2ndFactorType);
-				secondFactorInfo.setVerified(false);
-				String tmpV = AppComponents.iaaService.getAndSend2ndfactorValue(iaaUser, user2ndFactorType);
-				secondFactorInfo.setValue(Hasher.hashPassword(tmpV));
-			}
 			Key key = AppComponents.pkiKeyCache.getJappPrivateKey();
-			token = issueToken(iaaUser, key, expireMins, secondFactorInfo);
-			logger.debug("issueJappToken() - Issue JAPP token...end....secondFactorInfo = " + secondFactorInfo);
+			token = issueToken(iaaUser, key, expireMins);
+			logger.debug("issueJappToken() - Issue JAPP token...end....");
 			return token;
 		} catch (Throwable t) {
 			logger.info("issueJappToken()  - failed - \n " + AppUtil.getStackTrace(t));
@@ -409,8 +366,7 @@ public class JwtService implements AppFactoryComponentI {
 	/**
 	 * Issue a JAPP JWT token
 	 */
-	public String issueToken(IaaUser iaaUser, Key privateKey, int expireMinutes,
-			SecondFactorInfo secondFactorInfo) {
+	public String issueToken(AppIaaUser iaaUser, Key privateKey, int expireMinutes) {
 
 		if (iaaUser == null || privateKey == null) {
 			return null;
@@ -437,12 +393,13 @@ public class JwtService implements AppFactoryComponentI {
 			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID, ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
 			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_IP, clientIP);
 
-			claims = add2ndFactorClaims(claims, secondFactorInfo);
+			String sessionId = AppUtil.getSessionId(iaaUser);
+			claims.put(AppConstant.JWT_CLAIM_KEY_CONTEXT_ID, sessionId);
 
 			// setClaims first
-			String token = Jwts.builder().setClaims(claims).setIssuer(AppConstant.JWT_TOKEN_ISSUE_BY)
-					.setSubject(iaaUser.getUserId()).setIssuedAt(new Date()).setExpiration(expiryDate)
-					.signWith(SignatureAlgorithm.RS256, privateKey).compact();
+			String token = Jwts.builder().claims(claims).issuer(AppConstant.JWT_TOKEN_ISSUE_BY)
+					.subject(iaaUser.getUserIaaUID()).issuedAt(new Date()).expiration(expiryDate)
+					.signWith(privateKey).compact();
 			return token;
 		} catch (Throwable t) {
 			logger.error(AppUtil.getStackTrace(t));
@@ -450,44 +407,44 @@ public class JwtService implements AppFactoryComponentI {
 		}
 	}
 
-	private Map<String, Object> add2ndFactorClaims(Map<String, Object> claimMap, SecondFactorInfo secondFactorInfo) {
-		if (secondFactorInfo == null) {
-			secondFactorInfo = new SecondFactorInfo();
-			secondFactorInfo.setType(AppConstant.IAA_2NDFACTOR_TYPE_NONE);
-			secondFactorInfo.setVerified(false);
-		}
-		boolean verified = secondFactorInfo.isVerified();
-		String type = secondFactorInfo.getType();
-		String value = secondFactorInfo.getValue();
-		//logger.error("hashed 2nd factor value in token (2) - " + value);
-
-		int retryCount = secondFactorInfo.getRetryCount();
-		if (claimMap == null) {
-			claimMap = new HashMap<String, Object>();
-		}
-		if (StringUtil.isEmptyOrNull(type) || type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)) {
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, AppConstant.IAA_2NDFACTOR_TYPE_NONE);
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, false);
-		} else if (type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE)){
-			if (!StringUtil.isEmptyOrNull(value)) {
-				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, verified);
-				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, type);
-				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE, value);
-				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT, retryCount);
-			} else {
-				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
-						"no verification code provided to create the token!");
-			}
-		} else if (type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_TOTP)){
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, verified);
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, type);
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE, null);
-			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT, retryCount);
-		}else {
-			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
-					"2 factor type is not supportrf! type = " + type);
-		}
-		return claimMap;
-	}
+//	private Map<String, Object> add2ndFactorClaims(Map<String, Object> claimMap, MfaInfo secondFactorInfo) {
+//		if (secondFactorInfo == null) {
+//			secondFactorInfo = new MfaInfo();
+//			secondFactorInfo.setType(AppConstant.IAA_2NDFACTOR_TYPE_NONE);
+//			secondFactorInfo.setVerified(false);
+//		}
+//		boolean verified = secondFactorInfo.isVerified();
+//		String type = secondFactorInfo.getType();
+//		String value = secondFactorInfo.getValue();
+//		//logger.error("hashed 2nd factor value in token (2) - " + value);
+//
+//		int retryCount = secondFactorInfo.getRetryCount();
+//		if (claimMap == null) {
+//			claimMap = new HashMap<String, Object>();
+//		}
+//		if (StringUtil.isEmptyOrNull(type) || type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)) {
+//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, AppConstant.IAA_2NDFACTOR_TYPE_NONE);
+//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, false);
+//		} else if (type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE)){
+//			if (!StringUtil.isEmptyOrNull(value)) {
+//				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, verified);
+//				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, type);
+//				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE, value);
+//				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT, retryCount);
+//			} else {
+//				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
+//						"no verification code provided to create the token!");
+//			}
+//		} else if (type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_TOTP)){
+//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, verified);
+//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, type);
+//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE, null);
+//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT, retryCount);
+//		}else {
+//			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
+//					"2 factor type is not supportrf! type = " + type);
+//		}
+//		return claimMap;
+//	}
 
 }

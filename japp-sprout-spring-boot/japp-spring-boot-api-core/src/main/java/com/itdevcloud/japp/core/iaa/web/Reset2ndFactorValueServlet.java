@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.cahce.PkiKeyCache;
 import com.itdevcloud.japp.core.common.CommonService;
@@ -34,7 +35,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @author Marvin Sun
  * @since 1.0.0
  */
-@WebServlet(name = "reset2ndFactorValueServlet", urlPatterns = "/auth/reset2ndFactorValue")
+@WebServlet(name = "reset2ndFactorValueServlet", urlPatterns = "/open/auth/reset2ndFactorValue")
 public class Reset2ndFactorValueServlet extends jakarta.servlet.http.HttpServlet {
 
 
@@ -85,7 +86,7 @@ public class Reset2ndFactorValueServlet extends jakarta.servlet.http.HttpServlet
 			//subject must be userId, not loginId!!!
 			String userId = AppUtil.getSubjectFromJwt(token);
 
-			IaaUser iaaUser = null;
+			AppIaaUser iaaUser = null;
 			try{
 				iaaUser = AppComponents.iaaService.getIaaUserByUserId(userId);
 			}catch(AppException e){

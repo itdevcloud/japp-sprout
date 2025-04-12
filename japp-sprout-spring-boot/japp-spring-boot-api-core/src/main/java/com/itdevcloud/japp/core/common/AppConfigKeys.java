@@ -60,19 +60,32 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_APP_STARTUP_NOTIFICATION_WAITING_SECONDS = "jappcore.app.startup.notification.waiting.seconds";
 
 	public static final String JAPPCORE_IAA_TOKEN_VALIDATE_IP_ENABLED = "jappcore.iaa.token.validate.ip.enabled";
-	public static final String JAPPCORE_IAA_2NDFACTOR_TYPE = "jappcore.iaa.2ndfactor.type";
+	public static final String JAPPCORE_IAA_MFA_ENABLED = "jappcore.iaa.mfa.enabled";
+	public static final String JAPPCORE_IAA_MFA_DEFAULT_TYPE = "jappcore.iaa.mfa.default.type";
 	public static final String JAPPCORE_IAA_CIDR_USER_WHITELIST_ENABLED = "jappcore.iaa.cidr.user.whitelist.enabled";
 	public static final String JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST_ENABLED = "jappcore.iaa.cidr.application.whitelist.enabled";
 	public static final String JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST = "jappcore.iaa.cidr.application.whitelist";
 	public static final String JAPPCORE_IAA_CIDR_SYSTEMUSER_WHITELIST = "jappcore.iaa.cidr.whitelist.systemuser";
 	public static final String JAPPCORE_IAA_API_AUTH_ENABLED = "jappcore.iaa.japp.api.auth.enabled";
+	public static final String JAPPCORE_IAA_TOKEN_RENEW_AUTO = "jappcore.iaa.token.renew.auto";
 	public static final String JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH = "jappcore.iaa.token.expiration.length";
 	public static final String JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH = "jappcore.iaa.token.verify.expiration.length";
-	public static final String JAPPCORE_IAA_AUTHENTICATION_PROVIDER = "jappcore.iaa.authentication.provider";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLECHECK_ENABLED = "jappcore.iaa.application.rolecheck.enabled";
 	public static final String JAPPCORE_IAA_APPLICATION_ROLE_LIST = "jappcore.iaa.application.rolelist";
 	public static final String JAPPCORE_IAA_AUTH_APP_CALLBACK_URL = "jappcore.iaa.auth.app.callback.url";
+	public static final String JAPPCORE_IAA_AUTHENTICATION_PROVIDER = "jappcore.iaa.authentication.provider";
+	public static final String JAPPCORE_IAA_AUTHORIZATION_PROVIDER = "jappcore.iaa.authorization.provider";
 
+	public static final String JAPPCORE_IAA_BASIC_AUTHENTICATION_URL = "jappcore.iaa.basic.authentication.url";
+	//public static final String JAPPCORE_IAA_BASIC_RESOURCE = "jappcore.iaa.basic.resource";	
+	//public static final String JAPPCORE_IAA_BASIC_REDIRECT_URI = "jappcore.iaa.basic.redirecturi";
+	public static final String JAPPCORE_IAA_DYNAMIC_AUTHENTICATION_URL = "jappcore.iaa.dynamic.authentication.url";
+	//public static final String JAPPCORE_APPLICATION_ID = "jappcore.application.id";
+	public static final String JAPPCORE_IAA_MFA_URL_BASE = "jappcore.iaa.mfa.url";
+//	public static final String JAPPCORE_IAA_MFA_URL_TOTP = "jappcore.iaa.mfa.url.totp";
+//	public static final String JAPPCORE_IAA_MFA_URL_OTP = "jappcore.iaa.mfa.url.otp";
+
+	
 	public static final String JAPPCORE_FRONTEND_UI_FRAMEWORK = "jappcore.frontend.ui.framework";
 	public static final String JAPPCORE_FRONTEND_UI_ORIGIN = "jappcore.frontend.ui.origin";
 	public static final String JAPPCORE_FRONTEND_UI_POST_SIGNOUT_PAGE = "jappcore.frontend.ui.post.signout.page";
@@ -80,8 +93,8 @@ public class AppConfigKeys {
 	public static final String JAPPCORE_FRONTEND_UI_MAINTENANCE_PAGE = "jappcore.frontend.ui.maintenance.page";
 	public static final String JAPPCORE_FRONTEND_UI_SECURE_COOKIE_ENABLED = "jappcore.frontend.ui.secure.cookie.enabled";
 
-	public static final String JAPPCORE_CACHE_REFRESH_INTERVAL = "jappcore.cache.refresh.interval";
-	public static final String JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL = "jappcore.cache.refresh.least.interval";
+	public static final String JAPPCORE_CACHE_REFRESH_INTERVAL_MIN = "jappcore.cache.refresh.interval.mins";
+	public static final String JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL_MIN = "jappcore.cache.refresh.least.interval.mins";
 	public static final String JAPPCORE_CACHE_DAILY_REFRESH_ENABLED = "jappcore.cache.daily.refresh.enabled";
 	public static final String JAPPCORE_CACHE_USER_CACHE_MAX_SIZE = "jappcore.cache.user.cache.max.size";
 
@@ -104,8 +117,6 @@ public class AppConfigKeys {
 //	public static final String JAPPCORE_SWAGGER_API_PATH_ANT_PATTERN = "jappcore.swagger.api.path.ant.pattern";
 //	public static final String JAPPCORE_SWAGGER_API_SECURITY_REQUIREMENT_NAME = "jappcore.swagger.api.security.requirement.name";
 	
-	public static final String JAPPCORE_DYNAMIC_AUTHROIZATION_URL = "jappcore.dynamic.authorization.url";
-	public static final String JAPPCORE_APPLICATION_ID = "jappcore.application.id";
 
 	public static final String AAD_CLIENT_ID = "aad.clientid";
 	public static final String AAD_AUTH_PROMPT = "aad.auth.prompt";
@@ -126,9 +137,6 @@ public class AppConfigKeys {
 
 	public static final String SPRING_JACKSON_TIMEZONE = "spring.jackson.time-zone";
 
-	public static final String JAPPCORE_IAA_BASIC_AUTHROIZATION_URL = "jappcore.iaa.basic.authorization.url";
-	//public static final String JAPPCORE_IAA_BASIC_RESOURCE = "jappcore.iaa.basic.resource";	
-	//public static final String JAPPCORE_IAA_BASIC_REDIRECT_URI = "jappcore.iaa.basic.redirecturi";
 	
 	
 

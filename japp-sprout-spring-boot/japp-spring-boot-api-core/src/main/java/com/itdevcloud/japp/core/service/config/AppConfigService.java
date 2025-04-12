@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.se.common.service.ConfigurationManager;
@@ -46,7 +47,7 @@ public class AppConfigService {
 
 	private static Properties systemProperties = null;
 	private static Map<String, String> osEnv = null;
-	private static Map<String, String> configMapFromAppRepository = null;
+	//private static Map<String, String> configMapFromAppRepository = null;
 	private static ConfigurationManager configurationManager = null;
 
 	//env includes spring boot property files
@@ -77,20 +78,28 @@ public class AppConfigService {
 
 	@PostConstruct
 	public void init() {
-		configMapFromAppRepository = configServiceHelper.createConfigMapFromAppRepository();
+		//configMapFromAppRepository = configServiceHelper.createConfigMapFromAppRepository();
 		osEnv = System.getenv();
 		systemProperties = System.getProperties();
 		configurationManager = ConfigurationManager.getInstance();
-		
 	}
-
+    public ConfigServiceHelperI getConfigServiceHelper() {
+    	return this.configServiceHelper;
+    }
+    
 	private String getProperty(String key) {
 		if (StringUtil.isEmptyOrNull(key)) {
 			logger.error("getProperty() - '" + key + "' failed: key is empty or NULL, check code!" );
 			return null;
 		}
+		String valueStr = null;
 		//1. get from repository first
-		String valueStr = (configMapFromAppRepository==null?null:configMapFromAppRepository.get(key));
+		if(AppComponents.appConfigCache == null) {
+			logger.warn("getProperty() - appConfigCache hasn't been initiated, ignore it, need to enhance code!.......");
+		}else {
+			valueStr = AppComponents.appConfigCache.getConfigProperty(key);
+//			String valueStr = (configMapFromAppRepository==null?null:configMapFromAppRepository.get(key));
+		}
 		//do not use empty at here, maybe user like to use ""
 		//2. system property: -D)
 		if (valueStr == null ) {

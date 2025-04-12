@@ -78,6 +78,7 @@ public class PkiService implements AppFactoryComponentI {
 
 	@PostConstruct
 	private void init() {
+		//try to avoid using AppConfig Service, AppComponents.appConfigCache may be not fully initiated yet
 	}
 	
 	public boolean isComeFromKeyVault() {

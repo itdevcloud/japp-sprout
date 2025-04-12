@@ -132,6 +132,9 @@ public class StringUtil {
 	}
 
 	public static String changeFirstCharCase(String str, boolean toUpper){
+		if(isEmptyOrNull(str)) {
+			return str;
+		}
 		if(toUpper){
 			return str.substring(0, 1).toUpperCase() + str.substring(1);
 		}else{

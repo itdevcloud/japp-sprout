@@ -20,7 +20,7 @@ public abstract class BaseVO implements Serializable, Comparable {
 
 	protected boolean isFinalized;
 	
-	protected long pk;
+	protected Long pk;
 	protected Date effectiveDate;
 	protected Date expiryDate;
 	protected String createdBy;
@@ -30,11 +30,27 @@ public abstract class BaseVO implements Serializable, Comparable {
 	protected Date endDate;
 	protected String endDecsription;
 	private List<AttributeVO> attributes;
-	
+
+	public void copyBaseFrom(BaseVO baseVO) {
+		if(baseVO == null) {
+			return;
+		}
+		this.pk = baseVO.getPk();
+		this.effectiveDate = baseVO.getEffectiveDate() ;
+		this.expiryDate = baseVO.getExpiryDate() ;
+		this.createdBy = baseVO.getCreatedBy() ;
+		this.createdDate = baseVO.getCreatedDate() ;
+		this.updatedBy = baseVO.getUpdatedBy() ;
+		this.updatedDate = baseVO.getUpdatedDate() ;
+		this.endDate = baseVO.getEndDate() ;
+		this.endDecsription = baseVO.getEndDecsription() ;
+		this.attributes = new ArrayList<AttributeVO>();
+		this.attributes.addAll(baseVO.getAttributes());
+	}
 	public BaseVO() {
 	}
 
-	public BaseVO(long pk) {
+	public BaseVO(Long pk) {
 		this.pk = pk;
 	}
 	
@@ -46,11 +62,11 @@ public abstract class BaseVO implements Serializable, Comparable {
 		return isFinalized;
 	}
 
-	public long getPk() {
+	public Long getPk() {
 		return pk;
 	}
 
-	public void setPk(long pk) {
+	public void setPk(Long pk) {
 		if(isFinalized) {
 			return;
 		}
@@ -144,6 +160,47 @@ public abstract class BaseVO implements Serializable, Comparable {
 		}
 		this.endDecsription = endDecsription;
 	}
+	
+	public AttributeVO getAttribute(String domainCode, String typeCode, int sequence) {
+		if(this.attributes == null || this.attributes.isEmpty() || StringUtil.isEmptyOrNull(domainCode) || StringUtil.isEmptyOrNull(typeCode)) {
+			return null;
+		}
+		for(AttributeVO vo: this.attributes) {
+			if(domainCode.equalsIgnoreCase(vo.getDomainCode()) && typeCode.equalsIgnoreCase(vo.getTypeCode()) && sequence == vo.getSequence() ) {
+				return vo;
+			}
+		}
+		return null;
+	}
+	
+	public List<AttributeVO> getAttributes(String domainCode, String typeCode) {
+		if(this.attributes == null) {
+			this.attributes = new ArrayList<AttributeVO>();
+			return attributes;
+		}
+		if(StringUtil.isEmptyOrNull(domainCode)) {
+			//ignore type
+			return attributes;
+		}
+		List<AttributeVO> list = new ArrayList<AttributeVO>();
+		for (AttributeVO vo: this.attributes) {
+			if(domainCode.equalsIgnoreCase(vo.getDomainCode())){
+				if(StringUtil.isEmptyOrNull(typeCode)) {
+					list.add(vo);
+				}else {
+					if(typeCode.equalsIgnoreCase(vo.getTypeCode())) {
+						list.add(vo);
+					}else {
+						continue;
+					}
+				}
+			}else {
+				continue;
+			}
+		}
+		return list;
+	}
+
 	public List<AttributeVO> getAttributes() {
 		if(this.attributes == null) {
 			this.attributes = new ArrayList<AttributeVO>();

@@ -109,6 +109,15 @@ public class CommonUtil {
 		}
 	}
 
+	public static List<String> stringToList(String str, String regex){
+		if(StringUtil.isEmptyOrNull(str) || StringUtil.isEmptyOrNull(regex)) {
+			return null;
+		}
+		String[] strArr = str.split(regex);
+		List<String> strList = Arrays.asList(strArr);
+		return strList;
+	}
+	
 	public static String propertiesToString(Properties properties, int level) {
 		if (properties == null) {
 			return null;
@@ -396,4 +405,15 @@ public class CommonUtil {
 		return -1;
 	}
 
+	public String getFullName(String firstName, String middleName, String lastName) {
+		String fullName = null;
+		if(StringUtil.isEmptyOrNull(middleName )) {
+			fullName = StringUtil.changeFirstCharCase(firstName, true) + " " + StringUtil.changeFirstCharCase(lastName, true);
+		}else {
+			fullName = StringUtil.changeFirstCharCase(firstName, true) + " " + StringUtil.changeFirstCharCase(middleName, true) + " " + StringUtil.changeFirstCharCase(lastName, true);
+		}
+		return fullName;
+	}
+
+	
 }

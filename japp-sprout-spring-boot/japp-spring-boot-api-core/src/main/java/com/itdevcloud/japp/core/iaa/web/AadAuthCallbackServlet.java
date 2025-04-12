@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
@@ -80,7 +81,7 @@ public class AadAuthCallbackServlet extends jakarta.servlet.http.HttpServlet {
 			}
 			// verify JWT from AAD;
 			logger.debug("AadAuthCallbackServlet.doPost() - verify idToken token=========");
-			if (!AppComponents.jwtService.isValidAadIdToken(idToken)) {
+			if (!AppComponents.jwtService.isValidEntraIdToken(idToken)) {
 				logger.error(
 						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E502. id_token from AAD is not valid....");
 				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
@@ -89,7 +90,7 @@ public class AadAuthCallbackServlet extends jakarta.servlet.http.HttpServlet {
 			}
 			// retrieve IaaUser for Authorization
 			logger.debug("AadAuthCallbackServlet.doPost() - retrieve userInfo for Authorization==============");
-			IaaUser iaaUser = null;
+			AppIaaUser iaaUser = null;
 			String loginId = AppThreadContext.getTokenSubject();
 			if (loginId == null) {
 				// set by isValidTokenByPublicKey()

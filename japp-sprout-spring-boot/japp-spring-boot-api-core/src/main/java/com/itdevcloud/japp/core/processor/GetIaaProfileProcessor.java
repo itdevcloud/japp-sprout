@@ -24,6 +24,7 @@ import com.itdevcloud.japp.core.api.bean.BaseRequest;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
 import com.itdevcloud.japp.core.api.bean.GetIaaProfileRequest;
 import com.itdevcloud.japp.core.api.bean.GetIaaProfileResponse;
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppThreadContext;
@@ -55,7 +56,7 @@ public class GetIaaProfileProcessor extends RequestProcessor {
 		GetIaaProfileRequest req = (GetIaaProfileRequest) request;
 		GetIaaProfileResponse response = new GetIaaProfileResponse();
 
-		IaaUser<?> iaaUser = AppComponents.iaaService.getIaaUserByUserId(req.getUserId());
+		AppIaaUser iaaUser = AppComponents.iaaService.getIaaUserByUserId(req.getUserId());
 		response.setIaaUser(iaaUser);
 
 		response.setResponseStatus(

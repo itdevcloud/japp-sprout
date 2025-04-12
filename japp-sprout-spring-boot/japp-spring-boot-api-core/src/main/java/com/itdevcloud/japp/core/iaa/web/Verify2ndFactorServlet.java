@@ -27,6 +27,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jboss.aerogear.security.otp.Totp;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.MfaVO;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.cahce.PkiKeyCache;
 import com.itdevcloud.japp.core.common.CommonService;
@@ -40,7 +42,6 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.iaa.service.IaaUser;
 import com.itdevcloud.japp.core.iaa.service.IaaService;
 import com.itdevcloud.japp.core.iaa.service.JwtService;
-import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.se.common.security.Hasher;
 import com.itdevcloud.japp.se.common.util.StringUtil;
@@ -119,7 +120,7 @@ public class Verify2ndFactorServlet extends jakarta.servlet.http.HttpServlet {
 			}
 			//subject will be userId, not LoginId
 			String userId = AppUtil.getSubjectFromJwt(token);
-			SecondFactorInfo secondFactorInfo = null;
+			MfaVO secondFactorInfo = null;
 			String newToken = null;
 			if (AppComponents.jwtService.validateJappToken(token)) {
 				// Japp token is valid, no need to validate anymore
@@ -131,94 +132,94 @@ public class Verify2ndFactorServlet extends jakarta.servlet.http.HttpServlet {
 			} else {
 				Key key = AppComponents.pkiKeyCache.getJappPrivateKey();
 				// verify 2nd factor
-				secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
-				String type = secondFactorInfo.getType();
-				boolean verified = secondFactorInfo.isVerified();
-				int retryCount = secondFactorInfo.getRetryCount();
-				if (retryCount >= 3) {
-					String err = "2nd factor verification failed for more than " + retryCount
-							+ " times, need to acquire new verification code!";
-					logger.error(err);
-					// no need to change token, just return original token
-					newToken = token;
-					AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_ERROR_SECURITY_EXCEED_RETRY_COUNT, err);
-				} else if (AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE.equalsIgnoreCase(type)) {
-					//---get hashed 2nd factor value
-					//--- from repository first
-					String value = AppComponents.iaaService.getHashed2ndFactorValueFromRepositoryByUserId(userId);
-					//value == null means use hashed value in token
-					if(StringUtil.isEmptyOrNull(value)) {
-						logger.debug("Verify2ndFactorServlet.doPost() - active 2nd factor code comes from token...........");
-						value = secondFactorInfo.getValue();
-					}else {
-						logger.debug("Verify2ndFactorServlet.doPost() - active 2nd factor code comes from repository...........");
-					}
-					if (Hasher.hashPassword(secondFactorValueFromReq).equals(value)) {
-						String err = "2nd factor verification succeed.....";
-						logger.debug(err);
-						secondFactorInfo.setVerified(true);
-						secondFactorInfo.setRetryCount(retryCount);
-						int expireMins = ConfigFactory.appConfigService
-								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
-						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
-						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_SUCCESS, err);
-					} else {
-						String err = "2nd factor verification failed, verification code in request = "
-								+ secondFactorValueFromReq;
-						logger.error(err);
-						secondFactorInfo.setRetryCount(retryCount + 1);
-						secondFactorInfo.setVerified(false);
-						int expireMins = ConfigFactory.appConfigService
-								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
-						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
-						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_ERROR_INVALID_CODE, err);
-					}
-
-				}  else if (AppConstant.IAA_2NDFACTOR_TYPE_TOTP.equalsIgnoreCase(type)) {
-					IaaUser iaaUser = AppComponents.iaaService.getIaaUserByUserId(userId);
-					if(iaaUser == null) {
-						logger.error(
-								"Can't retrieve user,  userId = " + userId + ".....");
-						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-								"Can't retrieve user.");
-						return;
-					}
-					String totpSecret = iaaUser.getTotpSecret();
-					Totp totp = new Totp(iaaUser.getTotpSecret());
-					if (StringUtil.isEmptyOrNull(totpSecret) || totp == null) {
-						String err = "no TOTP secret is setup for the user, '" + userId + "......";
-						logger.error(err);
-						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, err);
-						return;
-					}
-					if (isValidLong(secondFactorValueFromReq) && totp.verify(secondFactorValueFromReq)) {
-						String err = "2nd factor verification succeed.....";
-						logger.debug(err);
-						secondFactorInfo.setVerified(true);
-						secondFactorInfo.setRetryCount(retryCount);
-						int expireMins = ConfigFactory.appConfigService
-								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
-						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
-						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_SUCCESS, err);
-					} else {
-						String err = "2nd factor verification failed, verification code in request = "
-								+ secondFactorValueFromReq;
-						logger.debug(err);
-						secondFactorInfo.setRetryCount(retryCount + 1);
-						secondFactorInfo.setVerified(false);
-						int expireMins = ConfigFactory.appConfigService
-								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
-						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
-						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_ERROR_INVALID_CODE, err);
-					}
-					
-				}else {
-					String err = "2nd factor verification type '" + type + " is not supported......";
-					logger.error(err);
-					// no need to change token, just return original token
-					newToken = token;
-					AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_ERROR_SECURITY_VERIFICATION_TYPE_UNSUPPORTED, err);
-				}
+//				secondFactorInfo = AppUtil.getSecondFactorInfoFromToken(token);
+//				String type = secondFactorInfo.getType();
+//				boolean verified = secondFactorInfo.isVerified();
+//				int retryCount = secondFactorInfo.getRetryCount();
+//				if (retryCount >= 3) {
+//					String err = "2nd factor verification failed for more than " + retryCount
+//							+ " times, need to acquire new verification code!";
+//					logger.error(err);
+//					// no need to change token, just return original token
+//					newToken = token;
+//					AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_ERROR_SECURITY_EXCEED_RETRY_COUNT, err);
+//				} else if (AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE.equalsIgnoreCase(type)) {
+//					//---get hashed 2nd factor value
+//					//--- from repository first
+//					String value = AppComponents.iaaService.getHashed2ndFactorValueFromRepositoryByUserId(userId);
+//					//value == null means use hashed value in token
+//					if(StringUtil.isEmptyOrNull(value)) {
+//						logger.debug("Verify2ndFactorServlet.doPost() - active 2nd factor code comes from token...........");
+//						value = secondFactorInfo.getValue();
+//					}else {
+//						logger.debug("Verify2ndFactorServlet.doPost() - active 2nd factor code comes from repository...........");
+//					}
+//					if (Hasher.hashPassword(secondFactorValueFromReq).equals(value)) {
+//						String err = "2nd factor verification succeed.....";
+//						logger.debug(err);
+//						secondFactorInfo.setVerified(true);
+//						secondFactorInfo.setRetryCount(retryCount);
+//						int expireMins = ConfigFactory.appConfigService
+//								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
+//						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
+//						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_SUCCESS, err);
+//					} else {
+//						String err = "2nd factor verification failed, verification code in request = "
+//								+ secondFactorValueFromReq;
+//						logger.error(err);
+//						secondFactorInfo.setRetryCount(retryCount + 1);
+//						secondFactorInfo.setVerified(false);
+//						int expireMins = ConfigFactory.appConfigService
+//								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
+//						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
+//						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_ERROR_INVALID_CODE, err);
+//					}
+//
+//				}  else if (AppConstant.IAA_2NDFACTOR_TYPE_TOTP.equalsIgnoreCase(type)) {
+//					AppIaaUser iaaUser = AppComponents.iaaService.getIaaUserByUserId(userId);
+//					if(iaaUser == null) {
+//						logger.error(
+//								"Can't retrieve user,  userId = " + userId + ".....");
+//						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+//								"Can't retrieve user.");
+//						return;
+//					}
+//					String totpSecret = iaaUser.getTotpSecret();
+//					Totp totp = new Totp(iaaUser.getTotpSecret());
+//					if (StringUtil.isEmptyOrNull(totpSecret) || totp == null) {
+//						String err = "no TOTP secret is setup for the user, '" + userId + "......";
+//						logger.error(err);
+//						AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY, err);
+//						return;
+//					}
+//					if (isValidLong(secondFactorValueFromReq) && totp.verify(secondFactorValueFromReq)) {
+//						String err = "2nd factor verification succeed.....";
+//						logger.debug(err);
+//						secondFactorInfo.setVerified(true);
+//						secondFactorInfo.setRetryCount(retryCount);
+//						int expireMins = ConfigFactory.appConfigService
+//								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
+//						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
+//						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_SUCCESS, err);
+//					} else {
+//						String err = "2nd factor verification failed, verification code in request = "
+//								+ secondFactorValueFromReq;
+//						logger.debug(err);
+//						secondFactorInfo.setRetryCount(retryCount + 1);
+//						secondFactorInfo.setVerified(false);
+//						int expireMins = ConfigFactory.appConfigService
+//								.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
+//						newToken = AppComponents.jwtService.updateToken(token, key, expireMins, secondFactorInfo);
+//						AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_ERROR_INVALID_CODE, err);
+//					}
+//					
+//				}else {
+//					String err = "2nd factor verification type '" + type + " is not supported......";
+//					logger.error(err);
+//					// no need to change token, just return original token
+//					newToken = token;
+//					AppUtil.setHttpResponse(httpResponse, 200, ResponseStatus.STATUS_CODE_ERROR_SECURITY_VERIFICATION_TYPE_UNSUPPORTED, err);
+//				}
 			}
 
 			if (StringUtil.isEmptyOrNull(newToken)) {

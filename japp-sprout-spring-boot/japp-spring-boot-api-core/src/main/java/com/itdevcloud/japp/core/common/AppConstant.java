@@ -39,6 +39,7 @@ public class AppConstant {
 	public static final String JWT_CLAIM_KEY_ISSUE_APPID = "issueAppId";
 	public static final String JWT_CLAIM_KEY_TARGET_APPID = "targetAppId";
 	
+	public static final String JWT_CLAIM_KEY_CONTEXT_ID = "ctxId";
 	public static final String JWT_CLAIM_KEY_TARGET_IP = "targetIp";
 	public static final String JWT_CLAIM_KEY_TIMEOUT_AT = "timeoutAt";
 	public static final String JWT_CLAIM_KEY_2NDFACTOR_VERIFIED = "secondFactorVerified";
@@ -67,5 +68,15 @@ public class AppConstant {
 	public static final String STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE = "AadJwksCache";
 	public static final String STARTUP_NOTIFY_KEY_JAPPCORE_KEY_CACHE = "PkiKeyCache";
 	public static final String STARTUP_NOTIFY_KEY_REFERENCE_CODE_CACHE = "ReferenceCodeCache";
+
+	public static final String SMS_DOMAIN_SESSION = "SESSION";
+	public static final String SMS_DOMAIN_MFA = "SESSION_MFA";
+	public static final String SMS_DOMAIN_JWT_BLACKLIST = "JWT_BLACKLIST";
+	public static final String SMS_DOMAIN_EVENT = "EVENT";
+	
+	public static final String SMS_KEY_MFA_TOTP = "MFA_TOTP";
+	public static final String SMS_KEY_MFA_OTP = "MFA_OTP";
+	public static final String SMS_KEY_USER_IAA_UID = "USER_IAA_UID";
+	public static final String SMS_KEY_USER_PROFILE_UID = "USER_PROFILE_UID";
 
 }

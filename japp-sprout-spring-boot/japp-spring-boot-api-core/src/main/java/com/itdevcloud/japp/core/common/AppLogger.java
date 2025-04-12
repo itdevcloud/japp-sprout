@@ -1,5 +1,8 @@
 package com.itdevcloud.japp.core.common;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,6 +45,24 @@ public class AppLogger {
 		// loads logging.properties from the classpath
 		if (StringUtil.isEmptyOrNull(propertyFileName)) {
 			propertyFileName = DEFAULT_JAVA_UTIL_LOGGER_PROPERTY_FILE_NAME;
+		}
+		InputStream in = null;
+		try {
+			in = JulLogger.class.getClassLoader().getResourceAsStream("log4j.xml");
+			if(in  == null) {
+				useLog4J = false;
+			}else {
+			}
+			useLog4J = true;
+		}catch(Throwable t) {
+			
+		}finally {
+			if(in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+				}
+			}
 		}
 		if (useLog4J) {
 			return;

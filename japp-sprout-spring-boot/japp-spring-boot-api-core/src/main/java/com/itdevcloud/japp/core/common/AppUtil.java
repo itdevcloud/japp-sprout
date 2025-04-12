@@ -42,25 +42,31 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itdevcloud.japp.core.api.bean.BaseResponse;
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.MfaInfo;
+import com.itdevcloud.japp.core.api.vo.MfaOTP;
+import com.itdevcloud.japp.core.api.vo.MfaTOTP;
+import com.itdevcloud.japp.core.api.vo.MfaVO;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
-import com.itdevcloud.japp.core.iaa.service.SecondFactorInfo;
+import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
+import com.itdevcloud.japp.core.service.customization.SessionServiceHelperI;
+import com.itdevcloud.japp.core.session.DefaultSessionServiceHelper;
+import com.itdevcloud.japp.se.common.util.DateUtils;
+import com.itdevcloud.japp.se.common.util.RandomUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
@@ -73,8 +79,8 @@ import io.jsonwebtoken.Jwts;
  */
 @Component
 public class AppUtil {
-	
-	//private static final Logger logger = LogManager.getLogger(AppUtil.class);
+
+	// private static final Logger logger = LogManager.getLogger(AppUtil.class);
 	private static final Logger logger = LogManager.getLogger(AppUtil.class);
 
 	public static final DateFormat defaulDateStringFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -103,7 +109,6 @@ public class AppUtil {
 		return startupDate;
 	}
 
-
 	public static BaseResponse createBaseResponse(String status, String message) {
 
 		BaseResponse response = new BaseResponse();
@@ -118,11 +123,12 @@ public class AppUtil {
 
 		return response;
 	}
+
 	public static BaseResponse createBaseResponse(String command, String status, String message) {
 
 		BaseResponse response = new BaseResponse();
 		response.setCommand(command);
-		
+
 		ResponseStatus responseStatus = createResponseStatus(status, message);
 
 		response.setResponseStatus(responseStatus);
@@ -164,7 +170,7 @@ public class AppUtil {
 		if (sourceObj == null) {
 			return null;
 		}
-		return GsonDeepCopy(sourceObj, (Class<T>)sourceObj.getClass());
+		return GsonDeepCopy(sourceObj, (Class<T>) sourceObj.getClass());
 	}
 
 	public static String getStackTrace(Throwable t) {
@@ -298,7 +304,6 @@ public class AppUtil {
 		return result;
 	}
 
-
 	public static String getSpringActiveProfile() {
 		if (StringUtil.isEmptyOrNull(springActiveProfile)) {
 			String env = System.getenv("spring.profiles.active");
@@ -357,15 +362,16 @@ public class AppUtil {
 
 	}
 
-	public static void setPropertyValue(Class<?> targetClass, Object targetObj, String targetPropertyName, Object targetValue) {
+	public static void setPropertyValue(Class<?> targetClass, Object targetObj, String targetPropertyName,
+			Object targetValue) {
 		if (targetObj == null && targetClass == null) {
 			logger.error("setPropertyValue() - object and targetClass can not be both null, do nothing...");
 		}
 		if (StringUtil.isEmptyOrNull(targetPropertyName)) {
 			logger.error("setPropertyValue() - propertyName can not be null, do nothing...");
 		}
-		//object class override target class
-		targetClass = (targetObj == null?targetClass:targetObj.getClass());
+		// object class override target class
+		targetClass = (targetObj == null ? targetClass : targetObj.getClass());
 		while (targetClass != null) {
 			try {
 				Field field = targetClass.getDeclaredField(targetPropertyName);
@@ -373,8 +379,8 @@ public class AppUtil {
 					field.setAccessible(true);
 					field.set(targetObj, targetValue);
 				} else {
-					logger.error("setPropertyValue() - propertyName <" + targetPropertyName + "> is not defined in class "
-								+ targetClass.getSimpleName() + ", do nothing...");
+					logger.error("setPropertyValue() - propertyName <" + targetPropertyName
+							+ "> is not defined in class " + targetClass.getSimpleName() + ", do nothing...");
 				}
 				return;
 			} catch (NoSuchFieldException e) {
@@ -445,26 +451,183 @@ public class AppUtil {
 			remoteAddr = request.getHeader("X-FORWARDED-FOR");
 			if (StringUtil.isEmptyOrNull(remoteAddr)) {
 				remoteAddr = request.getRemoteAddr();
-			}else {
+			} else {
 				logger.debug("-------------remoteAddr 1-----X-FORWARDED-FOR-----" + remoteAddr);
 				int idx = remoteAddr.indexOf(",");
-				if(idx > 0) {
-					//client part
+				if (idx > 0) {
+					// client part
 					remoteAddr = remoteAddr.substring(0, idx);
 				}
 				idx = remoteAddr.lastIndexOf(":");
-				if(idx > 0) {
+				if (idx > 0) {
 					remoteAddr = remoteAddr.substring(0, idx);
 				}
 				logger.debug("-------------remoteAddr 2-------------------------" + remoteAddr);
 			}
 		}
-		if(InetAddressValidator.getInstance().isValid(remoteAddr)) {
+		if (InetAddressValidator.getInstance().isValid(remoteAddr)) {
 			return remoteAddr;
-		}else {
+		} else {
 			return "n/a";
 		}
 
+	}
+
+	public static String getSessionId(AppIaaUser iaaUser) {
+
+		String uid = "na-" + RandomUtil.generateAlphanumericString(5);
+		if (iaaUser != null) {
+			uid = iaaUser.getUserIaaUID();
+		}
+		String sessionId = uid + "-" + DateUtils.dateToString(new Date(), "ddHHmmss") + "-"
+				+ RandomUtil.generateAlphanumericString(6);
+		return sessionId;
+	}
+
+	private static String appendParameterToUrl(String url, String parameterName, String parameterValue) {
+		if (StringUtil.isEmptyOrNull(url) || StringUtil.isEmptyOrNull(parameterName)) {
+			return url;
+		}
+		if (StringUtil.isEmptyOrNull(parameterValue)) {
+			parameterValue = "";
+		}
+		// remove end "/"
+		if (url.endsWith("/")) {
+			url = url.substring(0, url.length() - 2);
+			url = url + "?" + parameterName.trim() + "=" + parameterValue.trim();
+		} else {
+			if (url.indexOf("?") > 1) {
+				url = url + "&" + parameterName.trim() + "=" + parameterValue.trim();
+			}
+		}
+		return url;
+	}
+
+//	private static MfaVO getMfaVOByType(List<MfaVO> mfaVOList, String type) {
+//		if (mfaVOList == null || mfaVOList.isEmpty() || StringUtil.isEmptyOrNull(type)) {
+//			return null;
+//		}
+//		for (MfaVO vo : mfaVOList) {
+//			if (type.equalsIgnoreCase(vo.getType())) {
+//				return vo;
+//			}
+//		}
+//		return null;
+//	}
+
+	public static boolean handleMfa(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+			AppIaaUser iaaUser) {
+		if (httpRequest == null || httpResponse == null || iaaUser == null) {
+			logger.debug("httpRequest,  httpResponse and iaaUser is null, do nothing......");
+			return false;
+		}
+		boolean appMfaEnabled = ConfigFactory.appConfigService
+				.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_MFA_ENABLED);
+
+		String appMfaDefaultType = ConfigFactory.appConfigService
+				.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_MFA_DEFAULT_TYPE, MfaVO.MFA_TYPE_OTP);
+
+		List<MfaVO> userMfaVOList = iaaUser.getMfaVOList();
+		if (!appMfaEnabled && (userMfaVOList == null || userMfaVOList.isEmpty())) {
+			// MFA is not enabled for the app and for the user, do nothing;
+			logger.debug("MFA is not enabled for the user and for the app, do nothing......");
+			return false;
+		}
+		try {
+			// MFA is needed
+			// validate session ID
+			boolean foundSessionIdInRequest = false;
+			String reqSessionId = httpRequest.getParameter("s-id");
+			String userSessionId = iaaUser.getSessionId();
+			if (StringUtil.isEmptyOrNull(reqSessionId) && StringUtil.isEmptyOrNull(userSessionId)) {
+				userSessionId = getSessionId(iaaUser);
+				iaaUser.setSessionId(userSessionId);
+				reqSessionId = userSessionId;
+			} else if (StringUtil.isEmptyOrNull(reqSessionId)) {
+				reqSessionId = userSessionId;
+			} else if (StringUtil.isEmptyOrNull(userSessionId)) {
+				userSessionId = reqSessionId;
+				iaaUser.setSessionId(userSessionId);
+				foundSessionIdInRequest = true;
+			} else {
+				if (!userSessionId.equals(reqSessionId)) {
+					foundSessionIdInRequest = true;
+					logger.error("Session mismatch detected. code E200, throw 401 error====");
+					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+							"Authentication Failed. code E200");
+					return false;
+				}
+			}
+			// check which MFA has been done
+			SessionServiceHelperI helper = AppFactory.getComponent(SessionServiceHelperI.class);
+			MfaInfo mfaInfoFromSession = helper.getMfaInfoFromSessionRepo(userSessionId);
+
+			RequestDispatcher dispatcher = null;
+			String mfaUrl = null;
+			String mfaUrlKey = null;
+			String mfaType = null;
+			if (userMfaVOList == null || userMfaVOList.isEmpty()) {
+				// user MFA not enabled, use app default setting
+				MfaVO vo = mfaInfoFromSession.getMfaVO(appMfaDefaultType);
+				if (vo != null && vo.isVerified()) {
+					// default MFA has been done, do nothing
+					return false;
+				}
+				mfaUrlKey = AppConfigKeys.JAPPCORE_IAA_MFA_URL_BASE + "." + appMfaDefaultType.toLowerCase();
+				mfaUrl = ConfigFactory.appConfigService.getPropertyAsString(mfaUrlKey);
+				mfaType = appMfaDefaultType;
+			} else {
+				boolean mfaRequired = true;
+				for (MfaVO mfaVO : userMfaVOList) {
+					MfaVO vo = mfaInfoFromSession.getMfaVO(mfaVO.getType());
+					if (vo != null && vo.isVerified()) {
+						mfaRequired = false;
+						continue;
+					}
+					mfaRequired = true;
+					mfaUrlKey = AppConfigKeys.JAPPCORE_IAA_MFA_URL_BASE + "." + mfaVO.getType().trim().toLowerCase();
+					mfaUrl = ConfigFactory.appConfigService.getPropertyAsString(mfaUrlKey);
+					mfaType = mfaVO.getType().trim();
+					break;
+				} // end for
+				if (!mfaRequired) {
+					// at least verify one mfa, do nothing
+					return false;
+				}
+			}
+
+			if (StringUtil.isEmptyOrNull(mfaUrl)) {
+				logger.error("Can not retrieve MFA URL, please check configuration, mfaUrlKey = " + mfaUrlKey);
+				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+						"Authentication Failed: NO MFA URL found! code E200");
+				return false;
+			}
+
+			if (!foundSessionIdInRequest) {
+				mfaUrl = appendParameterToUrl(mfaUrl, "s-id", userSessionId);
+			}
+			dispatcher = httpRequest.getRequestDispatcher(mfaUrl);
+			dispatcher.forward(httpRequest, httpResponse);
+		} catch (Throwable t) {
+			logger.error("Can not process MFA , error: " + t, t);
+			AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+					"MFA Authentication Failed:  code E200");
+			//make sure not proceed to generate JWT by return true
+			return true;
+
+		}
+		return true;
+	}
+	public static AppIaaUser getAppIaaUserFromSessionRepository(String userSessionId) {
+		if (userSessionId == null || StringUtil.isEmptyOrNull(userSessionId) ) {
+			logger.debug("userSessionId is null, return null......");
+			return null;
+		}
+		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
+		String userIaaUID = helper.getUserIaaUIDFromSessionRepository(userSessionId); 
+		
+		AppIaaUser iaaUser = helper.getIaaUserFromRepositoryByUserIaaUID(userIaaUID);
+		return iaaUser;
 	}
 
 	public static void setHttpResponse(HttpServletResponse httpResponse, int httpStatus, String statusCode,
@@ -506,31 +669,6 @@ public class AppUtil {
 			return null;
 		}
 
-	}
-
-	public static SecondFactorInfo getSecondFactorInfoFromToken(String jwtToken) {
-		SecondFactorInfo secondFactorInfo = new SecondFactorInfo();
-		Map<String, Object> claims = parseJwtClaims(jwtToken);
-		if (claims == null) {
-			return null;
-		}
-		String tmpV = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED);
-		// logger.debug("getSecondFactorInfoFromToken() - tmpV = " + tmpV);
-		boolean isVerified = Boolean.valueOf(StringUtil.isEmptyOrNull(tmpV) ? "false" : tmpV);
-
-		String type = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE);
-		String value = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE);
-
-		// logger.error("hashed 2nd factor value in token (1) - " + value);
-
-		tmpV = "" + claims.get(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT);
-		int retryCount = Integer.valueOf((NumberUtils.isCreatable(tmpV) ? tmpV : "0"));
-
-		secondFactorInfo.setVerified(isVerified);
-		secondFactorInfo.setType(StringUtil.isEmptyOrNull(type) ? AppConstant.IAA_2NDFACTOR_TYPE_NONE : type);
-		secondFactorInfo.setValue(value);
-		secondFactorInfo.setRetryCount(retryCount);
-		return secondFactorInfo;
 	}
 
 	public static Map<String, Object> parseJwtClaims(String jwtToken) {
@@ -618,6 +756,60 @@ public class AppUtil {
 		ThreadContext.clearAll();
 	}
 
+	public static <T>  T getObjectFromJsonString(String jsonString, Class<T> clazz) {
+		if (StringUtil.isEmptyOrNull(jsonString)) {
+			return null;
+		}
+		String jsonStr = handleNullForJsonStringDeserialization(jsonString);
 
+		Gson gson = new GsonBuilder().serializeNulls().create();
+		T obj = gson.fromJson(jsonStr, clazz);
+		return obj;
+	}
+
+	public static String getJsonStringFromObject(Object obj) {
+		if (obj == null) {
+			return null;
+		}
+		Gson gson = new GsonBuilder().serializeNulls().create();
+		return gson.toJson(obj);
+	}
+
+	private static String handleNullForJsonStringDeserialization(String jsonString) {
+		if (StringUtil.isEmptyOrNull(jsonString)) {
+			return jsonString;
+		}
+		String pattern = "(:)(\\s*)([,\\}])";
+		String output = jsonString.replaceAll(pattern, "$1\"\"$3");
+		return output;
+	}
+
+	public static void main(String[] args) {
+
+		DefaultSessionServiceHelper sessionHelper = new DefaultSessionServiceHelper();
+		
+		MfaTOTP mfaTotp = new MfaTOTP();
+		mfaTotp.setSecret("12345");
+		mfaTotp.setExpiryDate(new Date());
+
+		MfaOTP mfaOtp = new MfaOTP();
+		mfaOtp.setCode("12345");
+		mfaOtp.setExpiryDate(new Date());
+
+		MfaInfo mfaInfo = new MfaInfo();
+		mfaInfo.addOrUpdateMfaVO(mfaTotp);
+		
+		sessionHelper.setMfaInfoToSessionRepo("u-123456", mfaInfo);
+		MfaInfo mfaInfoSession = sessionHelper.getMfaInfoFromSessionRepo("u-123456");
+		logger.info("---------1-------" + mfaInfoSession);
+		
+		mfaInfoSession.addOrUpdateMfaVO(mfaOtp);
+		logger.info("---------2-------" + mfaInfoSession);
+		
+		sessionHelper.setMfaInfoToSessionRepo("u-123456", mfaInfoSession);
+		mfaInfoSession = sessionHelper.getMfaInfoFromSessionRepo("u-123456");
+		logger.info("---------3-------" + mfaInfoSession);
+
+	}
 
 }

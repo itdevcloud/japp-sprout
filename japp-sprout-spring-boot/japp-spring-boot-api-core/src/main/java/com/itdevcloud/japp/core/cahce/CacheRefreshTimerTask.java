@@ -16,10 +16,10 @@
  */
 package com.itdevcloud.japp.core.cahce;
 
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.annotation.PostConstruct;
 
@@ -33,6 +33,7 @@ import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.ConfigFactory;
+
 /**
  * This class is used to refresh various caches based on pre-defined schedules.
  *
@@ -45,7 +46,6 @@ import com.itdevcloud.japp.core.common.ConfigFactory;
 @Component
 public class CacheRefreshTimerTask {
 
-	//private static final Logger logger = LogManager.getLogger(CacheRefreshTimerTask.class);
 	private static final Logger logger = LogManager.getLogger(CacheRefreshTimerTask.class);
 
 	private static String dailyRefreshDate = null;
@@ -62,23 +62,27 @@ public class CacheRefreshTimerTask {
 	@PostConstruct
 	public void init() {
 	}
-
-	@Scheduled(fixedRateString = "${jappcore.cache.refresh.interval:600000}")
-	public void run() {
-		logger.info("CacheRefreshTimerTask.run() - started......");
+	
+	private String getCacheListInfoString() {
+		StringBuffer sb = new StringBuffer();
 		if(cacheList == null || cacheList.isEmpty()) {
-			logger.debug("CacheRefreshTimerTask - cacheList is null or empty, do nothing...");
-			return;
+			sb.append("CacheRefreshTimerTask - cacheList is null or empty, do nothing......");
 		}else {
-			String str = "CacheRefreshTimerTask.run() - cacheList size = " + cacheList.size();
+			sb.append("CacheRefreshTimerTask.run() - cacheList size = " + cacheList.size());
 			for (RefreshableCache cache : cacheList) {
-				str = str + "\n - "+cache.getCacheSimpleName();
+				//make sure load interval configuration
+				cache.init();
+				sb.append("\n - "+cache.getCacheSimpleName() + ", Refresh Interval = " + cache.getRefreshInterval() + " mins......");
 			}
-			logger.info(str);
 		}
+		return sb.toString();
+	}
+	
+	//10 mins
+	@Scheduled(fixedDelayString = "${jappcore.cache.refresh.least.interval.:10}", timeUnit = TimeUnit.MINUTES )
+	public void run() {
 		boolean enableCacheDailyRefresh = ConfigFactory.appConfigService
 				.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_CACHE_DAILY_REFRESH_ENABLED);
-		long start = System.currentTimeMillis();
 
 		Date now = new Date();
 		long nowTS = now.getTime();
@@ -88,40 +92,22 @@ public class CacheRefreshTimerTask {
 
 		if (enableCacheDailyRefresh && (dailyRefreshDate == null || refreshDateInt < todayInt)) {
 			logger.info("CacheRefreshTimerTask.run() - Daily refresh start............");
-
+			logger.info(getCacheListInfoString());
+			
 			for (RefreshableCache cache : cacheList) {
 				// force to refresh anyway by set lastUpdatedTS = -1
 				cache.setLastUpdatedTS(-1);
-				logger.debug(cache.getCacheSimpleName() + ".init()......begin......");
-
-				cache.initCache();
-
-				Date end = new Date();
-				long endTS = end.getTime();
-				cache.setLastUpdatedTS(endTS);
-
-				logger.debug(cache.getCacheSimpleName() + ".init()......end...........");
+				cache.refresh();
 			}
-
 			dailyRefreshDate = today;
-
-			long end1 = System.currentTimeMillis();
-			logger.info("CacheRefreshTimerTask.run() - Daily refresh End...... took " + (end1 - start) + " ms.");
+			Date end = new Date();
+			long endTS = end.getTime();
+			logger.info("CacheRefreshTimerTask.run() - Daily refresh end........ took " + (endTS - nowTS) + " ms.");
 		} else {
 			for (RefreshableCache cache : cacheList) {
-				long lastUpdatedTS = cache.getLastUpdatedTS();
-				if (((nowTS - lastUpdatedTS) >= (ConfigFactory.appConfigService
-						.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL)*1000*60))) {
-					logger.debug(cache.getCacheSimpleName() + ".refresh()......begin...........");
 					cache.refreshCache();
-					Date end = new Date();
-					long endTS = end.getTime();
-					cache.setLastUpdatedTS(endTS);
-					logger.debug(cache.getCacheSimpleName() + ".refresh()......end...........");
-				}
 			}
 		}
-		logger.info("CacheRefreshTimerTask.run() - end.........");
 
 	}
 }

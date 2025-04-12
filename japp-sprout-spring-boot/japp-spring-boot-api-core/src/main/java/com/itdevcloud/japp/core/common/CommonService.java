@@ -21,8 +21,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,11 +31,12 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 /**
  *
@@ -53,6 +52,7 @@ public class CommonService implements AppFactoryComponentI {
 
 	@PostConstruct
 	public void init() {
+		//try to avoid using AppConfig Service, AppComponents.appConfigCache may be not fully initiated yet
 	}
 
 	/**
@@ -64,8 +64,9 @@ public class CommonService implements AppFactoryComponentI {
 			logger.error("handleMaintenanceMode() - httpResponse is null, return as in maintenance mode, check code!...");
 			return true;
 		}
-		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_APP_MAINTENANCE_MODE_ENABLED)
-				&& !AppComponents.iaaService.isAccessAllowed(AppConstant.BUSINESS_ROLE_IT_SUPPORT)) {
+		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_APP_MAINTENANCE_MODE_ENABLED)) {
+//			if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_APP_MAINTENANCE_MODE_ENABLED)
+//					&& !AppComponents.iaaService.isAccessAllowed(AppConstant.BUSINESS_ROLE_IT_SUPPORT)) {
 
 			httpResponse.addHeader("MaitainenaceMode", "true");
 			httpResponse.addHeader("Access-Control-Expose-Headers", "MaitainenaceMode");
@@ -105,12 +106,12 @@ public class CommonService implements AppFactoryComponentI {
 	}
 	
 
-	public boolean matchUserIpWhiteList(HttpServletRequest httpRequest, IaaUser<?> iaaUser) {
+	public boolean matchUserIpWhiteList(HttpServletRequest httpRequest, AppIaaUser iaaUser) {
 		if(httpRequest == null || iaaUser == null) {
 			logger.error("userIpWhiteListCheck() - httpRequest and/or iaaUser is null, return false.....");
 			return false;
 		}
-		List<String> whiteList = iaaUser.getCidrWhiteList();
+		List<String> whiteList = CommonUtil.stringToList(iaaUser.getCidrWhitelist(), ",");
 		return matchUserIpWhiteList (httpRequest, whiteList);
 	}
 
@@ -174,36 +175,36 @@ public class CommonService implements AppFactoryComponentI {
 	}
 
 
-	public boolean matchAppRoleList(IaaUser<?> iaaUser) {
+	public boolean matchAppRoleList(AppIaaUser iaaUser) {
 		if(iaaUser == null ) {
 			logger.error("matchAppRoleList() - iaaUser is null, return false.....");
 			return false;
 		}
-		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_APPLICATION_ROLECHECK_ENABLED)) {
-			Set<String> roleList =  iaaUser.getBusinessRoles();
-			roleList.addAll(iaaUser.getApplicationRoles());
-			
-			List<String> appRoles = getApplicationRoleList();
-			boolean isRoleIncluded = false;
-			if (appRoles == null || appRoles.isEmpty()) {
-				isRoleIncluded = true;
-			} else {
-				for (String entry : appRoles) {
-					for (String role: roleList) {
-						if (entry.equalsIgnoreCase(role)) {
-							isRoleIncluded = true;
-							break;
-						}
-					}
-				}
-			}
-			if (!isRoleIncluded) {
-				logger.error(
-						"requester's role is not on the Applicaion's role list"
-						+ ".....");
-				return false;
-			}
-		}
+//		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_APPLICATION_ROLECHECK_ENABLED)) {
+//			Set<String> roleList =  iaaUser.getBusinessRoles();
+//			roleList.addAll(iaaUser.getApplicationRoles());
+//			
+//			List<String> appRoles = getApplicationRoleList();
+//			boolean isRoleIncluded = false;
+//			if (appRoles == null || appRoles.isEmpty()) {
+//				isRoleIncluded = true;
+//			} else {
+//				for (String entry : appRoles) {
+//					for (String role: roleList) {
+//						if (entry.equalsIgnoreCase(role)) {
+//							isRoleIncluded = true;
+//							break;
+//						}
+//					}
+//				}
+//			}
+//			if (!isRoleIncluded) {
+//				logger.error(
+//						"requester's role is not on the Applicaion's role list"
+//						+ ".....");
+//				return false;
+//			}
+//		}
 		return true;
 	}
 

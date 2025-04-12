@@ -14,35 +14,35 @@
  * limitations under the License.
  *
  */
-package com.itdevcloud.japp.core.api.bean;
-
-import org.springframework.stereotype.Component;
-
-import com.itdevcloud.japp.core.api.vo.AppIaaUser;
-import com.itdevcloud.japp.core.iaa.service.IaaUser;
+package com.itdevcloud.japp.core.api.vo;
 
 /**
  *
  * @author Marvin Sun
  * @since 1.0.0
  */
+public class MfaTOTP extends MfaVO {
+	
+	
+	private String secret;
 
-@Component
-public class GetIaaProfileResponse extends BaseResponse {
-
-
-	private AppIaaUser iaaUser;
-
-	public AppIaaUser getIaaUser() {
-		return iaaUser;
+	public String getSecret() {
+		return secret;
 	}
 
-	public void setIaaUser(AppIaaUser iaaUser) {
-		this.iaaUser = iaaUser;
+	public void setSecret(String secret) {
+		this.secret = secret;
+	}
+	
+	@Override
+	public String getType() {
+		return MfaVO.MFA_TYPE_TOTP;
 	}
 
-
-
+	@Override
+	public String toString() {
+		return "MfaTOTP [secret=" + (secret==null?null:"***") + ", Base=" + super.toString() + "]";
+	}
 
 
 }

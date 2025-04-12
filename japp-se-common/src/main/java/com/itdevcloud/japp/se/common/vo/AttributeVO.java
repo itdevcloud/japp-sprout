@@ -5,6 +5,8 @@ public class AttributeVO extends BaseVO {
 	private static final long serialVersionUID = 1L;
 
 	private long mainEntityId;
+	private long domainId;
+	private String domainCode;
 	private long typeId;
 	private String typeCode;
 	private int sequence;
@@ -20,10 +22,12 @@ public class AttributeVO extends BaseVO {
 
 
 
-	public AttributeVO(long mainEntityId, long pk, long typeId, String typeCode, int sequence, String value, int displayOrder, String description, boolean requireUnique) {
+	public AttributeVO(long mainEntityId, long pk, long domainId, String domainCode, long typeId, String typeCode, int sequence, String value, int displayOrder, String description, boolean requireUnique) {
 		super();
 		this.mainEntityId = mainEntityId;
 		this.pk= pk;
+		this.domainId = domainId;
+		this.domainCode = domainCode;
 		this.typeId = typeId;
 		this.typeCode = typeCode;
 		this.sequence = sequence;
@@ -45,6 +49,36 @@ public class AttributeVO extends BaseVO {
 		}
 		this.mainEntityId = mainEntityId;
 	}
+
+
+	public long getDomainId() {
+		return domainId;
+	}
+
+
+
+	public void setDomainId(long domainId) {
+		if(isFinalized) {
+			return;
+		}
+		this.domainId = domainId;
+	}
+
+
+
+	public String getDomainCode() {
+		return domainCode;
+	}
+
+
+
+	public void setDomainCode(String domainCode) {
+		if(isFinalized) {
+			return;
+		}
+		this.domainCode = domainCode;
+	}
+
 
 
 	public long getTypeId() {
@@ -157,7 +191,7 @@ public class AttributeVO extends BaseVO {
 
 	@Override
 	public String toString() {
-		return "AttributeVO [mainEntityId=" + mainEntityId + ", typeId=" + typeId + ", typeCode=" + typeCode + ", sequence=" + sequence + ", value="
+		return "AttributeVO [mainEntityId=" + mainEntityId + ", domainId=" + domainId + ", domainCode=" + domainCode + ", typeId=" + typeId + ", typeCode=" + typeCode + ", sequence=" + sequence + ", value="
 				+ value + ", requireUnique=" + requireUnique + ", displayOrder=" + displayOrder + ", description=" + description + ", Base="
 				+ super.toString() + "]";
 	}

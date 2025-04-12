@@ -51,7 +51,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @since 1.0.0
  */
 
-@WebServlet(name = "loginServlet", urlPatterns = "/login")
+@WebServlet(name = "loginServlet", urlPatterns = "/open/login")
 public class LoginServlet extends jakarta.servlet.http.HttpServlet {
 	private static final long serialVersionUID = 1L;
 	//private static final Logger logger = LogManager.getLogger(LoginServlet.class);
@@ -129,13 +129,13 @@ public class LoginServlet extends jakarta.servlet.http.HttpServlet {
 			return server + clientid + redirecturi + resource;
 		} 
 		else if (AppConstant.AUTH_PROVIDER_JAPPCORE_BASIC_AUTH.equals(provider)) {
-			// SK-BASIC AUTH URL
-			String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_BASIC_AUTHROIZATION_URL);			
+			// BASIC AUTH URL
+			String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_BASIC_AUTHENTICATION_URL);			
 			return url;
 		}
 		else if (AppConstant.AUTH_PROVIDER_JAPPCORE_DYNAMIC.equals(provider)) {
 			// JAPP-DYNAMIC URL
-			String server = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_DYNAMIC_AUTHROIZATION_URL);
+			String server = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_DYNAMIC_AUTHENTICATION_URL);
 			String appid = "?appId=" + ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
 			return server + appid;
 		}

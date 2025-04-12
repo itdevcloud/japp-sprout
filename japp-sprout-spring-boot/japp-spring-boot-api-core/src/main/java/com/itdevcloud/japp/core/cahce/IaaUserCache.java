@@ -28,12 +28,15 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.itdevcloud.japp.core.api.vo.AppIaaUser;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
 import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.iaa.service.IaaUser;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  *
  * @author Marvin Sun
@@ -43,82 +46,73 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 @Component
 public class IaaUserCache extends RefreshableCache {
 
-	//private static final Logger logger = LogManager.getLogger(IaaUserCache.class);
+	// private static final Logger logger =
+	// LogManager.getLogger(IaaUserCache.class);
 	private static final Logger logger = LogManager.getLogger(IaaUserCache.class);
-	
+
 	// key login ID
-	private static Map<String, IaaUser> IaaUserMap = null;
+	private static Map<String, AppIaaUser> iaaUserMap = null;
 
 	@PostConstruct
 	private void initService() {
 	}
 
 	@Override
-	public synchronized void initCache() {
-		try {
-			long startTS = System.currentTimeMillis();
-			if (lastUpdatedTS == -1 || ((startTS - lastUpdatedTS) >= ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_CACHE_REFRESH_LEAST_INTERVAL))) {
-				logger.debug("IaaUserCache.init() - begin...........");
-
-				initInProcess = true;
-				IaaUserMap = new HashMap<String, IaaUser>();
-				initInProcess = false;
-
-				Date end = new Date();
-				long endTS = end.getTime();
-				lastUpdatedTS = endTS;
-
-				String str = "IaaUserCache.init() - end. total time = " + (endTS - startTS) + " millis. Result:"
-						+ "\nIaaUserMap size = " + IaaUserMap.size() + "\n";
-
-				logger.info(str);
-			}
-		} catch (Exception e) {
-			logger.error(e);
-		} finally {
-			initInProcess = false;
-		}
+	protected String createDisplayString() {
+		String str = "IaaUserMap size = " + iaaUserMap.size();
+		return str;
 	}
 
 	@Override
-	public void refreshCache() {
-		logger.info("refreshCache() - begin .........");
-		if (lastUpdatedTS != -1) {
-			List<String> iaaUserIdList = AppComponents.iaaService.getUpdatedIaaUsers(IaaUserCache.lastUpdatedTS);
-			if (iaaUserIdList != null && iaaUserIdList.size() > 0) {
-				logger.info("IaaUserCache - refresh UserInfoCache .........");
-
-				for (String id : iaaUserIdList) {
-					// remove changed login id from cache
-					removeIaaUserByUserId(id);
-				}
-				lastUpdatedTS = new Date().getTime();
-			}
-		}else {
-			initCache();
+	protected void refreshCache() {
+		try {
+			iaaUserMap = new HashMap<String, AppIaaUser>();
+		} catch (Throwable t) {
+			String err = "refreshCache() wirh error: " + t;
+			logger.error(err, t);
+		} finally {
 		}
-		logger.info("refreshCache() - end .........");
-
 	}
 
-	public void addIaaUser(IaaUser user) {
+//	@Override
+//	public void refreshCache() {
+//		logger.info("refreshCache() - begin .........");
+//		if (lastUpdatedTS != -1) {
+//			List<String> iaaUserIdList = AppComponents.iaaService.getUpdatedIaaUsers(IaaUserCache.lastUpdatedTS);
+//			if (iaaUserIdList != null && iaaUserIdList.size() > 0) {
+//				logger.info("IaaUserCache - refresh UserInfoCache .........");
+//
+//				for (String id : iaaUserIdList) {
+//					// remove changed login id from cache
+//					removeIaaUserByUserId(id);
+//				}
+//				lastUpdatedTS = new Date().getTime();
+//			}
+//		}else {
+//			initCache();
+//		}
+//		logger.info("refreshCache() - end .........");
+//
+//	}
+
+	public void addIaaUser(AppIaaUser user) {
 		if (user == null) {
 			return;
 		}
-		String userId = user.getUserId();
+		String userId = user.getUserIaaUID();
 		if (StringUtil.isEmptyOrNull(userId)) {
 			return;
 		}
 		waitForInit();
-		IaaUserMap.put(userId.toLowerCase(), user);
+		iaaUserMap.put(userId.toLowerCase(), user);
 	}
-	
-	public IaaUser getIaaUserByUserId(String userId) {
+
+	public AppIaaUser getIaaUserByUserId(String userId) {
 		if (StringUtil.isEmptyOrNull(userId)) {
 			return null;
 		}
 		waitForInit();
-		IaaUser user = IaaUserMap.get(userId.toLowerCase());
+		AppIaaUser user = iaaUserMap.get(userId.toLowerCase());
 		return user;
 	}
 
@@ -127,7 +121,7 @@ public class IaaUserCache extends RefreshableCache {
 			return;
 		}
 		waitForInit();
-		IaaUserMap.remove(userId.toLowerCase());
+		iaaUserMap.remove(userId.toLowerCase());
 	}
 
 }

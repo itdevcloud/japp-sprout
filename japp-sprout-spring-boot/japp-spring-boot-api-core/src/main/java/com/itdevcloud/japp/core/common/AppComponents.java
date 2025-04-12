@@ -17,11 +17,10 @@
 package com.itdevcloud.japp.core.common;
 
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import com.itdevcloud.japp.core.cahce.AadJwksCache;
+import com.itdevcloud.japp.core.cahce.AppConfigCache;
+import com.itdevcloud.japp.core.cahce.EntraIdJwksCache;
 import com.itdevcloud.japp.core.cahce.IaaUserCache;
 import com.itdevcloud.japp.core.cahce.PkiKeyCache;
 import com.itdevcloud.japp.core.cahce.ReferenceCodeCache;
@@ -36,6 +35,7 @@ import com.itdevcloud.japp.core.service.log.LogFileService;
 import com.itdevcloud.japp.core.service.notification.SystemNotifyService;
 import com.itdevcloud.japp.core.service.referencecode.ReferenceCodeService;
 import com.itdevcloud.japp.core.service.startup.StartupService;
+import com.itdevcloud.japp.core.session.SessionService;
 /**
  *
  * @author Marvin Sun
@@ -49,6 +49,7 @@ public class AppComponents {
 	public static IaaService iaaService;
 	public static PkiService pkiService;
 	public static AzureJwksService azureJwksService;
+	public static SessionService sessionService;
 	
 	public static FrontendEnvSetupService frontendEnvSetupService;
 	public static StartupService startupService;
@@ -64,8 +65,9 @@ public class AppComponents {
 	
 	public static IaaUserCache iaaUserCache;
 	public static PkiKeyCache pkiKeyCache;
-	public static AadJwksCache aadJwksCache;
+	public static EntraIdJwksCache aadJwksCache;
 	public static ReferenceCodeCache referenceCodeCache;
+	public static AppConfigCache appConfigCache;
 
 
 }

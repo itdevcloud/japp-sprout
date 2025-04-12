@@ -51,7 +51,6 @@ public class SpecialCharacterFilter implements Filter {
 
 	@Override
 	public void destroy() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -89,7 +88,7 @@ public class SpecialCharacterFilter implements Filter {
 		String queryStr = httpRequest.getQueryString();
 		if (queryStr!=null) {
 			if(SpecialCharacterUtil.checkSpecialBlockCharacters(queryStr)||SpecialCharacterUtil.checkCrossSiteScriptCharacters(queryStr)) {
-				logger.error("The input has invalid character.");
+				logger.error("The input has invalid character......");
 				httpResponse.sendError(400, "request is not acceptable, invalid input.");
 				return;
 			}

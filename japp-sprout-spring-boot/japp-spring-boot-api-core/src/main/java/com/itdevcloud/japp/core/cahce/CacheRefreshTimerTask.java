@@ -58,24 +58,42 @@ public class CacheRefreshTimerTask {
 	@Autowired
 	public CacheRefreshTimerTask(List<RefreshableCache> cacheList) {
 		this.cacheList = cacheList;
-
+		
+		//below is self check
 		// spring boot container only has one instance, otherwise the instances in the
-		// list are different than the instance in AppCompont object
-		// following code can approve it:
-//		for (RefreshableCache cache : cacheList) {
-//			RefreshableCache tmpCache = AppFactory.getComponent(cache.getClass());
-//			if (tmpCache == null) {
-//				logger.error("No Instance found in AppFactory - " + cache.getClass().getSimpleName()
-//						+ " instance not found in AppFactory!");
-//			} else if (cache == tmpCache) {
+		// list are different than the instance in AppCompont object, in this case, have to manually
+		//update AppCompont refreshable cache instance here to make sure only one instance used in the system
+		// following code can approve one instance only at this time:
+		boolean foundError = false;
+		for (RefreshableCache cache : cacheList) {
+			RefreshableCache tmpCache = AppFactory.getComponent(cache.getClass());
+			if (tmpCache == null) {
+				logger.error("No Instance found in AppFactory - " + cache.getClass().getSimpleName()
+						+ " instance not found in AppFactory!");
+				foundError = true;
+			} else if (cache == tmpCache) {
 //				logger.info("RefreshableCache - " + cache.getClass().getSimpleName()
 //						+ " instances are identical instances!");
-//			} else {
-//				logger.error(
-//						"RefreshableCache - " + cache.getClass().getSimpleName() + " instances are differe instances!");
-//			}
-//		}
-
+				//special for AppConfigCache, it is inside both AppComponent's class Map and appConfigService
+				if(cache.getClass().getSimpleName().equals("AppConfigCache")) {
+					if(cache == ConfigFactory.appConfigService.appConfigCache) {
+//						logger.info("RefreshableCache - " + cache.getClass().getSimpleName()
+//								+ " instances are identical instances!");
+					}else {
+						foundError = true;
+						logger.error(
+								"RefreshableCache - " + cache.getClass().getSimpleName() + " instances are differe instances!");
+					}
+				}
+			} else {
+				foundError = true;
+				logger.error(
+						"RefreshableCache - " + cache.getClass().getSimpleName() + " instances are differe instances!");
+			}
+		}
+		if(!foundError) {
+			logger.info("Each Refreshable Cache instance in CacheRefreshTimerTask, AppComponts and appConfigService are one instance. ");
+		}
 	}
 
 	@PostConstruct

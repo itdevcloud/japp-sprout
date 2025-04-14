@@ -67,7 +67,11 @@ public class AppComponents {
 	public static PkiKeyCache pkiKeyCache;
 	public static EntraIdJwksCache aadJwksCache;
 	public static ReferenceCodeCache referenceCodeCache;
-	public static AppConfigCache appConfigCache;
+	
+	//appConfigCache is special - for configure
+	//must be defined in the AppConfigService, not here
+	//AppConfigService will be inited before this class
+	//public static AppConfigCache appConfigCache;
 
 
 }

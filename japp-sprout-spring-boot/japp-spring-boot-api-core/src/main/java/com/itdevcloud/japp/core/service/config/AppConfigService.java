@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.cahce.AppConfigCache;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
@@ -55,9 +56,10 @@ public class AppConfigService {
 	private Environment env;
 
 	private ConfigServiceHelperI configServiceHelper = null;
-
+	public AppConfigCache appConfigCache = null;
+	
 	@Autowired
-	public AppConfigService(List<ConfigServiceHelperI> componentList) {
+	public AppConfigService(List<ConfigServiceHelperI> componentList, AppConfigCache appConfigCache) {
 		if (componentList == null || componentList.isEmpty()) {
 			throw new RuntimeException(
 					"There is no ConfigServiceHelperI implemetation class detected, please check code ==> \n");
@@ -74,6 +76,7 @@ public class AppConfigService {
 				configServiceHelper = componentList.get(1);
 			}
 		}
+		this.appConfigCache = appConfigCache;
 	}
 
 	@PostConstruct
@@ -94,10 +97,12 @@ public class AppConfigService {
 		}
 		String valueStr = null;
 		//1. get from repository first
-		if(AppComponents.appConfigCache == null) {
+		if(this.appConfigCache == null) {
+//		if(AppComponents.appConfigCache == null) {
 			logger.warn("getProperty() - appConfigCache hasn't been initiated, ignore it, need to enhance code!.......");
 		}else {
-			valueStr = AppComponents.appConfigCache.getConfigProperty(key);
+			valueStr = this.appConfigCache.getConfigProperty(key);
+//			valueStr = AppComponents.appConfigCache.getConfigProperty(key);
 //			String valueStr = (configMapFromAppRepository==null?null:configMapFromAppRepository.get(key));
 		}
 		//do not use empty at here, maybe user like to use ""

@@ -51,6 +51,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * 
  * Map<String, String> headers = new LinkedHashMap<>();
  * headers.put("Authorization", "Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJsaW.5nIiwiZGlzdHJpY");
+ * headers.put("Authorization", AppUtil.getBasicAuthnHeader(username, password));
  * headers.put("Content-Type", "application/x-www-form-urlencoded");
  * 
  * Sample parameter construction:

@@ -32,7 +32,7 @@ public class AppCoreTest extends TestBase {
 
 		logger.info("runBatchTest() begin...............");
 
-		List<String> failCommandList = batchTest(null);
+		List<String> failCommandList = batchTestRpcAPI(null);
 
 
 		if (failCommandList.isEmpty()) {
@@ -49,7 +49,7 @@ public class AppCoreTest extends TestBase {
 
 		String urlPath = "http://localhost:8080/api/cmd";
 		String jsonRequestString = "{\"message\":\"hello\"}";
-		boolean result = test(urlPath, "echo",jsonRequestString, null);
+		boolean result = testRpcAPI(urlPath, "echo",jsonRequestString, null, null, null, null);
 		assertTrue(result);
 	}
 

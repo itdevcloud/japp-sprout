@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
@@ -46,6 +47,7 @@ import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.UriBuilder;
 
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.logging.log4j.LogManager;
@@ -392,7 +394,55 @@ public class AppUtil {
 		}
 		return;
 	}
+	public static String getHttpParamDataString(Map<String, Object> params) {
+		logger.debug("getPostData() start......" );
+		if(params == null || params.isEmpty()) {
+			return null;
+		}
+		try {
+			StringBuilder postData = new StringBuilder();
+			for (Map.Entry<String, Object> param : params.entrySet()) {
+				if (postData.length() != 0) {
+					postData.append('&');
+				}
+				postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+				postData.append('=');
+				postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+			}
+			return postData.toString();
+		} catch (Throwable t) {
+			logger.error("Can not create pot data, error: " + t, t);
+			return null;
+		} finally {
+		}
+	}
+	public static String appendParamToGetURL(String urlString, Map<String, Object> params) {
+		logger.debug("getPostData() start......" );
+		if(params == null || params.isEmpty() || StringUtil.isEmptyOrNull(urlString)) {
+			return urlString;
+		}
+		try {
+			UriBuilder builder = UriBuilder.fromUri(urlString);
+			for (Map.Entry<String, Object> param : params.entrySet()) {
+				builder.queryParam(param.getKey(), param.getValue());
+			}
+			String targetUrl = builder.build().toURL().toString();
+			return targetUrl;
+		} catch (Throwable t) {
+			logger.error("Can not create pot data, error: " + t, t);
+			return urlString;
+		} finally {
+		}
+	}
 
+	public static final String getBasicAuthnHeader(String username, String password) {
+	    String valueToEncode = username + ":" + password;
+	    return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+	}
+	public static final String getBearerTokenAuthnHeader(String token) {
+	    return "Bearer  " + token;
+	}
+	
 	public static String[] parseHttpBasicAuthString(ServletRequest request) {
 		if (request == null || !(request instanceof HttpServletRequest)) {
 			logger.error(
@@ -783,6 +833,24 @@ public class AppUtil {
 		String pattern = "(:)(\\s*)([,\\}])";
 		String output = jsonString.replaceAll(pattern, "$1\"\"$3");
 		return output;
+	}
+	
+	public static String getBase64UrlEncodedString(String urlString) {
+		if(StringUtil.isEmptyOrNull(urlString)) {
+			return urlString;
+		}
+		String base64EncodedURL = Base64.getUrlEncoder()
+                .encodeToString(urlString.getBytes());
+		return base64EncodedURL;
+	}
+	
+	public static String getBase64UrlDecodedUrlString(String base64EncodedURL) {
+		if(StringUtil.isEmptyOrNull(base64EncodedURL)) {
+			return base64EncodedURL;
+		}
+		byte[] decodedURLBytes = Base64.getUrlDecoder().decode(base64EncodedURL);
+		String decodedURL= new String(decodedURLBytes);
+		return decodedURL;
 	}
 
 	public static void main(String[] args) {

@@ -23,7 +23,7 @@ package com.itdevcloud.japp.core.common;
  */
 public class AppConstant {
 
-	public static final String AUTH_PROVIDER_AAD_OPENID = "AAD-OAUTH2";
+	public static final String AUTH_PROVIDER_ENTRAID_OPENID = "ENTRAID_OPENID";
 	public static final String AUTH_PROVIDER_GENERAL_OAUTH2 = "GENERAL-OAUTH2";
 	public static final String AUTH_PROVIDER_JAPPCORE_BASIC_AUTH = "JAPP-BASIC-AUTH";
 	public static final String AUTH_PROVIDER_JAPPCORE_DYNAMIC = "JAPP-DYNAMIC";

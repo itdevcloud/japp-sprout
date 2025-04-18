@@ -25,6 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.LoginStateInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
@@ -50,55 +51,67 @@ public class BasicAuthnServlet extends jakarta.servlet.http.HttpServlet {
 	private static final Logger logger = LogManager.getLogger(BasicAuthnServlet.class);
 
 	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		logger.debug("BasicAuthServlet doGet =======begin==================");
+		doPost(request, response);
+	}
+
+	@Override
 	protected void doPost(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
 
 		AppUtil.initTransactionContext(httpRequest);
 		try {
 			logger.debug("BasicAuthServlet.doPost()...start.......");
-			// App CIDR white list check begin
-			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
-				logger.error(
-						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = "
-								+ AppUtil.getClientIp(httpRequest) + ".....");
-				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E209");
-				return;
-			}
 
 			AppIaaUser iaaUser = null;
-
-			String[] basicInfo = AppUtil.parseHttpBasicAuthString(httpRequest);
-			if (basicInfo == null || basicInfo.length != 2) {
-				String errorMsg = "Authentication Failed. code E101 - can not parse basic authentication string from request....";
-				logger.error(errorMsg);
-				httpResponse.setStatus(401);
-				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authentication Failed. code E101");
-				return;
+			// check post parameter first
+			String username = httpRequest.getParameter("username");
+			String password = httpRequest.getParameter("password");
+			if (StringUtil.isEmptyOrNull(username) || StringUtil.isEmptyOrNull(password)) {
+				String[] basicInfo = AppUtil.parseHttpBasicAuthString(httpRequest);
+				if (basicInfo == null || basicInfo.length != 2) {
+					String errorMsg = "Authentication Failed. code E101 - can not parse basic authentication string from request....";
+					logger.error(errorMsg);
+					httpResponse.setStatus(401);
+					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+							"Authentication Failed. code E1021");
+					return;
+				}
+				username = basicInfo[0];
+				password = basicInfo[1];
 			}
-			String id = basicInfo[0];
-			String pwd = basicInfo[1];
-
 			String userId = null;
+			String state = httpRequest.getParameter("state");
+			LoginStateInfo stateInfo = LoginStateInfo.parseStateString(state);
+
 			try {
-				iaaUser = AppComponents.iaaService.loginByLoginIdPassword(id, pwd, null);
+				iaaUser = AppComponents.iaaService.loginByLoginIdPassword(username, password, null);
 				if (iaaUser == null) {
-					logger.error("Authentication Failed. code E102 - Can not retrive user by loginId '" + id
+					logger.error("Authentication Failed. code E102 - Can not retrive user by loginId '" + username
 							+ "' and password.....");
 					httpResponse.setStatus(401);
 					AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authentication Failed. code E102");
+							"Authentication Failed. code E1022");
 					return;
 				}
 				userId = iaaUser.getUserIaaUID();
 				AppThreadContext.setUserId(userId);
 
 			} catch (AppException e) {
-				logger.error("Authentication Failed. code E103 - " + e);
+				logger.error("Authentication Failed. code E1023 - " + e);
 				logger.error(AppUtil.getStackTrace(e));
 				httpResponse.setStatus(401);
 				AppUtil.setHttpResponse(httpResponse, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authentication Failed. code E103");
+						"Authentication Failed. code E1023");
+				return;
+			}
+
+			// User CIDR white list check begin
+			if (!AppComponents.commonService.matchUserIpWhiteList(httpRequest, iaaUser)) {
+				logger.error("Authentication Failed. - request IP is not on the User's IP white list, user IP = "
+						+ AppUtil.getClientIp(httpRequest) + ".....");
+				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+						"Authentication Failed. code E1024");
 				return;
 			}
 
@@ -108,16 +121,17 @@ public class BasicAuthnServlet extends jakarta.servlet.http.HttpServlet {
 			}
 
 			boolean handleMFA = AppUtil.handleMfa(httpRequest, httpResponse, iaaUser);
+
 			if (!handleMFA) {
 				// issue new JAPP JWT token;
 				String token = AppComponents.jwtService.issueJappToken(iaaUser);
 				if (StringUtil.isEmptyOrNull(token)) {
 					logger.error(
 							"BasicAuthServlet.doPost() - Authentication Failed. code E104. JAPP Token can not be created for login Id '"
-									+ iaaUser.getLoginId() + "', userId = " + userId);
-					httpResponse.setStatus(403);
+									+ iaaUser.getLoginId() + "', userId = " + iaaUser.getUserIaaUID());
+					httpResponse.setStatus(401);
 					AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authentication Failed. code E104");
+							"Authentication Failed. code E1025");
 					return;
 				}
 

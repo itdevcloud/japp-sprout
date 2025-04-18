@@ -16,11 +16,16 @@
  */
 package com.itdevcloud.japp.core.common;
 
-
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,12 +37,15 @@ import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.IaaAppVO;
+import com.itdevcloud.japp.core.api.vo.LoginStateInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.api.vo.ServerInstanceInfo;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.core.service.customization.ConfigServiceHelperI;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
+
 /**
  *
  * @author Marvin Sun
@@ -46,22 +54,24 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 
 @Component
 public class CommonService implements AppFactoryComponentI {
-	//private static final Logger logger = LogManager.getLogger(CommonService.class);
+	// private static final Logger logger =
+	// LogManager.getLogger(CommonService.class);
 	private static final Logger logger = LogManager.getLogger(CommonService.class);
-
 
 	@PostConstruct
 	public void init() {
-		//try to avoid using AppConfig Service, AppComponents.appConfigCache may be not fully initiated yet
+		// try to avoid using AppConfig Service, AppComponents.appConfigCache may be not
+		// fully initiated yet
 	}
 
 	/**
 	 * Check if this application is running in a maintenance mode.
 	 */
-	public boolean inMaintenanceMode(HttpServletResponse httpResponse, String loginId) throws IOException{
+	public boolean inMaintenanceMode(HttpServletResponse httpResponse, String loginId) throws IOException {
 		logger.debug("handleMaintenanceMode() - start...");
-		if(httpResponse == null) {
-			logger.error("handleMaintenanceMode() - httpResponse is null, return as in maintenance mode, check code!...");
+		if (httpResponse == null) {
+			logger.error(
+					"handleMaintenanceMode() - httpResponse is null, return as in maintenance mode, check code!...");
 			return true;
 		}
 		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_APP_MAINTENANCE_MODE_ENABLED)) {
@@ -71,112 +81,107 @@ public class CommonService implements AppFactoryComponentI {
 			httpResponse.addHeader("MaitainenaceMode", "true");
 			httpResponse.addHeader("Access-Control-Expose-Headers", "MaitainenaceMode");
 
-			String maitenanceUrl = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_MAINTENANCE_PAGE);
+			String maitenanceUrl = ConfigFactory.appConfigService
+					.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_MAINTENANCE_PAGE);
 			if (!StringUtil.isEmptyOrNull(maitenanceUrl)) {
 				httpResponse.addHeader("Access-Control-Allow-Headers",
 						"Origin, X-Requested-With, Content-Type, Accept, Authorization");
 				httpResponse.sendRedirect(maitenanceUrl);
 				return true;
 			} else {
-				logger.info("Authentication Failed. code E901. User '" + loginId + "' can't access the application due to maintenance mode.......");
+				logger.info("Authentication Failed. code E901. User '" + loginId
+						+ "' can't access the application due to maintenance mode.......");
 				httpResponse.setStatus(403);
 				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_MAINTENANCE_MODE,
 						"Authorization Failed. code E901");
 				return true;
 			}
-		}else {
+		} else {
 			return false;
 		}
 
 	}
-	
+
 	public List<String> getApplicationCidrWhiteList() {
-		String whitelist = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST);
-		if(StringUtil.isEmptyOrNull(whitelist)) {
+		String whitelist = ConfigFactory.appConfigService
+				.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST);
+		if (StringUtil.isEmptyOrNull(whitelist)) {
 			return null;
 		}
-		String[]  wlArr = whitelist.split(";");
+		String[] wlArr = whitelist.split(";");
 		List<String> wlist = new ArrayList<String>();
-		for(String cidr: wlArr) {
-			if(!StringUtil.isEmptyOrNull(cidr)) {
+		for (String cidr : wlArr) {
+			if (!StringUtil.isEmptyOrNull(cidr)) {
 				wlist.add(cidr.trim());
 			}
 		}
-		return (wlist.isEmpty()?null:wlist);
+		return (wlist.isEmpty() ? null : wlist);
 	}
-	
 
 	public boolean matchUserIpWhiteList(HttpServletRequest httpRequest, AppIaaUser iaaUser) {
-		if(httpRequest == null || iaaUser == null) {
-			logger.error("userIpWhiteListCheck() - httpRequest and/or iaaUser is null, return false.....");
+		if(iaaUser == null) {
+			logger.error("matchUserIpWhiteList() - iaaUser is null, return false.....");
 			return false;
 		}
-		List<String> whiteList = CommonUtil.stringToList(iaaUser.getCidrWhitelist(), ",");
-		return matchUserIpWhiteList (httpRequest, whiteList);
+		List<String> cidrList = CommonUtil.stringToList(iaaUser.getCidrWhitelist(), ",");
+		return matchCidrWhitelist(httpRequest, cidrList);
 	}
 
-	public boolean matchUserIpWhiteList(HttpServletRequest httpRequest, List<String> whiteList) {
+	public boolean matchAppCidrWhitelist(HttpServletRequest httpRequest, IaaAppVO iaaAppVO) {
+		List<String> cidrList = null;
+		if(iaaAppVO == null) {
+			//logger.error("matchUserIpWhiteList() - iaaAppVO is null, return false.....");
+			cidrList = getApplicationCidrWhiteList();
+			//return false;
+		}else {
+			cidrList = iaaAppVO.getClientCidrWhitelist();
+		}
+//		List<String> cidrList = getApplicationCidrWhiteList();
+		return matchCidrWhitelist(httpRequest, cidrList);
+	}
+
+	public boolean matchCidrWhitelist(HttpServletRequest httpRequest, List<String> cidrList) {
 		// CIDR white list check begin
-		if(httpRequest == null) {
-			logger.error("userIpWhiteListCheck() - httpRequest is null, return false.....");
+		if (httpRequest == null) {
+			logger.error("matchCidrWhitelist() - httpRequest is null, return false.....");
 			return false;
 		}
-		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_CIDR_USER_WHITELIST_ENABLED)) {
-			boolean isIpValid = false;
-			if (whiteList == null || whiteList.isEmpty()) {
+		if (cidrList == null || cidrList.isEmpty()) {
+			return true;
+		}
+		boolean isIpValid = false;
+		for (String entry : cidrList) {
+			if (new IpAddressMatcher(entry).matches(httpRequest)) {
 				isIpValid = true;
-			} else {
-				for (String entry : whiteList) {
-					if (new IpAddressMatcher(entry).matches(httpRequest)) {
-						isIpValid = true;
-						break;
-					}
-				}
-			}
-			if (!isIpValid) {
-				logger.error(
-						"request IP is not on the IP white list, IP = " + AppUtil.getClientIp(httpRequest) + ", User whiteList = " + whiteList
-								+ ".....");
-				return false;
+				break;
 			}
 		}
+		if (!isIpValid) {
+			logger.error("requester's IP is not on the CIDR white list, request IP = "
+					+ AppUtil.getClientIp(httpRequest) + ", CIDR whiteList = " + cidrList + ".....");
+			return false;
+		}
 		return true;
-
 	}
 	
-
-	public boolean matchAppIpWhiteList(HttpServletRequest httpRequest) {
-		// CIDR white list check begin
-		if(httpRequest == null ) {
-			logger.error("userIpWhiteListCheck() - httpRequest is null, return false.....");
-			return false;
+	public String getCookieValue(HttpServletRequest request, String cookieName) {
+		Cookie[] cookieList = request.getCookies();
+		if (cookieList == null || cookieName == null) {
+			return null;
 		}
-		if (ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_CIDR_APPLICATION_WHITELIST_ENABLED)) {
-			List<String> whiteList = getApplicationCidrWhiteList();
-			boolean isIpValid = false;
-			if (whiteList == null || whiteList.isEmpty()) {
-				isIpValid = true;
-			} else {
-				for (String entry : whiteList) {
-					if (new IpAddressMatcher(entry).matches(httpRequest)) {
-						isIpValid = true;
-						break;
-					}
-				}
-			}
-			if (!isIpValid) {
-				logger.error(
-						"requester's IP is not on the Applicaion's IP white list, request IP = " + AppUtil.getClientIp(httpRequest) + ", APP whiteList = " + whiteList
-						+ ".....");
-				return false;
+		String retValue = null;
+		for (int i = 0; i < cookieList.length; i++) {
+			logger.debug("retrieve token from TRACS ......cookie name= " + cookieList[i].getName() + ", value=" + cookieList[i].getValue());
+			if (cookieList[i].getName().equalsIgnoreCase(cookieName)) {
+				retValue = cookieList[i].getValue();
+				break;
 			}
 		}
-		return true;
+		return retValue;
 	}
 
-
 	public boolean matchAppRoleList(AppIaaUser iaaUser) {
-		if(iaaUser == null ) {
+		if (iaaUser == null) {
 			logger.error("matchAppRoleList() - iaaUser is null, return false.....");
 			return false;
 		}
@@ -209,33 +214,35 @@ public class CommonService implements AppFactoryComponentI {
 	}
 
 	public List<String> getApplicationRoleList() {
-		String roles = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_APPLICATION_ROLE_LIST);
-		if(StringUtil.isEmptyOrNull(roles)) {
+		String roles = ConfigFactory.appConfigService
+				.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_APPLICATION_ROLE_LIST);
+		if (StringUtil.isEmptyOrNull(roles)) {
 			return null;
 		}
-		String[]  roleList = roles.split(";");
+		String[] roleList = roles.split(";");
 		List<String> rlist = new ArrayList<String>();
-		for(String r: roleList) {
-			if(!StringUtil.isEmptyOrNull(r)) {
+		for (String r : roleList) {
+			if (!StringUtil.isEmptyOrNull(r)) {
 				rlist.add(r.trim());
 			}
 		}
-		return (rlist.isEmpty()?null:rlist);
+		return (rlist.isEmpty() ? null : rlist);
 	}
 
 	public List<String> getSystemUserCIDRWhiteList(String userId) {
-		String whitelist = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_SYSTEMUSER_WHITELIST + "." + userId);
-		if(StringUtil.isEmptyOrNull(whitelist)) {
+		String whitelist = ConfigFactory.appConfigService
+				.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_CIDR_SYSTEMUSER_WHITELIST + "." + userId);
+		if (StringUtil.isEmptyOrNull(whitelist)) {
 			return null;
 		}
-		String[]  wlArr = whitelist.split(";");
+		String[] wlArr = whitelist.split(";");
 		List<String> wlist = new ArrayList<String>();
-		for(String cidr: wlArr) {
-			if(!StringUtil.isEmptyOrNull(cidr)) {
+		for (String cidr : wlArr) {
+			if (!StringUtil.isEmptyOrNull(cidr)) {
 				wlist.add(cidr.trim());
 			}
 		}
-		return (wlist.isEmpty()?null:wlist);
+		return (wlist.isEmpty() ? null : wlist);
 	}
 
 	public ServerInstanceInfo getSeverInstanceInfo() {
@@ -243,7 +250,8 @@ public class CommonService implements AppFactoryComponentI {
 		InetAddress ip = null;
 		String hostIP = null;
 		String hostname = null;
-		String applicationId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
+		String applicationId = ConfigFactory.appConfigService
+				.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
 		try {
 			ip = InetAddress.getLocalHost();
 			hostIP = ip.getHostAddress();
@@ -252,8 +260,8 @@ public class CommonService implements AppFactoryComponentI {
 
 		} catch (Exception e) {
 			logger.error(AppUtil.getStackTrace(e));
-			hostIP = (StringUtil.isEmptyOrNull(hostIP)?"0.0.0.0": hostIP);
-			hostname = (StringUtil.isEmptyOrNull(hostname)?"unknown.hostname": hostname);
+			hostIP = (StringUtil.isEmptyOrNull(hostIP) ? "0.0.0.0" : hostIP);
+			hostname = (StringUtil.isEmptyOrNull(hostname) ? "unknown.hostname" : hostname);
 		}
 		severInstanceInfo.setLocalIP(hostIP);
 		severInstanceInfo.setLocalHostName(hostname);
@@ -262,12 +270,14 @@ public class CommonService implements AppFactoryComponentI {
 		severInstanceInfo.setStartupDate(AppUtil.getStartupDate());
 		return severInstanceInfo;
 	}
-	public void handleResponse(HttpServletResponse response, String token)
-			throws IOException {
+
+	public void handleCookieResponse(HttpServletResponse response, String token) throws IOException {
 
 		String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_TOKEN_PAGE);
 		boolean secureCookieEnabled = ConfigFactory.appConfigService
 				.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_FRONTEND_UI_SECURE_COOKIE_ENABLED);
+		String origin = ConfigFactory.appConfigService
+				.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_TOKEN_PAGE, "http://localhost:4200");
 
 		Cookie tokenCookie = new Cookie(AppConstant.HTTP_AUTHORIZATION_COOKIE_NAME, token);
 		tokenCookie.setPath("/");
@@ -278,11 +288,15 @@ public class CommonService implements AppFactoryComponentI {
 
 		response.addCookie(tokenCookie);
 
+		response.addHeader("Access-Control-Allow-Origin", origin);
 		response.addHeader("Content-Security-Policy", "default-src 'self';");
 		response.addHeader("X-XSS-Protection", "1; mode=block");
 
-		//response.addHeader("Access-Control-Expose-Headers", "Authorization");
-		//response.addHeader("Access-Control-Expose-Headers", "APP_ROLES");
+//		response.addHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+//		response.addHeader("Access-Control-Allow-Headers",
+//				"Origin, X-Requested-With, Content-Type, Accept, Authorization");
+		// response.addHeader("Access-Control-Expose-Headers", "Authorization");
+		// response.addHeader("Access-Control-Expose-Headers", "APP_ROLES");
 
 		logger.info("redirect back to front-end UI token page============= ");
 
@@ -297,12 +311,110 @@ public class CommonService implements AppFactoryComponentI {
 		return;
 	}
 
-	public String retrieveAuthCallBackUrl(ConfigServiceHelperI jappConfigService, String appId) {
-		String propertyName = "tracs.application.callback.url." + appId.toLowerCase();
-		String url = ConfigFactory.appConfigService.getPropertyAsString(propertyName);
+	public void handlePostResponse(HttpServletResponse response, String postUrl, String token) throws IOException {
 
-		return url;
+		// ===load token page===
+		InputStream inputStream = null;
+		StringBuilder sb = new StringBuilder();
+		try {
+			inputStream = this.getClass().getResourceAsStream("/token_loader.html");
+			if (inputStream == null) {
+				throw new RuntimeException("can not load token_loader html file.......");
+			}
+			String line;
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+			while ((line = br.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			inputStream.close();
+			inputStream = null;
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
+				inputStream = null;
+			}
+		}
+		String htmlText = sb.toString();
+		htmlText = htmlText.replaceAll("@token@", token);
+		htmlText = htmlText.replaceAll("@action@", postUrl);
+		response.setContentType("text/html");
+		response.setStatus(200);
+		PrintWriter out = response.getWriter();
+		out.println(htmlText);
+		out.flush();
+		out.close();
 
+		return;
 	}
 
+//	public String retrieveAuthCallBackUrl(ConfigServiceHelperI jappConfigService, String appId) {
+//		String propertyName = "tracs.application.callback.url." + appId.toLowerCase();
+//		String url = ConfigFactory.appConfigService.getPropertyAsString(propertyName);
+//
+//		return url;
+//
+//	}
+
+	public String getAuthnProviderURL(HttpServletRequest httpRequest, IaaAppVO iaaAppVO, String stateString) {
+		if (httpRequest == null || iaaAppVO == null) {
+			logger.error("getAuthnProviderURL() - httpRequest and/or iaaAppVO is null, return null.....");
+			return null;
+		}
+	    String provider = iaaAppVO.getAuthnProvider();
+		if (StringUtil.isEmptyOrNull(provider)) {
+			logger.error("getAuthnProviderURL() - provider is not defined in IaaAppInfo, return null.....AppId = " + iaaAppVO.getAppId());
+			return null;
+		} 
+		LoginStateInfo stateInfo = LoginStateInfo.parseStateString(stateString);
+		if(stateInfo == null) {
+			stateInfo = new LoginStateInfo();
+			stateInfo.setAppId(iaaAppVO.getAppId());
+			stateString = stateInfo.createStateString();
+		}
+		String thisAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);;
+		UUID uuid = UUID.randomUUID();
+		if (AppConstant.AUTH_PROVIDER_ENTRAID_OPENID.equals(provider)) {
+			//just for prompt only, actual logged user may be changed
+			String loginId = stateInfo==null?null:stateInfo.getLoginId();
+			if(StringUtil.isEmptyOrNull(loginId)) {
+				loginId = AppComponents.commonService.getCookieValue(httpRequest, "jappapicore-loginid");
+				if(StringUtil.isEmptyOrNull(loginId)) {
+					loginId = httpRequest.getParameter("loginid");
+				}
+			}
+			String clientId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.AAD_CLIENT_ID);
+			String prompt = getAadAuthPrompt();
+			String url = AppComponents.aadJwksCache.getAadAuthUri() + "?client_id=" + clientId
+					+ "&response_type=id_token" + "&response_mode=form_post" + "&scope=openid" + "&state=" + stateString
+					+ prompt + "&nonce=" + uuid.toString();
+			if(!StringUtil.isEmptyOrNull(loginId) ) {
+				url = url + "&login_hint="+loginId;
+			}
+			return url;
+		} else if (thisAppId.equalsIgnoreCase(provider)) {
+			// BASIC AUTH URL
+			String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_BASIC_AUTHENTICATION_URL);			
+			url = url + "?state="+stateString;
+			return url;
+		}else {
+			String url = iaaAppVO.getAuthnProviderURL() ;
+			url = url + "?state="+stateString;
+			return url;
+		}
+	}
+	
+	private String getAadAuthPrompt() {
+		String aadAuthPrompt =  ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.AAD_AUTH_PROMPT);
+		if ("login".equalsIgnoreCase(aadAuthPrompt)) {
+			return "&prompt=login";
+		} else if ("none".equalsIgnoreCase(aadAuthPrompt)) {
+			return "&prompt=none";
+		} else if ("consent".equalsIgnoreCase(aadAuthPrompt)) {
+			return "&prompt=consent";
+		} else {
+			return "";
+		}
+	}
+	
+	
 }

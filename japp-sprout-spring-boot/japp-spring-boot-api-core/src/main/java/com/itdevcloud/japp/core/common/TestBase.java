@@ -35,11 +35,14 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.glassfish.jersey.logging.LoggingFeature;
+import org.glassfish.jersey.logging.LoggingFeature.Verbosity;
 
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -54,18 +57,22 @@ public class TestBase {
 	private static Logger logger = LogManager.getLogger(TestBase.class);
 	public static final String JAPPCORE_BATCH_TEST_FILE_NAME = "japp-batch-test.properties";
 	public static final String CONFIG_KEY_JAPPCORE_TEST_URL_PATH = "jappcore.test.url.path";
+	public static final String CONFIG_KEY_JAPPCORE_API_ACCESS_TOKEN = "jappcore.test.api.accesstoken";
 
 	private String JAPPCORE_API_TEST_URL = null;
+	private String JAPPCORE_API_ACCESS_TOKEN = null;
 	private Map<String, String> commandRequestMap = null;
 	private Map<String, String> commandResultMap = null;
 	private Properties testConfigProperties = null;
 
+	private Verbosity verbosity = Verbosity.PAYLOAD_ANY;;
+	private String logLevel = LoggingFeature.DEFAULT_LOGGER_LEVEL;
 
 	private void init(String testPropertiesFileName) {
 		logger.info("TestBase.init() - start........");
-		if(StringUtil.isEmptyOrNull(testPropertiesFileName)) {
+		if (StringUtil.isEmptyOrNull(testPropertiesFileName)) {
 			testPropertiesFileName = JAPPCORE_BATCH_TEST_FILE_NAME;
-		}else {
+		} else {
 			testPropertiesFileName = testPropertiesFileName.trim();
 		}
 		commandRequestMap = new HashMap<String, String>();
@@ -80,8 +87,8 @@ public class TestBase {
 			in.close();
 			in = null;
 		} catch (Exception e) {
-			throw new RuntimeException(
-					"can not load property file '/" + testPropertiesFileName + "' from classpath.", e);
+			throw new RuntimeException("can not load property file '/" + testPropertiesFileName + "' from classpath.",
+					e);
 		} finally {
 			if (in != null) {
 				try {
@@ -100,8 +107,13 @@ public class TestBase {
 			for (Object keyObj : keySet) {
 				String key = "" + keyObj;
 				key = key.trim();
-				if(CONFIG_KEY_JAPPCORE_TEST_URL_PATH.equalsIgnoreCase(key)) {
+				// only one url path entry in the property file.
+				if (CONFIG_KEY_JAPPCORE_TEST_URL_PATH.equalsIgnoreCase(key)) {
 					JAPPCORE_API_TEST_URL = testConfigProperties.getProperty(key);
+					continue;
+				}
+				if (CONFIG_KEY_JAPPCORE_API_ACCESS_TOKEN.equalsIgnoreCase(key)) {
+					JAPPCORE_API_ACCESS_TOKEN = testConfigProperties.getProperty(key);
 					continue;
 				}
 				String[] keyArray = key.split("\\.");
@@ -123,10 +135,11 @@ public class TestBase {
 							+ commandRequestMap.size() + "..., commandResultMap size = " + commandResultMap.size());
 		}
 		String info = "init()....end....total loaded command count = " + commandRequestMap.size();
-		if(errorCommandList.size() > 0) {
-			info = info + ", total error command detected: " + errorCommandList.size() + ", error command list: " + errorCommandList;
-		}else {
-			info = info + ", total error command detected: 0 " ;
+		if (errorCommandList.size() > 0) {
+			info = info + ", total error command detected: " + errorCommandList.size() + ", error command list: "
+					+ errorCommandList;
+		} else {
+			info = info + ", total error command detected: 0 ";
 		}
 		logger.info(info);
 	}
@@ -135,21 +148,47 @@ public class TestBase {
 		JAPPCORE_API_TEST_URL = url;
 	}
 
-	public List<String> batchTest(String testPropertiesFileName) {
+	public Verbosity getVerbosity() {
+		if (verbosity == null) {
+			verbosity = Verbosity.PAYLOAD_ANY;
+		}
+		return verbosity;
+	}
 
-		logger.info("batchTest()-  begin..........");
-		init(testPropertiesFileName) ;
+	public void setVerbosity(Verbosity verbosity) {
+		if (verbosity == null) {
+			verbosity = Verbosity.PAYLOAD_ANY;
+		}
+		this.verbosity = verbosity;
+	}
 
-		if(StringUtil.isEmptyOrNull(JAPPCORE_API_TEST_URL)) {
+	public String getLogLevel() {
+		if (logLevel == null) {
+			logLevel = LoggingFeature.DEFAULT_LOGGER_LEVEL;
+		}
+		return logLevel;
+	}
+
+	public void setLogLevel(String logLevel) {
+		if (logLevel == null) {
+			logLevel = LoggingFeature.DEFAULT_LOGGER_LEVEL;
+		}
+		this.logLevel = logLevel;
+	}
+
+	public List<String> batchTestRpcAPI(String testPropertiesFileName) {
+
+		logger.info("batchTestRpcAPI()-  begin..........");
+		init(testPropertiesFileName);
+
+		if (StringUtil.isEmptyOrNull(JAPPCORE_API_TEST_URL)) {
 			logger.info("batchTest() - JAPPCORE_API_TEST_URL is null or empty, do nothing......");
 			throw new RuntimeException("batchTest() - JAPPCORE_API_TEST_URL is null or empty, do nothing......");
 		}
-		logger.info("batchTest() - JAPPCORE_API_TEST_URL  = " + JAPPCORE_API_TEST_URL);
-		List<String> failCommandList = new ArrayList<String>();
-		String appUrlPath = JAPPCORE_API_TEST_URL;
+		logger.info("batchTestRpcAPI() - JAPPCORE_API_TEST_URL  = " + JAPPCORE_API_TEST_URL);
 
-		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(appUrlPath);
+		List<String> failCommandList = new ArrayList<String>();
+		String rpcUrlPath = JAPPCORE_API_TEST_URL;
 
 		Set<String> keySet = commandRequestMap.keySet();
 		List<String> keyList = new ArrayList<String>();
@@ -167,81 +206,150 @@ public class TestBase {
 				assertresult = "\"cmdStatusCode\":\"SUCCESS\"";
 			}
 
-			logger.info("batchTest() - test order = " + order + ", test command = '" + command
-					+ "' jsonRequest:\n" + jsonRequest);
+			logger.info("batchTest() - test order = " + order + ", test command = '" + command + "' jsonRequest:\n"
+					+ jsonRequest);
+			boolean result = testRpcAPI(rpcUrlPath, command, jsonRequest, assertresult, JAPPCORE_API_ACCESS_TOKEN, null, null);
 
-
-			WebTarget commandWebTarget = webTarget;
-			if(!StringUtil.isEmptyOrNull(command)) {
-				commandWebTarget = webTarget.queryParam("cmd", command);
-			}
-
-			Invocation.Builder invocationBuilder = commandWebTarget.request(MediaType.APPLICATION_JSON);
-
-			Response response = invocationBuilder.post(Entity.json(jsonRequest));
-			String jsonResponse = response.readEntity(String.class);
-
-			logger.info("batchTest() ... test order = " + order + ", test command = '" + command
-					+ "' jsonResponse:\n" + jsonResponse + "\nAssertion String = " + assertresult);
-			if (StringUtil.isEmptyOrNull(jsonResponse)) {
+			if (!result) {
 				failCommandList.add(key);
-			} else {
-				if (jsonResponse.indexOf(assertresult) == -1) {
-					failCommandList.add(key);
-				}
 			}
-		}
+		} // end for
 
 		if (failCommandList.isEmpty()) {
 			logger.info("batchTest() - end........successfully......");
 		} else {
 			logger.error("batchTest() - end........failed command count = " + failCommandList.size()
-			+ ", failed command List = \n" + failCommandList);
+					+ ", failed command List = \n" + failCommandList);
 		}
 		return failCommandList;
 	}
 
-	public boolean test(String jappUrlPath, String command, String jsonRequestString, String assertionString) {
+	public boolean testRpcAPI(String rpcUrlPath, String command, String jsonRequestString,
+			String assertionString, String accessToken,	String username, String password) {
 
-		logger.info("test() - begin..........");
-		if(StringUtil.isEmptyOrNull(jappUrlPath)) {
-			jappUrlPath = JAPPCORE_API_TEST_URL;
-		}
-		if(StringUtil.isEmptyOrNull(jappUrlPath)) {
-			logger.info("test() - jappUrlPath and JAPPCORE_DEFAULT_TEST_URL_PATH are null or empty, do nothing......");
+		logger.info("testRpcAPI() - begin..........");
+		if (StringUtil.isEmptyOrNull(rpcUrlPath)) {
+			logger.info("testRpcAPI() - rpcUrlPath is null or empty, do nothing......");
 			return false;
 		}
-		if(StringUtil.isEmptyOrNull(jsonRequestString)) {
-			logger.info("test() - jsonRequestString is null or empty, do nothing......");
-			return false;
+		String targetUrl = rpcUrlPath;
+		if(StringUtil.isEmptyOrNull(command)) {
+			try {
+				targetUrl =  UriBuilder.fromUri(targetUrl).queryParam("cmd", command).build().toURL().toString();
+			} catch (Throwable t) {
+				logger.info("testRpcAPI() - can not append cmd parameter, return fasle......");
+				return false;
+			}
 		}
 		if (StringUtil.isEmptyOrNull(assertionString)) {
 			assertionString = "\"cmdStatusCode\":\"SUCCESS\"";
 		}
-		String appUrlPath = jappUrlPath;
+		boolean result = testPost(targetUrl, MediaType.APPLICATION_JSON, jsonRequestString, 
+				assertionString, accessToken, username, password);
+		return result;
+	}
 
-		logger.info("test() - start...jappUrlPath = '" + jappUrlPath + "', test command = '" + command
-				+ "' jsonRequest:\n" + jsonRequestString);
+	public boolean testPost(String targetURL, String mediaType, String requestString, String assertionString, String accessToken,
+			String username, String password) {
 
-		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(appUrlPath);
-
-		WebTarget commandWebTarget = webTarget;
-		if(!StringUtil.isEmptyOrNull(command)) {
-			commandWebTarget = webTarget.queryParam("cmd", command);
+		logger.info("testPost() - start...targetURL = " + targetURL + ".........");
+		if (StringUtil.isEmptyOrNull(targetURL)) {
+			logger.info("test() - targetURL is null or empty, do nothing......");
+			return false;
+		}
+		if (mediaType == null) {
+			mediaType = MediaType.APPLICATION_JSON;
 		}
 
-		Invocation.Builder invocationBuilder = commandWebTarget.request(MediaType.APPLICATION_JSON);
+		Client client = ClientBuilder.newBuilder().property(LoggingFeature.LOGGING_FEATURE_VERBOSITY_CLIENT, verbosity)
+				.property(LoggingFeature.LOGGING_FEATURE_LOGGER_LEVEL_CLIENT, logLevel).build();
 
-		Response response = invocationBuilder.post(Entity.json(jsonRequestString));
-		String jsonResponse = response.readEntity(String.class);
+		WebTarget webTarget = client.target(targetURL);
 
-		logger.info("test() - end...test command = '" + command
-				+ "' jsonResponse:\n" + jsonResponse + "\nAssertion String = " + assertionString);
-		if (StringUtil.isEmptyOrNull(jsonResponse)) {
+		Invocation.Builder invocationBuilder = webTarget.request(mediaType);
+		if (!StringUtil.isEmptyOrNull(accessToken)) {
+			invocationBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
+		} else if (!StringUtil.isEmptyOrNull(username)) {
+			invocationBuilder.header(HttpHeaders.AUTHORIZATION, AppUtil.getBasicAuthnHeader(username, password));
+		}
+
+		Response response = null;
+		String stringResponse = null;
+		if(StringUtil.isEmptyOrNull(requestString)) {
+			if (mediaType.equals(MediaType.APPLICATION_JSON)) {
+				response = invocationBuilder.post(Entity.json(requestString));
+				stringResponse = response.readEntity(String.class);
+			} else if (mediaType.equals(MediaType.APPLICATION_XML) ||
+					mediaType.equals(MediaType.TEXT_XML) ) {
+				response = invocationBuilder.post(Entity.xml(requestString));
+				stringResponse = response.readEntity(String.class);
+			}else if (mediaType.equals(MediaType.TEXT_HTML)) {
+				response = invocationBuilder.post(Entity.html(requestString));
+				stringResponse = response.readEntity(String.class);
+			}else if (mediaType.equals(MediaType.TEXT_PLAIN)) {
+				response = invocationBuilder.post(Entity.text(requestString));
+				stringResponse = response.readEntity(String.class);
+			}else {
+				response = invocationBuilder.post(Entity.text(requestString));
+				stringResponse = response.readEntity(String.class);
+			}
+		}else {
+			logger.debug("testPost() - there is no request body provided.......");
+			response = invocationBuilder.post(null);
+			stringResponse = response.readEntity(String.class);
+		}
+
+		logger.info("testPost() - end......requestString = \n" + requestString
+				+ ", stringResponse = \n" + stringResponse);
+		if (StringUtil.isEmptyOrNull(stringResponse)) {
 			return false;
 		} else {
-			if (jsonResponse.indexOf(assertionString) == -1) {
+			if (StringUtil.isEmptyOrNull(assertionString)) {
+				//no need to check assertion string, always return true
+				return true;
+			}else if(stringResponse.indexOf(assertionString) == -1) {
+				return false;
+			}
+		}
+		return true;
+	}
+	public boolean testGet(String targetURL, String mediaType, String assertionString, String accessToken,
+			String username, String password) {
+
+		logger.info("testPost() - start...targetURL = " + targetURL + ".........");
+		if (StringUtil.isEmptyOrNull(targetURL)) {
+			logger.info("test() - targetURL is null or empty, do nothing......");
+			return false;
+		}
+		if (mediaType == null) {
+			mediaType = MediaType.APPLICATION_JSON;
+		}
+
+		Client client = ClientBuilder.newBuilder().property(LoggingFeature.LOGGING_FEATURE_VERBOSITY_CLIENT, verbosity)
+				.property(LoggingFeature.LOGGING_FEATURE_LOGGER_LEVEL_CLIENT, logLevel).build();
+
+		WebTarget webTarget = client.target(targetURL);
+
+		Invocation.Builder invocationBuilder = webTarget.request(mediaType);
+		if (!StringUtil.isEmptyOrNull(accessToken)) {
+			invocationBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
+		} else if (!StringUtil.isEmptyOrNull(username)) {
+			invocationBuilder.header(HttpHeaders.AUTHORIZATION, AppUtil.getBasicAuthnHeader(username, password));
+		}
+
+		Response response = null;
+		String stringResponse = null;
+		response = invocationBuilder.get();
+		stringResponse = response.readEntity(String.class);
+
+		logger.info("testGet() - end......stringResponse = \n" + stringResponse);
+		if (StringUtil.isEmptyOrNull(stringResponse)) {
+			return false;
+		} else {
+			if (StringUtil.isEmptyOrNull(assertionString)) {
+				//no need to check assertion string, always return true
+				return true;
+			}else if(stringResponse.indexOf(assertionString) == -1) {
 				return false;
 			}
 		}

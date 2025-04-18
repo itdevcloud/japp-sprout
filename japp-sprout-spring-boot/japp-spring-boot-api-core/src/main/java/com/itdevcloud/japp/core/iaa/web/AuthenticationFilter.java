@@ -101,15 +101,6 @@ public class AuthenticationFilter implements Filter {
 		try {
 			logger.debug("JappApiAuthenticationFilter.doFilter() start ========>");
 
-			// App CIDR white list check begin
-			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
-				logger.error(
-						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = "
-								+ AppUtil.getClientIp(httpRequest) + ".....");
-				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E209");
-				return;
-			}
 			long startTS = System.currentTimeMillis();
 
 			String requestURI = httpRequest.getRequestURI();

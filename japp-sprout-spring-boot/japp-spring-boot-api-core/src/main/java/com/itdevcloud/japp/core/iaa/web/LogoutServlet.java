@@ -64,14 +64,14 @@ public class LogoutServlet extends jakarta.servlet.http.HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		logger.debug("logout get service =======111==================");
 
-		// App CIDR white list check begin
-		if (!AppComponents.commonService.matchAppIpWhiteList(request)) {
-			logger.error(
-					"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = " + AppUtil.getClientIp(request) + ".....");
-			AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-					"Authorization Failed. code E209");
-			return;
-		}
+//		// App CIDR white list check begin
+//		if (!AppComponents.commonService.matchAppIpWhiteList(request)) {
+//			logger.error(
+//					"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = " + AppUtil.getClientIp(request) + ".....");
+//			AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+//					"Authorization Failed. code E209");
+//			return;
+//		}
 		HttpSession session = request.getSession();
 
 		// clean user reference in Cache
@@ -101,12 +101,12 @@ public class LogoutServlet extends jakarta.servlet.http.HttpServlet {
 		String provider = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER);
 		if (provider == null || provider.trim().equals("")) {
 			// default
-			provider = AppConstant.AUTH_PROVIDER_AAD_OPENID;
+			provider = AppConstant.AUTH_PROVIDER_ENTRAID_OPENID;
 		} else {
 			provider = provider.trim();
 		}
 		String jappPostSignOutUri = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_POST_SIGNOUT_PAGE);
-		if (AppConstant.AUTH_PROVIDER_AAD_OPENID.equals(provider)) {
+		if (AppConstant.AUTH_PROVIDER_ENTRAID_OPENID.equals(provider)) {
 			jappPostSignOutUri = jappPostSignOutUri.replace("/#/", "/%23/");
 			String url = AppComponents.aadJwksCache.getAadAuthLogoutUri();
 			if(!StringUtil.isEmptyOrNull(jappPostSignOutUri)){

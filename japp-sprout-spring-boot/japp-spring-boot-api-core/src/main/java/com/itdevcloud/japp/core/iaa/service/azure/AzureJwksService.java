@@ -16,9 +16,6 @@
  */
 package com.itdevcloud.japp.core.iaa.service.azure;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.util.List;
@@ -27,22 +24,16 @@ import jakarta.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
-import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.HttpResponse;
-import com.itdevcloud.japp.core.iaa.service.PkiService;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
-import com.itdevcloud.japp.core.service.config.AppConfigService;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
@@ -99,8 +90,8 @@ public class AzureJwksService implements AppFactoryComponentI{
 		}
 		logger.info("getAadAuthUri() read ...aadAuthUrl from aadOpenIdMetaDataUrl = " + aadOpenIdMetaDataUrl);
 
-		ByteArrayInputStream in = null;
-		BufferedInputStream bis = null;
+		//ByteArrayInputStream in = null;
+		//BufferedInputStream bis = null;
 		//List<AzureJwksKey> keys = null;
 		try {
 			if (StringUtil.isEmptyOrNull(aadOpenIdMetaDataUrl)) {
@@ -144,20 +135,20 @@ public class AzureJwksService implements AppFactoryComponentI{
 //			}
 //
 		} finally {
-			if (bis != null) {
-				try {
-					bis.close();
-				} catch (IOException e) {
-					logger.error(e);
-				}
-			}
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					logger.error(e);
-				}
-			}
+//			if (bis != null) {
+//				try {
+//					bis.close();
+//				} catch (IOException e) {
+//					logger.error(e);
+//				}
+//			}
+//			if (in != null) {
+//				try {
+//					in.close();
+//				} catch (IOException e) {
+//					logger.error(e);
+//				}
+//			}
 		}
 
 	}
@@ -175,8 +166,8 @@ public class AzureJwksService implements AppFactoryComponentI{
 		}
 		logger.info("getAadAuthLogoutUri() read ...aadAuthLogoutUrl from aadOpenIdMetaDataUrl = " + aadOpenIdMetaDataUrl);
 
-		ByteArrayInputStream in = null;
-		BufferedInputStream bis = null;
+		//ByteArrayInputStream in = null;
+		//BufferedInputStream bis = null;
 		//List<AzureJwksKey> keys = null;
 		try {
 			if (StringUtil.isEmptyOrNull(aadOpenIdMetaDataUrl)) {
@@ -218,20 +209,20 @@ public class AzureJwksService implements AppFactoryComponentI{
 //			}
 
 		} finally {
-			if (bis != null) {
-				try {
-					bis.close();
-				} catch (IOException e) {
-					logger.error(e);
-				}
-			}
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					logger.error(e);
-				}
-			}
+//			if (bis != null) {
+//				try {
+//					bis.close();
+//				} catch (IOException e) {
+//					logger.error(e);
+//				}
+//			}
+//			if (in != null) {
+//				try {
+//					in.close();
+//				} catch (IOException e) {
+//					logger.error(e);
+//				}
+//			}
 		}
 
 	}
@@ -243,8 +234,8 @@ public class AzureJwksService implements AppFactoryComponentI{
 	public List<AzureJwksKey> getJwksKeys() {
 
 		logger.info("getJwksKeys() begin...");
-		ByteArrayInputStream in = null;
-		BufferedInputStream bis = null;
+		//ByteArrayInputStream in = null;
+		//BufferedInputStream bis = null;
 		List<AzureJwksKey> keys = null;
 		try {
 			if (StringUtil.isEmptyOrNull(aadOpenIdMetaDataUrl)) {
@@ -334,20 +325,20 @@ public class AzureJwksService implements AppFactoryComponentI{
 //			}
 
 		} finally {
-			if (bis != null) {
-				try {
-					bis.close();
-				} catch (IOException e) {
-					logger.error(e);
-				}
-			}
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					logger.error(e);
-				}
-			}
+//			if (bis != null) {
+//				try {
+//					bis.close();
+//				} catch (IOException e) {
+//					logger.error(e);
+//				}
+//			}
+//			if (in != null) {
+//				try {
+//					in.close();
+//				} catch (IOException e) {
+//					logger.error(e);
+//				}
+//			}
 		}
 
 	}

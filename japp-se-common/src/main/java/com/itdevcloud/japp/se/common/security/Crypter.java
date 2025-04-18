@@ -92,6 +92,26 @@ public class Crypter {
 			throw new RuntimeException(e);
 		}
 	}
+	public Crypter(String transformationStr, SecretKey secretKey) {
+		try {
+			if (StringUtil.isEmptyOrNull(transformationStr)) {
+				this.transformation = CIPHER_DEFAULT_TRANSFORMATION;
+			} else {
+				this.transformation = transformationStr;
+			}
+			this.cipher = Cipher.getInstance(transformation);
+			this.algorithm = getAlgorithmFromTransfermation(this.transformation);
+
+			if (secretKey == null) {
+				this.key = SecurityUtil.generateKey(this.algorithm);
+			} else {
+				this.key = secretKey;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
 
 	public Crypter(Crypter crypter) {
 		this();

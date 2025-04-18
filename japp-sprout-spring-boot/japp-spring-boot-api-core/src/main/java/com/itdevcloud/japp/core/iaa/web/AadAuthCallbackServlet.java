@@ -18,6 +18,8 @@ package com.itdevcloud.japp.core.iaa.web;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
+
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,6 +28,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.IaaAppVO;
+import com.itdevcloud.japp.core.api.vo.LoginStateInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppConfigKeys;
@@ -53,7 +57,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @since 1.0.0
  */
 
-@WebServlet(name = "aadAuthCallbackServlet", urlPatterns = "/aadauth")
+@WebServlet(name = "aadAuthCallbackServlet", urlPatterns = "/open/aadauth")
 public class AadAuthCallbackServlet extends jakarta.servlet.http.HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -101,7 +105,7 @@ public class AadAuthCallbackServlet extends jakarta.servlet.http.HttpServlet {
 				return;
 			}
 			try {
-				iaaUser = AppComponents.iaaService.getIaaUserByLoginId(loginId, AppConstant.AUTH_PROVIDER_AAD_OPENID);
+				iaaUser = AppComponents.iaaService.getIaaUserByLoginId(loginId, AppConstant.AUTH_PROVIDER_ENTRAID_OPENID);
 				logger.debug("AadAuthCallbackServlet.doPost() - " + iaaUser.toString());
 			} catch (AppException e1) {
 				logger.error("Authorization Failed. code E504 - can't retrieve user by loginid = " + loginId + " - \n"
@@ -143,26 +147,23 @@ public class AadAuthCallbackServlet extends jakarta.servlet.http.HttpServlet {
 			}
 
 			String state = (String) request.getParameter("state");
-			String[] arr = state.split(":");
-			String appId = null;
-			String ip = null;
-			if (arr != null) {
-				if (arr.length > 0) {
-					appId = arr[0];
-				}
-				if (arr.length > 1) {
-					ip = arr[1];
-				}
-			}
-			String currentappId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
-			if(StringUtil.isEmptyOrNull(appId) || appId.equalsIgnoreCase(currentappId) ){
-				//if same app, we can use send-redirect
-				AppComponents.commonService.handleResponse(response, token);		
+			LoginStateInfo stateInfo = LoginStateInfo.parseStateString(state);
+			
+			String appId = stateInfo==null? null:stateInfo.getAppId();
+			
+			IaaAppVO iaaAppVO = AppComponents.iaaAppInfoCache.getIaaAppInfo(appId);
+			List<String> callbackUrlList = iaaAppVO.getAuthnCallbackURLs();
+			String callbackUrl = (callbackUrlList==null||callbackUrlList.isEmpty())?null:callbackUrlList.get(0);
+			
+			String thisAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
+			if(StringUtil.isEmptyOrNull(appId) || appId.equalsIgnoreCase(thisAppId) ){
+				//if same app, we can use cookie send-redirect
+				//AppComponents.commonService.handleCookieResponse(response, token);		
+				AppComponents.commonService.handlePostResponse(response, callbackUrl, token);	
 			} else {
 				//redirect to application's call back url
 				//HTTP GET 
-				String url = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTH_APP_CALLBACK_URL);
-				if (StringUtil.isEmptyOrNull(url)) {
+				if (StringUtil.isEmptyOrNull(callbackUrl)) {
 					logger.error(
 							"AadAuthCallbackServlet.doPost() - Authorization Failed. code E509. Can't find application " + appId + " call back url from the property file.");
 					AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
@@ -170,36 +171,10 @@ public class AadAuthCallbackServlet extends jakarta.servlet.http.HttpServlet {
 					return;
 				}
 				
-				if (url.toLowerCase().contains("localhost")) {
-					url.replaceAll("localhost", ip);
-				}
-				
-				//produce a post form page
-			    response.setContentType("text/html");
-			    response.setStatus(200);
-			    PrintWriter out = response.getWriter();
-			    out.println("<!DOCTYPE html>\r\n" + 
-			    		"<html>\r\n" + 
-			    		"<head> \r\n" + 
-			    		"    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\r\n" + 
-			    		"    <script type=\"text/javascript\">\r\n" + 
-			    		"        function submitpage() {\r\n" + 
-			    		"			document.forms['token_redirect'].submit();" +
-			    		" 		}\r\n" + 
-			    		"    </script>\r\n" + 
-			    		"</head>\r\n" + 
-			    		"<body onLoad=\"submitpage()\">\r\n" + 
-			    		"<form name=\"token_redirect\" action=\"");
-			    out.print(url);
-			    out.print("\" method=\"post\">\r\n" + 
-			    		"    <input type=\"hidden\" name=\"CallingApp-Token" +"\" value=\"");
-			    out.print(token);
-			    out.println("\" />\r\n" + 
-			    		"</form>\r\n" + 
-			    		"</body>\r\n" + 
-			    		"</html>");
-			    out.flush();
-			    out.close();
+//				if (url.toLowerCase().contains("localhost")) {
+//					url.replaceAll("localhost", ip);
+//				}
+				AppComponents.commonService.handlePostResponse(response, callbackUrl, token);	
 			}
 									
 		} finally {

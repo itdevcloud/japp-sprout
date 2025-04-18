@@ -65,7 +65,7 @@ public class TotpAuthnServlet extends jakarta.servlet.http.HttpServlet {
 					"Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
 			// CIDR white list check begin
-			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
+			if (!AppComponents.commonService.matchAppCidrWhitelist(httpRequest, null)) {
 				logger.error(
 						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = "
 								+ AppUtil.getClientIp(httpRequest) + ".....");

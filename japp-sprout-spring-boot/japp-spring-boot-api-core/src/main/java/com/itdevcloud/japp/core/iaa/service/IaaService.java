@@ -23,12 +23,14 @@ import java.util.Set;
 import java.util.UUID;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.IaaAppVO;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.core.common.AppException;
@@ -156,31 +158,6 @@ public class IaaService implements AppFactoryComponentI {
 //		}
 		return claims;
 	}
-	//target role could be business role or application role
-//	public boolean isAccessAllowed(String targetRole) {
-//		AppIaaUser user = AppThreadContext.getAppIaaUser();
-//		if (user == null) {
-//			logger.info("isAccessAllowed() - The user can't be retrieved from ThreadContext, return false.");
-//			return false;
-//		}
-//		Set<String> brSet = user.getBusinessRoles();
-//		if (brSet == null || brSet.isEmpty()) {
-//			logger.info("isAccessAllowed() -  The user is not assigned to any business role........" + user);
-//			return false;
-//		}
-//		if (brSet.contains(targetRole)) {
-//			return true;
-//		}
-//		Set<String> arSet = user.getApplicationRoles();
-//		if (arSet == null || arSet.isEmpty()) {
-//			logger.info("isAccessAllowed() -  The user is not assigned to any application role........" + user);
-//			return false;
-//		}
-//		if (arSet.contains(targetRole)) {
-//			return true;
-//		}
-//		return false;
-//	}
 	
 	public boolean isAccessAllowed(String userId, String targetNodeId, String targetRole) {
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
@@ -188,24 +165,19 @@ public class IaaService implements AppFactoryComponentI {
 	}
 
 	
-	public List<String> getUpdatedIaaUsers(long lastCheckTimestamp){
-		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-		return helper.getUpdatedIaaUsers(lastCheckTimestamp);
-	}
-	
-//	public String getAndSend2ndfactorValue(AppIaaUser iaaUser, String SecondFactorType) {
-//		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-//		return helper.getAndSend2ndfactorValue(iaaUser, SecondFactorType);
-//	}
-	
 	public AppIaaUser getDummyIaaUserByUserId(String userId) {
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
 		return helper.getDummyIaaUserByUserId(userId);
 	}
 	
-//	public String getHashed2ndFactorValueFromRepositoryByUserId(String userId) {
-//		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
-//		return helper.getHashed2ndFactorValueFromRepositoryByUserId(userId);
-//	}
+	public List<IaaAppVO> getIaaAppInfo() {
+		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
+		return helper.getIaaAppInfo();
+	}
+
+	public String getAuthnProviderURL(HttpServletRequest httpRequest, IaaAppVO iaaAppVO, String stateString) {
+		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
+		return helper.getAuthnProviderURL(httpRequest, iaaAppVO, stateString);
+	}
 
 }

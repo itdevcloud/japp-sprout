@@ -57,14 +57,14 @@ public class Reset2ndFactorValueServlet extends jakarta.servlet.http.HttpServlet
 			httpResponse.addHeader("Access-Control-Allow-Headers",
 					"Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
-			// CIDR white list check begin
-			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
-				logger.error(
-						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = " + AppUtil.getClientIp(httpRequest) + ".....");
-				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E209");
-				return;
-			}
+//			// CIDR white list check begin
+//			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
+//				logger.error(
+//						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = " + AppUtil.getClientIp(httpRequest) + ".....");
+//				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+//						"Authorization Failed. code E209");
+//				return;
+//			}
 
 			// validate current japp token
 			String token = AppUtil.getJwtTokenFromRequest(httpRequest);

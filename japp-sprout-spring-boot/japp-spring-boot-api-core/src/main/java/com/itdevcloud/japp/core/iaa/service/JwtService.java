@@ -23,8 +23,10 @@ import java.security.cert.Certificate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,7 +48,12 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.common.TransactionContext;
 import com.itdevcloud.japp.core.service.customization.AppFactoryComponentI;
+import com.itdevcloud.japp.se.common.multiInstance.repo.DataInfo;
+import com.itdevcloud.japp.se.common.multiInstance.repo.EventManagerConstant;
+import com.itdevcloud.japp.se.common.multiInstance.repo.azureblob.AzureBlobEventManager;
 import com.itdevcloud.japp.se.common.security.Hasher;
+import com.itdevcloud.japp.se.common.service.JulLogger;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.DateUtils;
 import com.itdevcloud.japp.se.common.util.PkiUtil;
 import com.itdevcloud.japp.se.common.util.RandomUtil;
@@ -57,6 +64,7 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
+
 /**
  *
  * @author Marvin Sun
@@ -67,44 +75,154 @@ import io.jsonwebtoken.Jwts;
 public class JwtService implements AppFactoryComponentI {
 	private static final Logger logger = LogManager.getLogger(JwtService.class);
 
-
 	@PostConstruct
 	public void init() {
-		//try to avoid using AppConfig Service, AppComponents.appConfigCache may be not fully initiated yet
+		// try to avoid using AppConfig Service, AppComponents.appConfigCache may be not
+		// fully initiated yet
 	}
 
-	public boolean isValidEntraIdToken(String idToken) {
+	public Claims getClaimsWithoutVerification(String token) {
 		try {
-			logger.debug("isValidAadIdToken.............begin....");
-			if (idToken == null || idToken.trim().isEmpty()) {
+			logger.debug("getClaimsWithoutVerification.............begin....");
+			if (token == null || token.trim().isEmpty()) {
+				return null;
+			}
+			//logger.debug("........0.......token=" + token);
+
+			int idx = token.lastIndexOf('.');
+			String tokenWithoutSignature = token.substring(0, idx + 1);
+			//logger.debug("........1...idx=" + idx + "....tokenWithoutSignature=" + tokenWithoutSignature);
+
+			idx = tokenWithoutSignature.indexOf('.');
+			String tokenWithoutHeader = tokenWithoutSignature.substring(idx);
+			//logger.debug("........2....idx=" + idx + "...tokenWithoutHeader=" + tokenWithoutHeader);
+			String tokenWithNoAlgHeader = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0" + tokenWithoutHeader;
+
+			//logger.debug("......3......token without alg header =" + tokenWithNoAlgHeader);
+
+			Jwt<Header, Claims> jwtWithoutVerification = Jwts.parser().unsecured().build().parseUnsecuredClaims(tokenWithNoAlgHeader);
+
+			Claims claims = jwtWithoutVerification==null?null:jwtWithoutVerification.getPayload();
+			
+			logger.debug("getClaimsWithoutVerification.............end....");
+			return claims;
+
+		} catch (Throwable t) {
+			logger.error(t.getMessage(), t);
+			return null;
+		}
+
+	}
+
+//	public boolean isValidEntraIdToken(String idToken) {
+//		try {
+//			logger.debug("isValidAadIdToken.............begin....");
+//			if (idToken == null || idToken.trim().isEmpty()) {
+//				return false;
+//			}
+//			logger.debug("id_token=" + idToken);
+//			
+//			int idx = idToken.lastIndexOf('.');
+//			String tokenWithoutSignature = idToken.substring(0, idx + 1);
+//
+//			logger.debug(".......1.....");
+//			
+//			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().build().parseUnsecuredClaims(tokenWithoutSignature);
+//			
+//			logger.debug(".......2.....");
+//			jwtWithoutSignature = Jwts.parser().build().parseUnsecuredClaims(idToken);
+//			logger.debug(".......3.....");
+//			
+//			Header header = jwtWithoutSignature.getHeader();
+//			Claims claims = jwtWithoutSignature.getPayload();
+//
+//			String kid = (header.containsKey("kid") ? (String) header.get("kid") : null);
+//			String x5t = (header.containsKey("x5t") ? (String) header.get("xt5") : null);
+//			PublicKey publicKey = AppComponents.aadJwksCache.getAadPublicKey(kid, x5t);
+//			
+//			logger.debug("publicKey=" + publicKey);
+//			
+//			boolean isValid = isValidTokenByPublicKey(idToken, publicKey);
+//
+//			if (!isValid) {
+//				logger.error("Entra idToken is not Valid..........");
+//				return false;
+//			}
+//			Set<String> audSet = claims.getAudience();
+//			Date nbf = claims.getNotBefore();
+//			Date exp = claims.getExpiration();
+//			String clientId = AppComponents.aadJwksCache.getAadClientId();
+//			Date now = new Date();
+//
+//			if (clientId == null || (audSet != null && !audSet.isEmpty() && !audSet.contains(clientId))) {
+//				logger.error("idToken aud claim is not valid.....");
+//				return false;
+//			}
+//			if (exp == null || now.after(exp)) {
+//				logger.error("idToken exp claim is not valid......");
+//				return false;
+//			}
+//			if (nbf == null || now.before(nbf)) {
+//				logger.error("idToken nbf claim is not valid.....");
+//				return false;
+//			}
+//			return true;
+//
+//		} catch (Throwable t) {
+//			logger.error(t);
+//			return false;
+//		}
+//
+//	}
+
+	public boolean isValidEntraIdToken(String idToken) {
+		logger.debug("isValidAadIdToken.............begin....");
+		return isValidToken(idToken, "ENTRA_ID");
+
+	}
+
+	public boolean isValidToken(String token, String tokenIssuer) {
+		try {
+			logger.debug("isValidToken.............begin....tokenIssuer = " + tokenIssuer);
+			if (StringUtil.isEmptyOrNull(token)) {
 				return false;
 			}
-			int idx = idToken.lastIndexOf('.');
-			String tokenWithoutSignature = idToken.substring(0, idx + 1);
 
-			Jwt<Header, Claims> jwtWithoutSignature = Jwts.parser().build().parseUnsecuredClaims(tokenWithoutSignature);
-			Header header = jwtWithoutSignature.getHeader();
-			Claims claims = jwtWithoutSignature.getPayload();
+			logger.debug("token=" + token);
 
-			String kid = (header.containsKey("kid") ? (String) header.get("kid") : null);
-			String x5t = (header.containsKey("x5t") ? (String) header.get("xt5") : null);
-			PublicKey publicKey = AppComponents.aadJwksCache.getAadPublicKey(kid, x5t);
-			boolean isValid = isValidTokenByPublicKey(idToken, publicKey);
+			JwtKeyLocator keyLocator = new JwtKeyLocator(tokenIssuer);
+			Jws<Claims> jws = Jwts.parser().keyLocator(keyLocator).build().parseSignedClaims(token);
+			boolean result = validateTokenClaims(jws);
+			
+			
+			logger.debug("isValidToken.............end....tokenIssuer = " + tokenIssuer);
+			return result;
 
-			if (!isValid) {
-				logger.error("Entra idToken is not Valid..........");
-				return false;
+		} catch (Throwable t) {
+			logger.error(t.getMessage(), t);
+			return false;
+		}
+
+	}
+
+	private boolean validateTokenClaims(Jws<Claims> jws) {
+		if (jws == null) {
+			return false;
+		}
+		try {
+			Claims claims = jws.getPayload();
+			String subject = claims.getSubject();
+			logger.info("subject ====== " + subject);
+			if (claims.containsKey("upn")) {
+				String upn = (String) claims.get("upn");
+				logger.info("convert subject to upn ====== " + upn);
+				subject = (String) claims.get("upn");
 			}
 			Set<String> audSet = claims.getAudience();
 			Date nbf = claims.getNotBefore();
 			Date exp = claims.getExpiration();
-			String clientId = AppComponents.aadJwksCache.getAadClientId();
 			Date now = new Date();
 
-			if (clientId == null || (audSet != null && !audSet.isEmpty() && !audSet.contains(clientId))) {
-				logger.error("idToken aud claim is not valid.....");
-				return false;
-			}
 			if (exp == null || now.after(exp)) {
 				logger.error("idToken exp claim is not valid......");
 				return false;
@@ -113,8 +231,9 @@ public class JwtService implements AppFactoryComponentI {
 				logger.error("idToken nbf claim is not valid.....");
 				return false;
 			}
-			return true;
 
+			AppThreadContext.setTokenSubject(subject);
+			return true;
 		} catch (Throwable t) {
 			logger.error(t);
 			return false;
@@ -128,8 +247,8 @@ public class JwtService implements AppFactoryComponentI {
 			return false;
 		}
 		try {
-			Jws<Claims> jwts = Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token);
-			Claims claims = jwts.getPayload();
+			Jws<Claims> jws = Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token);
+			Claims claims = jws.getPayload();
 			String subject = claims.getSubject();
 			logger.info("subject ====== " + subject);
 			if (claims.containsKey("upn")) {
@@ -160,9 +279,9 @@ public class JwtService implements AppFactoryComponentI {
 			return false;
 		}
 		Certificate certificate = PkiUtil.getCertificateFromInputStream(certificateIS);
-		return isValidTokenByCertificate(token, certificate) ;
+		return isValidTokenByCertificate(token, certificate);
 	}
-	
+
 	/**
 	 * Check if a JWT token is a valid.
 	 */
@@ -192,9 +311,10 @@ public class JwtService implements AppFactoryComponentI {
 			return false;
 		}
 	}
-	
+
 	/**
-	 * Check if it is a valid application specific JWT, and the content of JWT is correct as well.
+	 * Check if it is a valid application specific JWT, and the content of JWT is
+	 * correct as well.
 	 */
 	public boolean isValidJappToken(String token, PublicKey publicKey, InputStream certificate) {
 		try {
@@ -217,21 +337,25 @@ public class JwtService implements AppFactoryComponentI {
 				logger.error("validateJappToken() - can not parse token claims, return false.......");
 				return false;
 			}
-			//check target appid
-			String appIdInClaims = ""+claims.get(AppConstant.JWT_CLAIM_KEY_TARGET_APPID);
-			String appIdInConfig = ""+ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
+			// check target appid
+			String appIdInClaims = "" + claims.get(AppConstant.JWT_CLAIM_KEY_TARGET_APPID);
+			String appIdInConfig = ""
+					+ ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);
 			if (!appIdInClaims.equalsIgnoreCase(appIdInConfig)) {
-				logger.error("validateJappToken() - target appid '" + appIdInClaims + "' is different from configured appid '" + appIdInConfig +"', return false.......");
+				logger.error("validateJappToken() - target appid '" + appIdInClaims
+						+ "' is different from configured appid '" + appIdInConfig + "', return false.......");
 				return false;
 			}
-			//check target IP
-			boolean validateTokenIP = ConfigFactory.appConfigService.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_TOKEN_VALIDATE_IP_ENABLED);
+			// check target IP
+			boolean validateTokenIP = ConfigFactory.appConfigService
+					.getPropertyAsBoolean(AppConfigKeys.JAPPCORE_IAA_TOKEN_VALIDATE_IP_ENABLED);
 			if (validateTokenIP) {
 				TransactionContext txnCtx = AppThreadContext.getTransactionContext();
 				String clientIP = txnCtx.getClientIP();
-				String ipInClaims = ""+claims.get(AppConstant.JWT_CLAIM_KEY_TARGET_IP);
+				String ipInClaims = "" + claims.get(AppConstant.JWT_CLAIM_KEY_TARGET_IP);
 				if (!ipInClaims.equalsIgnoreCase(clientIP)) {
-					logger.error("validateJappToken() - target ip '" + ipInClaims + "' is different from client request ip '" + clientIP +"', return false.......");
+					logger.error("validateJappToken() - target ip '" + ipInClaims
+							+ "' is different from client request ip '" + clientIP + "', return false.......");
 					return false;
 				}
 			}
@@ -251,7 +375,7 @@ public class JwtService implements AppFactoryComponentI {
 //				return false;
 //			}
 			return true;
-			
+
 		} catch (Throwable t) {
 			logger.error(AppUtil.getStackTrace(t));
 			return false;
@@ -259,7 +383,8 @@ public class JwtService implements AppFactoryComponentI {
 	}
 
 	/**
-	 * Create a new token by updating the expire time, and second factor authentication information in a existing token.
+	 * Create a new token by updating the expire time, and second factor
+	 * authentication information in a existing token.
 	 */
 	public String updateToken(String token, Key privateKey, int expireMinutes, MfaVO secondFactorInfo) {
 		if (StringUtil.isEmptyOrNull(token)) {
@@ -270,7 +395,8 @@ public class JwtService implements AppFactoryComponentI {
 			return null;
 		}
 		if (expireMinutes <= 0) {
-			expireMinutes = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
+			expireMinutes = ConfigFactory.appConfigService
+					.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
 		}
 		try {
 			TransactionContext txnCtx = AppThreadContext.getTransactionContext();
@@ -285,10 +411,11 @@ public class JwtService implements AppFactoryComponentI {
 			logger.debug("updateToken======update JWT expiry date==============" + timeoutAt);
 
 			claims.put(AppConstant.JWT_CLAIM_KEY_TIMEOUT_AT, timeoutAt);
-			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID, ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
+			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID,
+					ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
 			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_IP, clientIP);
 
-			//claims = add2ndFactorClaims(claims, secondFactorInfo);
+			// claims = add2ndFactorClaims(claims, secondFactorInfo);
 
 			// setClaims first
 			String newToken = Jwts.builder().claims(claims).issuedAt(new Date()).expiration(expiryDate)
@@ -312,7 +439,8 @@ public class JwtService implements AppFactoryComponentI {
 			return null;
 		}
 		if (expireMinutes <= 0) {
-			expireMinutes = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
+			expireMinutes = ConfigFactory.appConfigService
+					.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
 		}
 		try {
 			TransactionContext txnCtx = AppThreadContext.getTransactionContext();
@@ -327,7 +455,8 @@ public class JwtService implements AppFactoryComponentI {
 			logger.debug("extendToken======extend JWT expiry date==============" + timeoutAt);
 
 			claims.put(AppConstant.JWT_CLAIM_KEY_TIMEOUT_AT, timeoutAt);
-			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID, ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
+			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID,
+					ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
 			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_IP, clientIP);
 
 			Key privateKey = AppComponents.pkiKeyCache.getJappPrivateKey();
@@ -343,14 +472,15 @@ public class JwtService implements AppFactoryComponentI {
 
 	/**
 	 * Issue a JAPP JWT token
-	 */ 
+	 */
 	public String issueJappToken(AppIaaUser iaaUser) {
 		logger.info("issueJappToken() - begin......");
 		if (iaaUser == null) {
 			logger.info("issueJappToken() - iaaUser is null, return null...");
 		}
 		String token = null;
-		int expireMins = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
+		int expireMins = ConfigFactory.appConfigService
+				.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_VERIFY_EXPIRATION_LENGTH);
 		try {
 			Key key = AppComponents.pkiKeyCache.getJappPrivateKey();
 			token = issueToken(iaaUser, key, expireMins);
@@ -372,7 +502,8 @@ public class JwtService implements AppFactoryComponentI {
 			return null;
 		}
 		if (expireMinutes <= 0) {
-			expireMinutes = ConfigFactory.appConfigService.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
+			expireMinutes = ConfigFactory.appConfigService
+					.getPropertyAsInteger(AppConfigKeys.JAPPCORE_IAA_TOKEN_EXPIRATION_LENGTH);
 		}
 		try {
 			LocalDateTime now = LocalDateTime.now();
@@ -390,7 +521,8 @@ public class JwtService implements AppFactoryComponentI {
 				return null;
 			}
 			claims.put(AppConstant.JWT_CLAIM_KEY_TIMEOUT_AT, timeoutAt);
-			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID, ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
+			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_APPID,
+					ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID));
 			claims.put(AppConstant.JWT_CLAIM_KEY_TARGET_IP, clientIP);
 
 			String sessionId = AppUtil.getSessionId(iaaUser);
@@ -398,8 +530,8 @@ public class JwtService implements AppFactoryComponentI {
 
 			// setClaims first
 			String token = Jwts.builder().claims(claims).issuer(AppConstant.JWT_TOKEN_ISSUE_BY)
-					.subject(iaaUser.getUserIaaUID()).issuedAt(new Date()).expiration(expiryDate)
-					.signWith(privateKey).compact();
+					.subject(iaaUser.getUserIaaUID()).issuedAt(new Date()).expiration(expiryDate).signWith(privateKey)
+					.compact();
 			return token;
 		} catch (Throwable t) {
 			logger.error(AppUtil.getStackTrace(t));
@@ -407,44 +539,12 @@ public class JwtService implements AppFactoryComponentI {
 		}
 	}
 
-//	private Map<String, Object> add2ndFactorClaims(Map<String, Object> claimMap, MfaInfo secondFactorInfo) {
-//		if (secondFactorInfo == null) {
-//			secondFactorInfo = new MfaInfo();
-//			secondFactorInfo.setType(AppConstant.IAA_2NDFACTOR_TYPE_NONE);
-//			secondFactorInfo.setVerified(false);
-//		}
-//		boolean verified = secondFactorInfo.isVerified();
-//		String type = secondFactorInfo.getType();
-//		String value = secondFactorInfo.getValue();
-//		//logger.error("hashed 2nd factor value in token (2) - " + value);
-//
-//		int retryCount = secondFactorInfo.getRetryCount();
-//		if (claimMap == null) {
-//			claimMap = new HashMap<String, Object>();
-//		}
-//		if (StringUtil.isEmptyOrNull(type) || type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_NONE)) {
-//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, AppConstant.IAA_2NDFACTOR_TYPE_NONE);
-//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, false);
-//		} else if (type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_VERIFICATION_CODE)){
-//			if (!StringUtil.isEmptyOrNull(value)) {
-//				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, verified);
-//				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, type);
-//				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE, value);
-//				claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT, retryCount);
-//			} else {
-//				throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
-//						"no verification code provided to create the token!");
-//			}
-//		} else if (type.equalsIgnoreCase(AppConstant.IAA_2NDFACTOR_TYPE_TOTP)){
-//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VERIFIED, verified);
-//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_TYPE, type);
-//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE, null);
-//			claimMap.put(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_RETRY_COUNT, retryCount);
-//		}else {
-//			throw new AppException(ResponseStatus.STATUS_CODE_ERROR_SECURITY_2FACTOR,
-//					"2 factor type is not supportrf! type = " + type);
-//		}
-//		return claimMap;
-//	}
 
+//	public static void main(String[] args) {
+//		JwtService jwtService = new JwtService();
+//		Claims claims = jwtService.getClaimsWithoutVerification("eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IkNOdjBPSTNSd3FsSEZFVm5hb01Bc2hDSDJYRSIsImtpZCI6IkNOdjBPSTNSd3FsSEZFVm5hb01Bc2hDSDJYRSJ9.eyJhdWQiOiJmYWZkNWUwYi1hZTE2LTRlOTgtODk0YS00MGRkMTkwYTFiNDEiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9jZGRjMTIyOS1hYzJhLTRiOTctYjc4YS0wZTVjYWNiNTg2NWMvIiwiaWF0IjoxNzQ0NzY1ODE2LCJuYmYiOjE3NDQ3NjU4MTYsImV4cCI6MTc0NDc2OTcxNiwiYWlvIjoiQVVRQXUvOFpBQUFBSlNsaEE4c3ZuaXFaeU5DZjdzRk8ySHJGYzk5WVpaenhxSS9UQVNKQTFPQVBSQWgxL3NLd0VUMzNOVGdvTWtveitoUElwcFBnaS9CaHE5QWk3V2lsTlE9PSIsImFtciI6WyJwd2QiXSwiZmFtaWx5X25hbWUiOiJTdW4iLCJnaXZlbl9uYW1lIjoiTWFydmluIiwiaXBhZGRyIjoiMTY1Ljg1LjE2Ni4yMzkiLCJuYW1lIjoiU3VuLCBNYXJ2aW4gKE1QQlNEUCkiLCJub25jZSI6Ijc4NDYzMjM5LWE3ZWQtNDhmMC1hMGIwLTA5NDU4N2FlMTNiOCIsIm9pZCI6IjM3N2Y5MzhiLWJkNTQtNDA2ZS04YTYzLTRlYzQyNGYxMjdlNyIsIm9ucHJlbV9zaWQiOiJTLTEtNS0yMS0zMzY1OTYxOTc1LTI3NTI1MDM3MjEtMzU1OTIyODMxNC0yNDA2MyIsInJoIjoiMS5BUndBS1JMY3pTcXNsMHUzaWc1Y3JMV0dYQXRlX2ZvV3JwaE9pVXBBM1JrS0cwRWNBRVVjQUEuIiwic2lkIjoiMDAzZjVhZDktNjc4MC00NjIwLTY1YWMtZDA1NzhjNzEzNDJiIiwic3ViIjoiT2xGS3hjbXBLRFpZUzNNMEYxSGlmUGtBZ2JwVXhaQjI3WjZnWXJLanJhayIsInRpZCI6ImNkZGMxMjI5LWFjMmEtNGI5Ny1iNzhhLTBlNWNhY2I1ODY1YyIsInVuaXF1ZV9uYW1lIjoiTWFydmluLlN1bkBvbnRhcmlvLmNhIiwidXBuIjoiTWFydmluLlN1bkBvbnRhcmlvLmNhIiwidXRpIjoiRWh6TzJuVHQyVUtsMXdLZHNpcVJBQSIsInZlciI6IjEuMCJ9.PZPMecqibliDhJrC-7GMjepg5gwPj-JYcG0lea48In74yWiO7zRwH0j706y9u8OMfOG6hhmav3dtH1lWQHcThup-4l7ND1muSltvpi2GLbbcF_x675YWqZRHnhBxoRHgUQe-S6oj_5zYYGQ3yx2f5_0-ELya5RDJCFEWLFZrMLecZxvD3zX6e65jjvnYlPlBZDz_GERCg7pyOOOLQtViwonEGnuzP4rv7V44XM0qZJK9IIXPtKM8KdhA-r18Nsoj9OmMQPO3APaWUKy22Zt1vfreqlInVwQa_mB21GX5U3zkKhWuxupb-Utesygj87MqPrCdAOsrSy_cYrwIgXJ-wg");
+//		logger.debug("...........claims = " + claims);
+//		
+//	}
+	
 }

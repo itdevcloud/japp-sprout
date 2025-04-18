@@ -78,7 +78,7 @@ public class SpecialCharacterFilter implements Filter {
 		//httpResponse.addHeader("Access-Control-Allow-Credentials","true");
 		//httpResponse.addHeader("Access-Control-Allow-Headers",
 		//		"Origin, X-Requested-With, Content-Type, Accept, Authorization");
-		httpResponse.addHeader("Access-Control-Expose-Headers", "JAPP-Token");
+		httpResponse.addHeader("Access-Control-Expose-Headers", "Japp-Token");
 		
 		if (httpRequest.getMethod().equals("GET")) {
 			httpResponse.addHeader("Cache-Control", "no-cache");

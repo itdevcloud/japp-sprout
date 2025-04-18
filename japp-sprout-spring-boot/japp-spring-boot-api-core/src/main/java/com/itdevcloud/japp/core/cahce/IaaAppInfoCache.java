@@ -28,10 +28,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.IaaAppVO;
 import com.itdevcloud.japp.core.common.AppComponents;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-import com.itdevcloud.japp.se.common.vo.PkiVO;
+import com.itdevcloud.japp.se.common.vo.KeyVO;
 
 /**
  *
@@ -39,46 +40,40 @@ import com.itdevcloud.japp.se.common.vo.PkiVO;
  * @since 1.0.0
  */
 @Component
-public class AuthzProviderKeyCache extends RefreshableCache {
+public class IaaAppInfoCache extends RefreshableCache {
 
-	private static final Logger logger = LogManager.getLogger(AuthzProviderKeyCache.class);
+	private static final Logger logger = LogManager.getLogger(IaaAppInfoCache.class);
 
-	private static Map<String, List<PkiVO>> authzProviderKeyMap;
+	private static Map<String, IaaAppVO> appInfoMap;
 
 	@PostConstruct
 	private void initService() {
 	}
 
-//	@Override
-//	public void refreshCache() {
-//		if (lastUpdatedTS == -1) {
-//			initCache();
-//		}else {
-//			logger.info("PkiKeyCache.refreshCache() - only daily referesh is requried, do nothing...");
-//		}
-//	}
 	
 	@Override
 	protected String createDisplayString() {
-		String str = CommonUtil.mapToString(authzProviderKeyMap, 0);
+		String str = CommonUtil.mapToString(appInfoMap, 0);
 		return str;
 	}
 
 	@Override
 	protected void refreshCache() {
 		try {
-			Map<String, List<PkiVO>> tmpMap = new HashMap<String, List<PkiVO>>();
-			List<PkiVO> tmpList = new ArrayList<PkiVO>();
+			Map<String, IaaAppVO> tmpMap = new HashMap<String, IaaAppVO>();
+			List <IaaAppVO> tmpList = AppComponents.iaaService.getIaaAppInfo();
 			
-			PkiVO tmpVO = new PkiVO();
-			tmpVO.setPrivateKey(AppComponents.pkiService.getJappPrivateKey());
-			tmpVO.setPrivateKey(AppComponents.pkiService.getJappPublicKey());
-			tmpVO.setCertificate(AppComponents.pkiService.getJappCertificate());
-			tmpList.add(tmpVO);
+			//logger.info("...........tmpList......." + CommonUtil.listToString(tmpList));
 			
-			tmpMap.put("LOCAL", tmpList);
+			if(tmpList == null || tmpList.isEmpty()) {
+				logger.warn("AppInfo List is null or empty, will not update exisitng cache value.......");
+				return;
+			}
+			for (IaaAppVO appvo: tmpList) {
+				tmpMap.put(appvo.getAppId().toUpperCase(), appvo);
+			}
 			
-			authzProviderKeyMap = Collections.unmodifiableMap(tmpMap);
+			appInfoMap = Collections.unmodifiableMap(tmpMap);
 
 
 		} catch (Throwable t) {
@@ -88,12 +83,12 @@ public class AuthzProviderKeyCache extends RefreshableCache {
 		}
 	}
 
-	public List<PkiVO> getAuthzProviderKeys(String providerName) {
-		if(StringUtil.isEmptyOrNull(providerName)) {
+	public IaaAppVO getIaaAppInfo(String appId) {
+		if(StringUtil.isEmptyOrNull(appId)) {
 			return null;
 		}
 		waitForInit();
-		return authzProviderKeyMap.get(providerName);
+		return appInfoMap.get(appId.toUpperCase());
 	}
 
 

@@ -82,13 +82,13 @@ public class Verify2ndFactorServlet extends jakarta.servlet.http.HttpServlet {
 			logger.debug("Verify2ndFactorServlet.doPost()...........");
 
 			// App CIDR white list check begin
-			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
-				logger.error(
-						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = " + AppUtil.getClientIp(httpRequest) + ".....");
-				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E209");
-				return;
-			}
+//			if (!AppComponents.commonService.matchAppIpWhiteList(httpRequest)) {
+//				logger.error(
+//						"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = " + AppUtil.getClientIp(httpRequest) + ".....");
+//				AppUtil.setHttpResponse(httpResponse, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+//						"Authorization Failed. code E209");
+//				return;
+//			}
 
 			String secondFactorValueFromReq = httpRequest.getParameter(AppConstant.JWT_CLAIM_KEY_2NDFACTOR_VALUE);
 			String appId = httpRequest.getParameter("appId");

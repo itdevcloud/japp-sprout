@@ -73,10 +73,10 @@ public class EntraIdJwksCache extends RefreshableCache {
 
 	@Override
 	protected void refreshCache() {
-		if (!AppConstant.AUTH_PROVIDER_AAD_OPENID.equalsIgnoreCase(ConfigFactory.appConfigService
+		if (!AppConstant.AUTH_PROVIDER_ENTRAID_OPENID.equalsIgnoreCase(ConfigFactory.appConfigService
 				.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER))) {
 			String info = "EntraIdJwksCache.refreshCache()...... Authentication Provider is not "
-					+ AppConstant.AUTH_PROVIDER_AAD_OPENID + ", no cache is needed, do nothing......";
+					+ AppConstant.AUTH_PROVIDER_ENTRAID_OPENID + ", no cache is needed, do nothing......";
 			logger.info(info);
 			// AppComponents.startupService.addNotificationInfo(AppConstant.STARTUP_NOTIFY_KEY_AAD_JWKS_CACHE,
 			// info);

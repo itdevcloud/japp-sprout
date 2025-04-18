@@ -17,11 +17,14 @@
 package com.itdevcloud.japp.core.iaa.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -30,6 +33,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.IaaAppVO;
 import com.itdevcloud.japp.core.api.vo.MfaVO;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
@@ -41,12 +45,17 @@ import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.core.common.ConfigFactory;
 import com.itdevcloud.japp.core.frontend.FrontendEnvSetupService;
 import com.itdevcloud.japp.core.service.customization.IaaServiceHelperI;
+import com.itdevcloud.japp.se.common.security.Crypter;
+import com.itdevcloud.japp.se.common.util.CommonUtil;
+import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
+import com.itdevcloud.japp.se.common.vo.KeyVO;
 
 /**
- * The DefaultIaaServiceHelper class is a default implementation class of the interface IaaServiceHelperI.
- * If there is no other class to implement the interface IaaServiceHelperI, the system will use this one to 
- * retrieve user information.
+ * The DefaultIaaServiceHelper class is a default implementation class of the
+ * interface IaaServiceHelperI. If there is no other class to implement the
+ * interface IaaServiceHelperI, the system will use this one to retrieve user
+ * information.
  *
  *
  * @author Marvin Sun
@@ -55,11 +64,12 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
 
 @Component
 public class DefaultIaaServiceHelper implements IaaServiceHelperI {
- 
-	//private static final Logger logger = LogManager.getLogger(DefaultIaaServiceHelper.class);
+
+	// private static final Logger logger =
+	// LogManager.getLogger(DefaultIaaServiceHelper.class);
 	private static final Logger logger = LogManager.getLogger(DefaultIaaServiceHelper.class);
 	private static Map<String, List<MfaVO>> mfaVOListMap = null;
-			
+
 	@PostConstruct
 	private void init() {
 	}
@@ -90,7 +100,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		logger.info("getIaaUserFromRepository() end........ took " + (end1 - start) + " ms. " + loginId);
 		return iaaUser;
 	}
-	
+
 	@Override
 	public AppIaaUser getIaaUserFromRepositoryByUserIaaUID(String userId) {
 		logger.info("getIaaUserFromRepository() begins ...");
@@ -103,14 +113,6 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		return iaaUser;
 	}
 
-	@Override
-	public List<String> getUpdatedIaaUsers(long lastCheckTimestamp) {
-		if (lastCheckTimestamp == -1) {
-			return null;
-		}
-		ArrayList<String> idList = new ArrayList<>();
-		return idList;
-	}
 
 //	@Override
 //	public String getAndSend2ndfactorValue(AppIaaUser iaaUser, String secondFactorType) {
@@ -155,8 +157,8 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 				"NieQminDE4Ggcewn98nKl3Jhgq7Smn3dLlQ1MyLPswq7njpt8qwsIP4jQ2MR1nhWTQyNMFkwV19g4tPQSBhNeQ==");
 		iaaUser.setName("DummyName");
 		iaaUser.setEmail("DummyEmail@JappApp.ca");
-		//Base32.random();
-		//iaaUser.setTotpSecret("E47CWVVTI7BAXDD3");
+		// Base32.random();
+		// iaaUser.setTotpSecret("E47CWVVTI7BAXDD3");
 		return iaaUser;
 	}
 
@@ -176,8 +178,8 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		claims.put("userId", iaaUser.getUserIaaUID());
 		claims.put("email", iaaUser.getEmail());
 		claims.put("name", iaaUser.getName());
-		//claims.put("busRole", iaaUser.getBusinessRoles());
-		//claims.put("appRole", iaaUser.getApplicationRoles());
+		// claims.put("busRole", iaaUser.getBusinessRoles());
+		// claims.put("appRole", iaaUser.getApplicationRoles());
 		return claims;
 	}
 
@@ -196,7 +198,6 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 //		return mapList;
 //	}
 
-
 	@Override
 	public boolean isAccessAllowed(String userId, String targetNodeId, String targetRoles) {
 		// TODO Auto-generated method stub
@@ -210,7 +211,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 
 	@Override
 	public List<MfaVO> getMfaInfoFromSessionRepository(String userSessionId) {
-		if(mfaVOListMap == null || mfaVOListMap.isEmpty() || StringUtil.isEmptyOrNull(userSessionId)) {
+		if (mfaVOListMap == null || mfaVOListMap.isEmpty() || StringUtil.isEmptyOrNull(userSessionId)) {
 			return null;
 		}
 		List<MfaVO> mfaVOList = mfaVOListMap.get(userSessionId);
@@ -219,18 +220,18 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 
 	@Override
 	public void addOrUpdateMfaInfoToSessionRepository(String userSessionId, MfaVO mfaVO) {
-		if(mfaVO == null) {
+		if (mfaVO == null) {
 			return;
 		}
-		if(mfaVOListMap == null) {
+		if (mfaVOListMap == null) {
 			mfaVOListMap = new HashMap<String, List<MfaVO>>();
 		}
 		List<MfaVO> mfaVOList = mfaVOListMap.get(userSessionId);
-		if(mfaVOList == null) {
+		if (mfaVOList == null) {
 			mfaVOList = new ArrayList<MfaVO>();
 		}
-		for(MfaVO vo: mfaVOList) {
-			if(mfaVO.getType().equalsIgnoreCase(vo.getType())){
+		for (MfaVO vo : mfaVOList) {
+			if (mfaVO.getType().equalsIgnoreCase(vo.getType())) {
 				mfaVOList.remove(vo);
 				break;
 			}
@@ -241,7 +242,113 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 	@Override
 	public void setUserIaaUIDToSessionRepository(String userIaaUID) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
+	@Override
+	public List<IaaAppVO> getIaaAppInfo() {
+		
+		//logger.info("getIaaAppInfo().....start......");
+		
+		List<IaaAppVO> appInfo = new ArrayList<IaaAppVO>();
+
+		IaaAppVO iaaAppVO = null;
+		// add one app info
+		iaaAppVO = new IaaAppVO();
+		iaaAppVO.setAppId("JAPP-API-CORE");
+		//iaaAppVO.setAuthnProvider("JAPP-API-CORE");
+		iaaAppVO.setAuthnProvider(AppConstant.AUTH_PROVIDER_ENTRAID_OPENID);
+
+		iaaAppVO.addClientCidrWhitelistIP("127.0.0.1/32");
+		iaaAppVO.addClientCidrWhitelistIP("localhost");
+
+		iaaAppVO.addAuthnCallbackURL("https://localhost:8080/open/token");
+		iaaAppVO.addAuthnCallbackURL("https://localhost:8080/open/token-1");
+
+		List<KeyVO> keys = new ArrayList<KeyVO>();
+		KeyVO tmpKey = new KeyVO();
+		tmpKey.setKeyId(null);
+		tmpKey.setAppId(iaaAppVO.getAppId());
+		tmpKey.setSequence(1);
+		tmpKey.setJwtKid(null);
+		tmpKey.setJwtX5t(null);
+		tmpKey.setPkiKeyAlgorithm(null);
+		tmpKey.setPkiSignAlgorithm(null);
+		tmpKey.setPrivateKey(AppComponents.pkiKeyCache.getJappPrivateKey());
+		tmpKey.setPublicKey(AppComponents.pkiKeyCache.getJappPublicKey());
+		tmpKey.setCertificate(AppComponents.pkiKeyCache.getJappCertificate());
+		keys.add(tmpKey);
+		
+		tmpKey = new KeyVO();
+		tmpKey.setKeyId(null);
+		tmpKey.setAppId(iaaAppVO.getAppId());
+		tmpKey.setSequence(2);
+		tmpKey.setCipherSecretKey(SecurityUtil.generateKey());
+		tmpKey.setCipherTransformation(Crypter.CIPHER_DEFAULT_TRANSFORMATION);
+		keys.add(tmpKey);
+		
+		tmpKey = new KeyVO();
+		tmpKey.setKeyId(null);
+		tmpKey.setAppId(iaaAppVO.getAppId());
+		tmpKey.setSequence(3);
+		tmpKey.setTotpSecret("ABCDE12345");
+		keys.add(tmpKey);
+
+		Collections.sort(keys);
+		iaaAppVO.setAppkeys(keys);
+		appInfo.add(iaaAppVO);
+		
+		iaaAppVO = new IaaAppVO();
+		iaaAppVO.setAppId("JAPP-IAA");
+		iaaAppVO.setAuthnProvider(AppConstant.AUTH_PROVIDER_ENTRAID_OPENID);
+
+		iaaAppVO.addClientCidrWhitelistIP("127.0.0.1/32");
+		iaaAppVO.addClientCidrWhitelistIP("localhost");
+
+		iaaAppVO.addAuthnCallbackURL("https://localhost:8080/open/token");
+		iaaAppVO.addAuthnCallbackURL("https://localhost:8080/open/token-1");
+
+		keys = new ArrayList<KeyVO>();
+		tmpKey = new KeyVO();
+		tmpKey.setKeyId(null);
+		tmpKey.setAppId(iaaAppVO.getAppId());
+		tmpKey.setSequence(1);
+		tmpKey.setJwtKid(null);
+		tmpKey.setJwtX5t(null);
+		tmpKey.setPkiKeyAlgorithm(null);
+		tmpKey.setPkiSignAlgorithm(null);
+		tmpKey.setPrivateKey(AppComponents.pkiKeyCache.getJappPrivateKey());
+		tmpKey.setPublicKey(AppComponents.pkiKeyCache.getJappPublicKey());
+		tmpKey.setCertificate(AppComponents.pkiKeyCache.getJappCertificate());
+		keys.add(tmpKey);
+		
+		tmpKey = new KeyVO();
+		tmpKey.setKeyId(null);
+		tmpKey.setAppId(iaaAppVO.getAppId());
+		tmpKey.setSequence(2);
+		tmpKey.setCipherSecretKey(SecurityUtil.generateKey());
+		tmpKey.setCipherTransformation(Crypter.CIPHER_DEFAULT_TRANSFORMATION);
+		keys.add(tmpKey);
+
+		tmpKey = new KeyVO();
+		tmpKey.setKeyId(null);
+		tmpKey.setAppId(iaaAppVO.getAppId());
+		tmpKey.setSequence(3);
+		tmpKey.setTotpSecret("ABCDE12345");
+		keys.add(tmpKey);
+
+		Collections.sort(keys);
+		iaaAppVO.setAppkeys(keys);
+		appInfo.add(iaaAppVO);
+		
+		
+		//logger.info("getIaaAppInfo().....end......appInfo = " + CommonUtil.listToString(appInfo));
+		
+		return appInfo;
+	}
+
+	@Override
+	public String getAuthnProviderURL(HttpServletRequest httpRequest, IaaAppVO iaaAppVO, String stateString) {
+		return AppComponents.commonService.getAuthnProviderURL(httpRequest, iaaAppVO, stateString);
+	}
 }

@@ -20,6 +20,7 @@ package com.itdevcloud.japp.core.common;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.cahce.AppConfigCache;
+import com.itdevcloud.japp.core.cahce.AuthProviderCache;
 import com.itdevcloud.japp.core.cahce.EntraIdJwksCache;
 import com.itdevcloud.japp.core.cahce.IaaAppInfoCache;
 import com.itdevcloud.japp.core.cahce.IaaUserCache;
@@ -69,6 +70,7 @@ public class AppComponents {
 	public static EntraIdJwksCache aadJwksCache;
 	public static ReferenceCodeCache referenceCodeCache;
 	public static IaaAppInfoCache iaaAppInfoCache;
+	public static AuthProviderCache authProviderCache;
 	
 	//appConfigCache is special - for configure
 	//must be defined in the AppConfigService, not here

@@ -27,6 +27,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.util.StringUtils;
 
+import com.itdevcloud.japp.core.api.vo.IaaAppVO;
+import com.itdevcloud.japp.core.api.vo.LoginStateInfo;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.cahce.EntraIdJwksCache;
 import com.itdevcloud.japp.core.common.CommonService;
@@ -64,14 +66,23 @@ public class LogoutServlet extends jakarta.servlet.http.HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		logger.debug("logout get service =======111==================");
 
-//		// App CIDR white list check begin
-//		if (!AppComponents.commonService.matchAppIpWhiteList(request)) {
-//			logger.error(
-//					"Authorization Failed. code E209 - request IP is not on the APP's IP white list, user IP = " + AppUtil.getClientIp(request) + ".....");
-//			AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-//					"Authorization Failed. code E209");
-//			return;
-//		}
+		String state = request.getParameter("state");
+		LoginStateInfo stateInfo = LoginStateInfo.parseStateString(state);
+		String clientAppId = stateInfo==null?null:stateInfo.getAppId();
+		String thisAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);;
+		if(StringUtil.isEmptyOrNull(clientAppId)) {
+			logger.debug("clientAppId is not provided as request parameter, use this server's appId: " + thisAppId);
+			clientAppId = thisAppId;
+		}
+		IaaAppVO iaaAppVO = AppComponents.iaaAppInfoCache.getIaaAppInfo(clientAppId);
+		if(iaaAppVO == null) {
+			logger.error(
+					"Authenitcaton Failed - can not retrieve Client APP configuration, clientAppId = " + clientAppId + ".....");
+			AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+					"Authenitcaton Failed. code E1001");
+			return;
+		}
+
 		HttpSession session = request.getSession();
 
 		// clean user reference in Cache
@@ -101,22 +112,19 @@ public class LogoutServlet extends jakarta.servlet.http.HttpServlet {
 		String provider = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_IAA_AUTHENTICATION_PROVIDER);
 		if (provider == null || provider.trim().equals("")) {
 			// default
-			provider = AppConstant.AUTH_PROVIDER_ENTRAID_OPENID;
+			provider = AppConstant.AUTH_PROVIDER_NAME_ENTRAID_OPENID;
 		} else {
 			provider = provider.trim();
 		}
 		String jappPostSignOutUri = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_FRONTEND_UI_POST_SIGNOUT_PAGE);
-		if (AppConstant.AUTH_PROVIDER_ENTRAID_OPENID.equals(provider)) {
+		if (AppConstant.AUTH_PROVIDER_NAME_ENTRAID_OPENID.equals(provider)) {
 			jappPostSignOutUri = jappPostSignOutUri.replace("/#/", "/%23/");
 			String url = AppComponents.aadJwksCache.getAadAuthLogoutUri();
 			if(!StringUtil.isEmptyOrNull(jappPostSignOutUri)){
 				url = url + "?post_logout_redirect_uri=" + jappPostSignOutUri;
 			}
 			return url;
-		} else if (AppConstant.AUTH_PROVIDER_GENERAL_OAUTH2.equals(provider)) {
-			// SDC STS URL
-			return jappPostSignOutUri;
-		} else {
+		}  else {
 			return jappPostSignOutUri;
 		}
 

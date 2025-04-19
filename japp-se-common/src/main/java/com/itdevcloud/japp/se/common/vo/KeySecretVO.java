@@ -30,7 +30,7 @@ import com.itdevcloud.japp.se.common.util.StringUtil;
  * @author Marvin Sun
  * @since 1.0.0
  */
-public class KeyVO  implements  Comparable {
+public class KeySecretVO  implements  Comparable {
 	
 	private String keyId;
 	private String appId;
@@ -47,7 +47,7 @@ public class KeyVO  implements  Comparable {
 	private String cipherTransformation;
 	private SecretKey cipherSecretKey;
 
-	public KeyVO() {
+	public KeySecretVO() {
 	}
 
 
@@ -212,7 +212,7 @@ public class KeyVO  implements  Comparable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		KeyVO other = (KeyVO) obj;
+		KeySecretVO other = (KeySecretVO) obj;
 		if (appId == null) {
 			if (other.appId != null)
 				return false;
@@ -235,7 +235,7 @@ public class KeyVO  implements  Comparable {
 		if (getClass() != obj.getClass()) {
 			return StringUtil.compareTo(this.getClass().getSimpleName(), obj.getClass().getSimpleName());
 		}
-		KeyVO other = (KeyVO) obj;
+		KeySecretVO other = (KeySecretVO) obj;
 		int result = StringUtil.compareTo(this.getAppId(), other.getAppId());
 		if(result != 0) {
 			return result;

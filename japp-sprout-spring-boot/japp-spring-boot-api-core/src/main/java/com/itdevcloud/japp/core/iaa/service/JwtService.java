@@ -175,27 +175,27 @@ public class JwtService implements AppFactoryComponentI {
 //
 //	}
 
-	public boolean isValidEntraIdToken(String idToken) {
-		logger.debug("isValidAadIdToken.............begin....");
-		return isValidToken(idToken, "ENTRA_ID");
+//	public boolean isValidEntraIdToken(String idToken) {
+//		logger.debug("isValidAadIdToken.............begin....");
+//		return isValidToken(idToken, "ENTRA_ID");
+//
+//	}
 
-	}
-
-	public boolean isValidToken(String token, String tokenIssuer) {
+	public boolean isValidToken(String token, String authnProvider) {
 		try {
-			logger.debug("isValidToken.............begin....tokenIssuer = " + tokenIssuer);
+			logger.debug("isValidToken.............begin....authnProvider = " + authnProvider);
 			if (StringUtil.isEmptyOrNull(token)) {
 				return false;
 			}
 
-			logger.debug("token=" + token);
+			logger.debug("id token = " + token);
 
-			JwtKeyLocator keyLocator = new JwtKeyLocator(tokenIssuer);
+			JwtKeyLocator keyLocator = new JwtKeyLocator(authnProvider);
 			Jws<Claims> jws = Jwts.parser().keyLocator(keyLocator).build().parseSignedClaims(token);
 			boolean result = validateTokenClaims(jws);
 			
 			
-			logger.debug("isValidToken.............end....tokenIssuer = " + tokenIssuer);
+			logger.debug("isValidToken.............end....authnProvider = " + authnProvider);
 			return result;
 
 		} catch (Throwable t) {

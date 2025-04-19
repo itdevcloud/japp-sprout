@@ -2,7 +2,9 @@ package com.itdevcloud.japp.core.iaa.service;
 
 import java.security.Key;
 
+import com.itdevcloud.japp.core.api.vo.AuthProviderVO;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 
 import io.jsonwebtoken.LocatorAdapter;
@@ -10,28 +12,30 @@ import io.jsonwebtoken.ProtectedHeader;
 
 public class JwtKeyLocator extends LocatorAdapter<Key> {
 
-	private String jwtIssuer = null;
+	private String authProvider = null;
 
-	public JwtKeyLocator(String jwtIssuer) {
+	public JwtKeyLocator(String authProvider) {
 		super();
-		if (StringUtil.isEmptyOrNull(jwtIssuer)) {
-			jwtIssuer = "SELF";
+		if (StringUtil.isEmptyOrNull(authProvider)) {
+			authProvider = AppConstant.AUTH_PROVIDER_NAME_MY_APP;
 		}
-		this.jwtIssuer = jwtIssuer;
+		this.authProvider = authProvider;
 	}
 
 	@Override
 	public Key locate(ProtectedHeader header) { // both JwsHeader and JweHeader extend ProtectedHeader
 		Key key = null;
-		if ("SELF".equalsIgnoreCase(this.jwtIssuer)) {
-			key = AppComponents.pkiKeyCache.getJappPublicKey();
-		} else if ("ENTRA_ID".equalsIgnoreCase(this.jwtIssuer)) {
+		AuthProviderVO authProviderVO = AppComponents.authProviderCache.getAuthProviderInfo(this.authProvider);
+		if(authProviderVO == null) {
+			return null;
+		}
+		if (AppConstant.AUTH_PROVIDER_NAME_ENTRAID_OPENID.equalsIgnoreCase(this.authProvider)) {
 			String kid = "" + header.get("kid");
 			String x5t = "" + header.get("x5t");
-			key = AppComponents.aadJwksCache.getAadPublicKey(kid, x5t);
+			key = authProviderVO.getPublicKey(kid, x5t);
 		} else {
 			// default self
-			key = AppComponents.pkiKeyCache.getJappPublicKey();
+			key = authProviderVO.getPublicKey();
 		}
 		return key;
 	}

@@ -30,6 +30,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.AuthProviderVO;
 import com.itdevcloud.japp.core.api.vo.IaaAppVO;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
 import com.itdevcloud.japp.core.common.AppComponents;
@@ -173,6 +174,11 @@ public class IaaService implements AppFactoryComponentI {
 	public List<IaaAppVO> getIaaAppInfo() {
 		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
 		return helper.getIaaAppInfo();
+	}
+	
+	public List<AuthProviderVO> getAuthProviderInfo() {
+		IaaServiceHelperI helper = AppFactory.getComponent(IaaServiceHelperI.class);
+		return helper.getAuthProviderInfo();
 	}
 
 	public String getAuthnProviderURL(HttpServletRequest httpRequest, IaaAppVO iaaAppVO, String stateString) {

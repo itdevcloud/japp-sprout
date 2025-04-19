@@ -373,7 +373,7 @@ public class CommonService implements AppFactoryComponentI {
 		}
 		String thisAppId = ConfigFactory.appConfigService.getPropertyAsString(AppConfigKeys.JAPPCORE_APP_APPLICATION_ID);;
 		UUID uuid = UUID.randomUUID();
-		if (AppConstant.AUTH_PROVIDER_ENTRAID_OPENID.equals(provider)) {
+		if (AppConstant.AUTH_PROVIDER_NAME_ENTRAID_OPENID.equals(provider)) {
 			//just for prompt only, actual logged user may be changed
 			String loginId = stateInfo==null?null:stateInfo.getLoginId();
 			if(StringUtil.isEmptyOrNull(loginId)) {

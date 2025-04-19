@@ -23,9 +23,11 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-import com.itdevcloud.japp.se.common.vo.KeyVO;
+import com.itdevcloud.japp.se.common.vo.KeySecretVO;
 
 /**
  *
@@ -37,9 +39,8 @@ public class IaaAppVO  {
 	private static final Logger logger = LogManager.getLogger(IaaAppVO.class);
 
 	private String appId;
-	private List<KeyVO> AppKeys ;
+	private List<KeySecretVO> AppKeys ;
 	private String authnProvider;
-	private String authnProviderURL;
 	private List<String> authnCallbackURLs;
 	private List<String> clientCidrWhitelist;
 	
@@ -58,36 +59,36 @@ public class IaaAppVO  {
 	}
 
 
-	public List<KeyVO> getAppkeys() {
+	public List<KeySecretVO> getAppkeys() {
 		if(this.AppKeys == null) {
-			this.AppKeys = new ArrayList<KeyVO>();
+			this.AppKeys = new ArrayList<KeySecretVO>();
 		}
 		return this.AppKeys;
 	}
 
 
-	public void setAppkeys(List<KeyVO> appkeys) {
+	public void setAppkeys(List<KeySecretVO> appkeys) {
 		AppKeys = appkeys;
 	}
 
-	public void addAppkey(KeyVO keyVO) {
+	public void addAppkey(KeySecretVO keyVO) {
 		if(this.AppKeys == null) {
-			this.AppKeys = new ArrayList<KeyVO>();
+			this.AppKeys = new ArrayList<KeySecretVO>();
 		}
 		if(keyVO != null) {
 			this.AppKeys.add(keyVO);
 		}
 	}
-	public List<KeyVO> getPkikeys(String appId) {
+	public List<KeySecretVO> getPkikeys(String appId) {
 		if(this.AppKeys == null || this.AppKeys.isEmpty() || StringUtil.isEmptyOrNull(appId)) {
 			logger.warn("Appkeys and/or appId is empty or null, return null..........");
 			return null;
 		}
-		List<KeyVO> keys  = new ArrayList<KeyVO>();
-		KeyVO tmpKey = null;
-		for (KeyVO key : this.AppKeys) {
+		List<KeySecretVO> keys  = new ArrayList<KeySecretVO>();
+		KeySecretVO tmpKey = null;
+		for (KeySecretVO key : this.AppKeys) {
 			if(appId.equalsIgnoreCase(key.getAppId()) && (key.getCertificate() != null || key.getPrivateKey() != null || key.getPublicKey() != null)) {
-				tmpKey = new KeyVO();
+				tmpKey = new KeySecretVO();
 				tmpKey.setKeyId(key.getKeyId());
 				tmpKey.setAppId(key.getAppId());
 				tmpKey.setSequence(key.getSequence());
@@ -104,16 +105,16 @@ public class IaaAppVO  {
 		Collections.sort(keys);
 		return keys;
 	}
-	public List<KeyVO> getCipherkeys(String appId) {
+	public List<KeySecretVO> getCipherkeys(String appId) {
 		if(this.AppKeys == null || this.AppKeys.isEmpty() || StringUtil.isEmptyOrNull(appId)) {
 			logger.warn("Appkeys and/or appId is empty or null, return null..........");
 			return null;
 		}
-		List<KeyVO> keys  = new ArrayList<KeyVO>();
-		KeyVO tmpKey = null;
-		for (KeyVO key : this.AppKeys) {
+		List<KeySecretVO> keys  = new ArrayList<KeySecretVO>();
+		KeySecretVO tmpKey = null;
+		for (KeySecretVO key : this.AppKeys) {
 			if(appId.equalsIgnoreCase(key.getAppId()) && key.getCipherSecretKey() != null ) {
-				tmpKey = new KeyVO();
+				tmpKey = new KeySecretVO();
 				tmpKey.setKeyId(key.getKeyId());
 				tmpKey.setAppId(key.getAppId());
 				tmpKey.setSequence(key.getSequence());
@@ -128,16 +129,16 @@ public class IaaAppVO  {
 		return keys;
 	}
 	
-	public List<KeyVO> getCipherKeys(String appId) {
+	public List<KeySecretVO> getCipherKeys(String appId) {
 		if(this.AppKeys == null || this.AppKeys.isEmpty() || StringUtil.isEmptyOrNull(appId)) {
 			logger.warn("Appkeys and/or appId is empty or null, return null..........");
 			return null;
 		}
-		List<KeyVO> keys  = new ArrayList<KeyVO>();
-		KeyVO tmpKey = null;
-		for (KeyVO key : this.AppKeys) {
+		List<KeySecretVO> keys  = new ArrayList<KeySecretVO>();
+		KeySecretVO tmpKey = null;
+		for (KeySecretVO key : this.AppKeys) {
 			if(appId.equalsIgnoreCase(key.getAppId()) && key.getCipherSecretKey() != null ) {
-				tmpKey = new KeyVO();
+				tmpKey = new KeySecretVO();
 				tmpKey.setKeyId(key.getKeyId());
 				tmpKey.setAppId(key.getAppId());
 				tmpKey.setSequence(key.getSequence());
@@ -151,16 +152,16 @@ public class IaaAppVO  {
 		
 		return keys;
 	}
-	public List<KeyVO> getTotpSecrets(String appId) {
+	public List<KeySecretVO> getTotpSecrets(String appId) {
 		if(this.AppKeys == null || this.AppKeys.isEmpty() || StringUtil.isEmptyOrNull(appId)) {
 			logger.warn("Appkeys and/or appId is empty or null, return null..........");
 			return null;
 		}
-		List<KeyVO> keys  = new ArrayList<KeyVO>();
-		KeyVO tmpKey = null;
-		for (KeyVO key : this.AppKeys) {
+		List<KeySecretVO> keys  = new ArrayList<KeySecretVO>();
+		KeySecretVO tmpKey = null;
+		for (KeySecretVO key : this.AppKeys) {
 			if(appId.equalsIgnoreCase(key.getAppId()) && key.getCipherSecretKey() != null ) {
-				tmpKey = new KeyVO();
+				tmpKey = new KeySecretVO();
 				tmpKey.setKeyId(key.getKeyId());
 				tmpKey.setAppId(key.getAppId());
 				tmpKey.setSequence(key.getSequence());
@@ -176,23 +177,27 @@ public class IaaAppVO  {
 
 	
 	public String getAuthnProvider() {
+		if(StringUtil.isEmptyOrNull(authnProvider)) {
+			authnProvider = AppConstant.AUTH_PROVIDER_NAME_MY_APP;
+		}
 		return authnProvider;
 	}
 
 
 	public void setAuthnProvider(String authnProvider) {
+		if(StringUtil.isEmptyOrNull(authnProvider)) {
+			authnProvider = AppConstant.AUTH_PROVIDER_NAME_MY_APP;
+		}
 		this.authnProvider = authnProvider;
 	}
 
 
 	public String getAuthnProviderURL() {
-		return authnProviderURL;
+		AuthProviderVO authProviderVO = AppComponents.authProviderCache.getAuthProviderInfo(getAuthnProvider());
+		return authProviderVO == null? null:authProviderVO.getAuthnURL();
 	}
 
 
-	public void setAuthnProviderURL(String authnProviderURL) {
-		this.authnProviderURL = authnProviderURL;
-	}
 
 
 	public List<String> getAuthnCallbackURLs() {

@@ -26,7 +26,7 @@ import org.apache.logging.log4j.Logger;
 import com.itdevcloud.japp.core.common.AppUtil;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-import com.itdevcloud.japp.se.common.vo.KeyVO;
+import com.itdevcloud.japp.se.common.vo.KeySecretVO;
 
 /**
  *

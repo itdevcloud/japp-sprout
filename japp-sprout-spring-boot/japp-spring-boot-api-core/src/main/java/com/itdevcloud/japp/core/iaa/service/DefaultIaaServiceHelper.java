@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.AuthProviderVO;
 import com.itdevcloud.japp.core.api.vo.IaaAppVO;
 import com.itdevcloud.japp.core.api.vo.MfaVO;
 import com.itdevcloud.japp.core.api.vo.ResponseStatus;
@@ -49,7 +50,7 @@ import com.itdevcloud.japp.se.common.security.Crypter;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.SecurityUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
-import com.itdevcloud.japp.se.common.vo.KeyVO;
+import com.itdevcloud.japp.se.common.vo.KeySecretVO;
 
 /**
  * The DefaultIaaServiceHelper class is a default implementation class of the
@@ -257,7 +258,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		iaaAppVO = new IaaAppVO();
 		iaaAppVO.setAppId("JAPP-API-CORE");
 		//iaaAppVO.setAuthnProvider("JAPP-API-CORE");
-		iaaAppVO.setAuthnProvider(AppConstant.AUTH_PROVIDER_ENTRAID_OPENID);
+		iaaAppVO.setAuthnProvider(AppConstant.AUTH_PROVIDER_NAME_ENTRAID_OPENID);
 
 		iaaAppVO.addClientCidrWhitelistIP("127.0.0.1/32");
 		iaaAppVO.addClientCidrWhitelistIP("localhost");
@@ -265,8 +266,8 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		iaaAppVO.addAuthnCallbackURL("https://localhost:8080/open/token");
 		iaaAppVO.addAuthnCallbackURL("https://localhost:8080/open/token-1");
 
-		List<KeyVO> keys = new ArrayList<KeyVO>();
-		KeyVO tmpKey = new KeyVO();
+		List<KeySecretVO> keys = new ArrayList<KeySecretVO>();
+		KeySecretVO tmpKey = new KeySecretVO();
 		tmpKey.setKeyId(null);
 		tmpKey.setAppId(iaaAppVO.getAppId());
 		tmpKey.setSequence(1);
@@ -279,7 +280,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		tmpKey.setCertificate(AppComponents.pkiKeyCache.getJappCertificate());
 		keys.add(tmpKey);
 		
-		tmpKey = new KeyVO();
+		tmpKey = new KeySecretVO();
 		tmpKey.setKeyId(null);
 		tmpKey.setAppId(iaaAppVO.getAppId());
 		tmpKey.setSequence(2);
@@ -287,7 +288,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		tmpKey.setCipherTransformation(Crypter.CIPHER_DEFAULT_TRANSFORMATION);
 		keys.add(tmpKey);
 		
-		tmpKey = new KeyVO();
+		tmpKey = new KeySecretVO();
 		tmpKey.setKeyId(null);
 		tmpKey.setAppId(iaaAppVO.getAppId());
 		tmpKey.setSequence(3);
@@ -300,7 +301,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		
 		iaaAppVO = new IaaAppVO();
 		iaaAppVO.setAppId("JAPP-IAA");
-		iaaAppVO.setAuthnProvider(AppConstant.AUTH_PROVIDER_ENTRAID_OPENID);
+		iaaAppVO.setAuthnProvider(AppConstant.AUTH_PROVIDER_NAME_ENTRAID_OPENID);
 
 		iaaAppVO.addClientCidrWhitelistIP("127.0.0.1/32");
 		iaaAppVO.addClientCidrWhitelistIP("localhost");
@@ -308,8 +309,8 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		iaaAppVO.addAuthnCallbackURL("https://localhost:8080/open/token");
 		iaaAppVO.addAuthnCallbackURL("https://localhost:8080/open/token-1");
 
-		keys = new ArrayList<KeyVO>();
-		tmpKey = new KeyVO();
+		keys = new ArrayList<KeySecretVO>();
+		tmpKey = new KeySecretVO();
 		tmpKey.setKeyId(null);
 		tmpKey.setAppId(iaaAppVO.getAppId());
 		tmpKey.setSequence(1);
@@ -322,7 +323,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		tmpKey.setCertificate(AppComponents.pkiKeyCache.getJappCertificate());
 		keys.add(tmpKey);
 		
-		tmpKey = new KeyVO();
+		tmpKey = new KeySecretVO();
 		tmpKey.setKeyId(null);
 		tmpKey.setAppId(iaaAppVO.getAppId());
 		tmpKey.setSequence(2);
@@ -330,7 +331,7 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 		tmpKey.setCipherTransformation(Crypter.CIPHER_DEFAULT_TRANSFORMATION);
 		keys.add(tmpKey);
 
-		tmpKey = new KeyVO();
+		tmpKey = new KeySecretVO();
 		tmpKey.setKeyId(null);
 		tmpKey.setAppId(iaaAppVO.getAppId());
 		tmpKey.setSequence(3);
@@ -350,5 +351,10 @@ public class DefaultIaaServiceHelper implements IaaServiceHelperI {
 	@Override
 	public String getAuthnProviderURL(HttpServletRequest httpRequest, IaaAppVO iaaAppVO, String stateString) {
 		return AppComponents.commonService.getAuthnProviderURL(httpRequest, iaaAppVO, stateString);
+	}
+
+	@Override
+	public List<AuthProviderVO> getAuthProviderInfo() {
+		return null;
 	}
 }

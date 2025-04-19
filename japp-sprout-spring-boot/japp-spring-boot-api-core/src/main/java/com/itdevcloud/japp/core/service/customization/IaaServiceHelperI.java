@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.itdevcloud.japp.core.api.vo.AppIaaUser;
+import com.itdevcloud.japp.core.api.vo.AuthProviderVO;
 import com.itdevcloud.japp.core.api.vo.IaaAppVO;
 import com.itdevcloud.japp.core.api.vo.MfaVO;
 import com.itdevcloud.japp.core.iaa.service.IaaUser;
@@ -44,6 +45,7 @@ public interface IaaServiceHelperI extends CustomizableComponentI {
 	public String getUserIaaUIDFromSessionRepository(String userSessionId);
 	public void setUserIaaUIDToSessionRepository(String userIaaUID);
 	public List<IaaAppVO> getIaaAppInfo();
+	public List<AuthProviderVO> getAuthProviderInfo();
 	public String getAuthnProviderURL(HttpServletRequest httpRequest, IaaAppVO iaaAppVO, String stateString);
 
 }

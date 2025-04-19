@@ -28,8 +28,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import com.itdevcloud.japp.core.api.vo.AuthProviderVO;
 import com.itdevcloud.japp.core.api.vo.IaaAppVO;
 import com.itdevcloud.japp.core.common.AppComponents;
+import com.itdevcloud.japp.core.common.AppConstant;
 import com.itdevcloud.japp.se.common.util.CommonUtil;
 import com.itdevcloud.japp.se.common.util.StringUtil;
 import com.itdevcloud.japp.se.common.vo.KeySecretVO;
@@ -40,11 +42,11 @@ import com.itdevcloud.japp.se.common.vo.KeySecretVO;
  * @since 1.0.0
  */
 @Component
-public class IaaAppInfoCache extends RefreshableCache {
+public class AuthProviderCache extends RefreshableCache {
 
-	private static final Logger logger = LogManager.getLogger(IaaAppInfoCache.class);
+	private static final Logger logger = LogManager.getLogger(AuthProviderCache.class);
 
-	private static Map<String, IaaAppVO> appInfoMap;
+	private static Map<String, AuthProviderVO> authProviderMap;
 
 	@PostConstruct
 	private void initService() {
@@ -53,27 +55,40 @@ public class IaaAppInfoCache extends RefreshableCache {
 	
 	@Override
 	protected String createDisplayString() {
-		String str = CommonUtil.mapToString(appInfoMap, 0);
+		String str = CommonUtil.mapToString(authProviderMap, 0);
 		return str;
 	}
 
 	@Override
 	protected void refreshCache() {
 		try {
-			Map<String, IaaAppVO> tmpMap = new HashMap<String, IaaAppVO>();
-			List <IaaAppVO> tmpList = AppComponents.iaaService.getIaaAppInfo();
+			Map<String, AuthProviderVO> tmpMap = new HashMap<String, AuthProviderVO>();
+			List <AuthProviderVO> tmpList = AppComponents.iaaService.getAuthProviderInfo();
 			
 			//logger.info("...........tmpList......." + CommonUtil.listToString(tmpList));
 			
-			if(tmpList == null || tmpList.isEmpty()) {
-				logger.warn("AppInfo List is null or empty, will not update exisitng cache value.......");
-				return;
+			if(tmpList == null ) {
+				logger.warn("getAuthProviderInfo List is null or empty, will not update exisitng cache value.......");
+				tmpList = new ArrayList <AuthProviderVO>();
+				//continue to add EntraId and My_app
 			}
-			for (IaaAppVO appvo: tmpList) {
-				tmpMap.put(appvo.getAppId().toUpperCase(), appvo);
+		
+			for (AuthProviderVO vo: tmpList) {
+				tmpMap.put(vo.getName().toUpperCase(), vo);
 			}
-			
-			appInfoMap = Collections.unmodifiableMap(tmpMap);
+			//make sure EntraID and My_App is in the map
+			AuthProviderVO vo = null;
+			if(tmpMap.get(AppConstant.AUTH_PROVIDER_NAME_ENTRAID_OPENID) == null) {
+				vo = new AuthProviderVO();
+				vo.setName(AppConstant.AUTH_PROVIDER_NAME_ENTRAID_OPENID);
+				tmpMap.put(vo.getName().toUpperCase(), vo);
+			}
+			if(tmpMap.get(AppConstant.AUTH_PROVIDER_NAME_MY_APP) == null) {
+				vo = new AuthProviderVO();
+				vo.setName(AppConstant.AUTH_PROVIDER_NAME_MY_APP);
+				tmpMap.put(vo.getName().toUpperCase(), vo);
+			}
+			authProviderMap = Collections.unmodifiableMap(tmpMap);
 
 
 		} catch (Throwable t) {
@@ -83,12 +98,12 @@ public class IaaAppInfoCache extends RefreshableCache {
 		}
 	}
 
-	public IaaAppVO getIaaAppInfo(String appId) {
-		if(StringUtil.isEmptyOrNull(appId)) {
+	public AuthProviderVO getAuthProviderInfo(String name) {
+		if(StringUtil.isEmptyOrNull(name)) {
 			return null;
 		}
 		waitForInit();
-		return appInfoMap.get(appId.toUpperCase());
+		return authProviderMap.get(name.toUpperCase());
 	}
 
 

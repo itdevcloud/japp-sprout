@@ -51,7 +51,15 @@ public abstract class AuthnCallbackServletBase extends jakarta.servlet.http.Http
 	private static final Logger logger = LogManager.getLogger(AuthnCallbackServletBase.class);
 
 	abstract protected String getAuthnProvider();
+	protected String getIdTokenParameterName() {
+		//this is default idToken parameter name
+		return "id_token";
+	}
 	
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		doPost(request, response);
+	}
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
@@ -59,61 +67,65 @@ public abstract class AuthnCallbackServletBase extends jakarta.servlet.http.Http
 		try {
 			logger.debug("AuthnCallbackServletBase.doPost().....start......");
 
-
-			String idToken = request.getParameter("id_token");
-			// log.debug("id_token=========" + idToken);
+			String idTokenParameterName = getIdTokenParameterName();
+			if(StringUtil.isEmptyOrNull(idTokenParameterName)) {
+				idTokenParameterName = "id_token";
+			}
+			String idToken = request.getParameter(idTokenParameterName);
+			// log.debug("id_token......" + idToken);
 
 			if (idToken == null || idToken.equals("")) {
 				logger.error(
-						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E501. can not receive id_token from AAD response....");
+						"AuthnCallbackServletBase.doPost() - Authentication Failed. code E501. can not receive id_token from AAD response....");
 				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E501");
+						"Authentication Failed. code E1031");
 				return;
 			}
 			// verify JWT from AAD;
-			logger.debug("AadAuthCallbackServlet.doPost() - verify idToken token=========");
-			if (!AppComponents.jwtService.isValidEntraIdToken(idToken)) {
+			logger.debug("AuthnCallbackServletBase.doPost() - verify idToken token.........");
+			if (!AppComponents.jwtService.isValidToken(idToken, getAuthnProvider())) {
 				logger.error(
-						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E502. id_token from AAD is not valid....");
+						"AuthnCallbackServletBase.doPost() - Authentication Failed. code E1032. id_token from AAD is not valid....");
 				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E502");
+						"Authentication Failed. code E1032");
 				return;
 			}
 			// retrieve IaaUser for Authorization
-			logger.debug("AadAuthCallbackServlet.doPost() - retrieve userInfo for Authorization==============");
+			logger.debug("AuthnCallbackServletBase.doPost() - retrieve userInfo for Authorization........");
 			AppIaaUser iaaUser = null;
+			// set by isValidToken()
 			String loginId = AppThreadContext.getTokenSubject();
 			if (loginId == null) {
 				// set by isValidTokenByPublicKey()
 				logger.error(
-						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E503. Login Id was not retrieved from AAD JWT Token. ");
+						"AuthnCallbackServletBase.doPost() - Authentication Failed. code E1033. Login Id was not retrieved from AAD JWT Token. ");
 				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E503");
+						"Authentication Failed. code E1033");
 				return;
 			}
 			try {
-				iaaUser = AppComponents.iaaService.getIaaUserByLoginId(loginId, AppConstant.AUTH_PROVIDER_ENTRAID_OPENID);
-				logger.debug("AadAuthCallbackServlet.doPost() - " + iaaUser.toString());
+				iaaUser = AppComponents.iaaService.getIaaUserByLoginId(loginId, AppConstant.AUTH_PROVIDER_NAME_ENTRAID_OPENID);
+				logger.debug("AuthnCallbackServletBase.doPost() - " + iaaUser.toString());
 			} catch (AppException e1) {
-				logger.error("Authorization Failed. code E504 - can't retrieve user by loginid = " + loginId + " - \n"
+				logger.error("Authentication Failed. code E1034 - can't retrieve user by loginid = " + loginId + " - \n"
 						+ AppUtil.getStackTrace(e1));
-				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E504");
+				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+						"Authentication Failed. code E1034");
 				return;
 			} catch (Throwable t) {
-				logger.error("Authorization Failed. code E505 - can't retrieve user by loginid = " + loginId + " - \n"
+				logger.error("Authentication Failed. code E1035 - can't retrieve user by loginid = " + loginId + " - \n"
 						+ AppUtil.getStackTrace(t));
-				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E505");
+				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+						"Authentication Failed. code E1035");
 				return;
 			}
 
 			// Application role list check
 			if (!AppComponents.commonService.matchAppRoleList(iaaUser)) {
 				logger.error(
-						"Authorization Failed. code E508 - requestor's is not on the APP's role list" + ".....");
+						"Authentication Failed. code E1036 - requestor's is not on the APP's role list" + ".....");
 				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E508");
+						"Authentication Failed. code E1036");
 				return;
 			}
 
@@ -126,10 +138,10 @@ public abstract class AuthnCallbackServletBase extends jakarta.servlet.http.Http
 			String token = AppComponents.jwtService.issueJappToken(iaaUser);
 			if (StringUtil.isEmptyOrNull(token)) {
 				logger.error(
-						"AadAuthCallbackServlet.doPost() - Authorization Failed. code E507. JAPP Token can not be created for login Id '"
+						"Authentication Failed. code E1037. JAPP Token can not be created for login Id '"
 								+ loginId + "'......");
-				AppUtil.setHttpResponse(response, 403, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-						"Authorization Failed. code E507");
+				AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
+						"Authentication Failed. code E1037");
 				return;
 			}
 
@@ -152,9 +164,9 @@ public abstract class AuthnCallbackServletBase extends jakarta.servlet.http.Http
 				//HTTP GET 
 				if (StringUtil.isEmptyOrNull(callbackUrl)) {
 					logger.error(
-							"AadAuthCallbackServlet.doPost() - Authorization Failed. code E509. Can't find application " + appId + " call back url from the property file.");
+							"Authentication Failed. code E1038. Can't find application " + appId + " call back url from the property file.");
 					AppUtil.setHttpResponse(response, 401, ResponseStatus.STATUS_CODE_ERROR_SECURITY,
-							"Authorization Failed. code E509");
+							"Authentication Failed. code E1038");
 					return;
 				}
 				

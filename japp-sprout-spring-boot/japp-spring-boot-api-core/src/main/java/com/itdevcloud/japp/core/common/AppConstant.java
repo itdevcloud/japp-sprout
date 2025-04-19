@@ -23,12 +23,18 @@ package com.itdevcloud.japp.core.common;
  */
 public class AppConstant {
 
-	public static final String AUTH_PROVIDER_ENTRAID_OPENID = "ENTRAID_OPENID";
-	public static final String AUTH_PROVIDER_GENERAL_OAUTH2 = "GENERAL-OAUTH2";
-	public static final String AUTH_PROVIDER_JAPPCORE_BASIC_AUTH = "JAPP-BASIC-AUTH";
-	public static final String AUTH_PROVIDER_JAPPCORE_DYNAMIC = "JAPP-DYNAMIC";
-	public static final String AUTH_PROVIDER_GOSECURE = "GOSECURE";
-	public static final String JAPPCORE_TX_ID = "JAPPCORE_TX_ID";
+	public static final String AUTH_PROVIDER_TYPE_AUTHZ = "PROVIDER_TYPE_AUTHZ";
+	public static final String AUTH_PROVIDER_TYPE_AUTHN = "PROVIDER_TYPE_AUTHN";
+	public static final String AUTH_PROVIDER_TYPE_AUTHN_AUTHZ = "PROVIDER_TYPE_AUTHN_AUTHZ";
+	
+	public static final String AUTH_PROVIDER_NAME_ENTRAID_OPENID = "ENTRAID_OPENID";
+	public static final String AUTH_PROVIDER_NAME_MY_APP = "MY_APP";
+	public static final String AUTH_PROVIDER_NAME_JAPP_IAA = "JAPP_IAA";
+	
+	public static final String AUTHN_TYPE_BASIC = "MY_APP_BASIC";
+	public static final String AUTHN_TYPE_BASIC_TOTP = "MY_APP_BASIC_TOTP";
+	public static final String AUTHN_TYPE_BASIC_TOTP_CERT = "MY_APP_BASIC_TOTP_CERT";
+	
 
 	public static final String FRONTEND_UI_FRAMEWORK_NONE = "none";
 	public static final String FRONTEND_UI_FRAMEWORK_ANGULAR = "angular";
@@ -36,8 +42,8 @@ public class AppConstant {
 	public static final String JWT_TOKEN_NAME = "Japp_Jwt";
 	public static final String JWT_TOKEN_ISSUE_BY = "Japp_ApiServer";
 
-	public static final String JWT_CLAIM_KEY_ISSUE_APPID = "issueAppId";
-	public static final String JWT_CLAIM_KEY_TARGET_APPID = "targetAppId";
+	public static final String JWT_CLAIM_KEY_ISSUE_APPID = "iss";
+	public static final String JWT_CLAIM_KEY_TARGET_APPID = "aud";
 	
 	public static final String JWT_CLAIM_KEY_CONTEXT_ID = "ctxId";
 	public static final String JWT_CLAIM_KEY_TARGET_IP = "targetIp";
@@ -57,6 +63,7 @@ public class AppConstant {
 	public static final String BUSINESS_ROLE_IT_SUPPORT = "JAPP.BR.IT.SUPPORT";
 
 
+	public static final String JAPPCORE_TX_ID = "JAPPCORE_TX_ID";
 	public static final String JAPPCORE_SPRING_ACTIVE_PROFILE_PROD = "PROD";
 
 	public static final String ASYNC_EXECUTOR_REJECT_POLICY_DEFAULT = "default";
